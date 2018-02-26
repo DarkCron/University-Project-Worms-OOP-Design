@@ -2,6 +2,7 @@ package worms.model;
 
 import be.kuleuven.cs.som.annotate.*;
 import worms.exceptions.InvalidLocationException;
+import worms.util.ModelException;
 
 /**
  * A class describing our in-game characters, the worms. TODO
@@ -20,7 +21,7 @@ public class Worm {
 	//NOTE this means we need to defensively program Double.isNaN(x) and Double.isNaN(y)
 	public void setLocation(double x, double y) {
 		if (!isValidDirection(x, y))
-			throw new InvalidLocationException(x,y);
+			throw new ModelException(new InvalidLocationException(x, y));
 		
 		location[0] = x;
 		location[1] = y;
