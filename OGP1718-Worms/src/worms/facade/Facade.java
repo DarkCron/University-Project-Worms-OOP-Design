@@ -1,5 +1,8 @@
 package worms.facade;
 
+import worms.exceptions.InvalidLocationException;
+import worms.exceptions.InvalidRadiusException;
+import worms.exceptions.InvalidWormNameException;
 import worms.model.Worm;
 import worms.util.ModelException;
 
@@ -11,14 +14,29 @@ public class Facade implements IFacade {
 
 	@Override
 	public Worm createWorm(double[] location, double direction, double radius, String name) throws ModelException {
-		Worm w = new Worm(location, direction, radius, name);
+		Worm w = null;
+		
+		try {
+			w = new Worm(location, direction, radius, name);
+		} catch (InvalidLocationException e) {
+			throw new ModelException(e);
+		} catch (InvalidWormNameException e) {
+			throw new ModelException(e);
+		} catch (InvalidRadiusException e) {
+			throw new ModelException(e);
+		}
+		
 		return w;
 	}
 
 	@Override
 	public void move(Worm worm, int nbSteps) throws ModelException {
 		// TODO Auto-generated method stub
-
+		try {
+			
+		} catch (InvalidLocationException e) {
+			throw new ModelException(e);
+		}
 	}
 
 	@Override
@@ -30,7 +48,11 @@ public class Facade implements IFacade {
 	@Override
 	public void jump(Worm worm) throws ModelException {
 		// TODO Auto-generated method stub
-
+		try {
+			
+		} catch (InvalidLocationException e) {
+			throw new ModelException(e);
+		}
 	}
 
 	@Override
@@ -67,7 +89,11 @@ public class Facade implements IFacade {
 
 	@Override
 	public void setRadius(Worm worm, double newRadius) throws ModelException {
-		worm.setRadius(newRadius);
+		try {
+			worm.setRadius(newRadius);
+		} catch (InvalidRadiusException e) {
+			throw new ModelException(e);
+		}
 	}
 
 	@Override
@@ -92,7 +118,11 @@ public class Facade implements IFacade {
 
 	@Override
 	public void rename(Worm worm, String newName) throws ModelException {
-		worm.setName(newName);
+		try {
+			worm.setName(newName);
+		} catch (InvalidLocationException e) {
+			throw new ModelException(e);
+		}
 	}
 
 	@Override
