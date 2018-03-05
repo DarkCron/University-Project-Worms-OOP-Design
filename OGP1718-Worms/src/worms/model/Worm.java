@@ -8,7 +8,7 @@ import worms.exceptions.InvalidRadiusException;
 /**
  * A class describing our in-game characters, the worms.
  * 
- * @author Liam, Bernd TODO CODE
+ * @author Liam, Bernd
  * @Invar worm's location is within bounds.
  * 		| isValidLocation(getLocation())
  * @Invar worm's direction is within the bounds of 0 and 2Pi.
@@ -18,12 +18,50 @@ import worms.exceptions.InvalidRadiusException;
  * @Invar worm's action points may never be less than 0 or larger than the
  *        worm's max AP
  *      | isValidAmountOfActionPoints(getCurrentActionPoints())
- * @Invar ??? worm's mass and it's max action points
+ * @Invar worm's max AP is always the worm's mass rounded up
+ * 		| hasProperMaxActionPoints()
  * @Invar worm's name must be valid 
  * 		| nameContainsValidCharactersOnly(getName())
  */
 public class Worm {
 
+	/**
+	 * The constructor for creating a new worm. The worm have it's properties initialized based on:
+	 * the given direction, location, radius and name.
+	 * When given parameters do not comply to the Worm-class's restrictions an error gets thrown or
+	 * an attempt will be made to adjust the given values.
+	 * 
+	 * @param location
+	 * 		A given tuple of coordinates, with at index 0 the supposed x-coordinate and at index 1 the supposed
+	 * 		y - coordinate.
+	 * @param direction
+	 *      The given direction the worm should be facing
+	 * @param radius
+	 * 	    The given radius for a worm, bigger radius is bigger worm. Minimum
+	 *      radius may be in effect.
+	 * @param name
+	 *      The given name to try to assign to the worm.
+	 *      
+	 * @post The location of the worm is the same as the given location.
+	 * 		|new.getLocation() == location
+	 * @post The direction of the worm is the same as the given direction.
+	 * 		|new.getDirection() == direction
+	 * @post The radius of the worm is the same as the given radius.
+	 * 		|new.getRadius() == radius
+	 * @post The name of the worm is the same as the given name.
+	 * 		|new.getName() == name
+	 * 	
+	 * @throws InvalidWormNameException
+	 * 		The given name is not a valid one for the worm, it contains invalid characters.
+	 * 		| !nameContainsValidCharactersOnly(name)
+	 * @throws InvalidRadiusException
+	 * 		The given radius is not a valid one, the given radius is less than the minimum allowed radius.
+	 * 		| !isValidRadius(location)
+	 * @throws InvalidLocationException
+	 * 		The given location is not a valid one, the location doesn't exist ( is null) or at least one of
+	 * 		the coordinates is not a valid one (one of the coordinates is NaN, Not a Number).
+	 * 		| !isValidLocation(location)
+	 */
 	@Raw
 	public Worm(double[] location, double direction, double radius, String name)
 			throws InvalidWormNameException, InvalidRadiusException, InvalidLocationException {
@@ -40,6 +78,8 @@ public class Worm {
 	 * NaN (Not a Number), the location will be rejected and a InvalidLocationException will be thrown.
 	 * 
 	 * @param location
+	 * 		A given tuple of coordinates, with at index 0 the supposed x-coordinate and at index 1 the supposed
+	 * 		y - coordinate.
 	 * 
 	 * @post Location of the worm should be the given location. 
 	 * 		|new.getLocation() == location
@@ -51,9 +91,10 @@ public class Worm {
 	 */
 	@Raw
 	public void setLocation(double[] location) throws InvalidLocationException {
-		if (!isValidLocation(location))
+		if (!isValidLocation(location)) {
 			throw new InvalidLocationException(location);
-
+		}
+		
 		this.location[0] = location[0]; // worms location gets given location
 		this.location[1] = location[1];
 	}
@@ -71,13 +112,19 @@ public class Worm {
 	 *         | && (location[0] !=Double.NaN && location[1] != Double.NaN)
 	 */
 	public static boolean isValidLocation(double[] location) {
-		if (location == null)
+		if (location == null) {
 			return false;
-		if (location[0] == Double.NaN || location[1] == Double.NaN)
+		}
+		if (location[0] == Double.NaN || location[1] == Double.NaN) {
 			return false;
+		}
+		
 		return true;
 	}
 
+	//A double is a primitive type in Java, this means a double is initialized at 0.0 (it's default value)
+	//Upon declaration of this array (tuple) it's contents will be a 0.0 at index 0 and 0.0 at index 1.
+	//Therefore, the initialized state of 'location' will be a valid position for the class's invariant
 	private double[] location = new double[2];
 
 	/**
@@ -106,7 +153,8 @@ public class Worm {
 		assert direction >= 0 && direction < 2 * Math.PI;
 		this.direction = direction;
 	}
-
+	
+	//A primitive type double in Java is initialized as 0.0, thus direction is correct for the class invariant.
 	private double direction;
 
 	/**
@@ -152,9 +200,16 @@ public class Worm {
 		this.radius = radius;
 		setMass();
 	}
-
-	private double radius = -1;
+	
+	//We introduce a static final to set the minimum lower bounds where 'every' worm should comply to.
 	private final static double minRadius = 0.25;
+	
+	//The default initialization would set the radius to 0.0, this however isn't correct
+	//according to the rules of the class invariant stating it should be at least equal or bigger
+	//to the minimum radius.
+	private double radius = 0.25;
+	
+
 
 	/**
 	 * Checks whether a given radius is valid.
@@ -178,15 +233,17 @@ public class Worm {
 		return minRadius <= radius;
 	}
 
+	//A given constant value, therefore a static final value.
 	private static final double worm_density = 1062;
 
 	/**
 	 * Calculates and returns the resulting mass of a worm with it's properties
 	 * (radius for example).
 	 * 
-	 * @post calculateMass returns the worms effective mass, calculated using its
+	 * @return calculateMass returns the worms effective mass, calculated using its
 	 *       own radius and density.
-	 *       |new.getMass() == worm_density * (((double)4 /(double)3) * Math.PI * Math.pow(this.radius, 3))
+	 *       |result == 
+	 *       |		worm_density * (((double)4 /(double)3) * Math.PI * Math.pow(this.radius, 3))
 	 */
 	@Raw
 	public double calculateMass() {
@@ -206,17 +263,25 @@ public class Worm {
 	 * Action Points depends on a worm's weight the worm's max AP will be calculated
 	 * and set in this function as well.
 	 * 
-	 * @effect The worm its current mass equals the the newly calculated mass.
+	 * @post The worm its current mass equals the the newly calculated mass.
 	 *         |new.getMass() == this.calculateMass();
-	 * @post Whenever the worm its mass gets changed, also will its maxActionPoints
-	 *       |new.getMaxActionPoints() = this.getMaxActionPoints();
+	 * @post Whenever the worm's mass gets changed, it's max AP will be changed accordingly
+	 *       |new.getMaxActionPoints() == this.calculateMaxActionPoints();
+	 *       
+	 * @note this.calculateMass() and  this.calculateMaxActionPoints() can reliably be used correctly
+	 * 		with the class invariants since the mass is affected by the current radius of the worm.
+	 * 		Weight and thus max AP only changes whenever the radius changes. However the radius isn't changed
+	 * 		inside this method, thus a worm's radius can be considered constant in and exactly in this function.
 	 */
 	public void setMass() {
 		this.mass = calculateMass();
 		this.maxActionPoints = this.calculateMaxActionPoints();
 	}
 
-	private double mass;
+	//The default initialization for mass would be 0.0, this however isn't correct according
+	//to our class invariant. We therefore set the initial mass of a worm to be equal to the minimum
+	//size a worm can be (since a worm's radius is initialized to it's minimum lower bound).
+	private double mass =  worm_density * (((double) 4 / (double) 3) * Math.PI * Math.pow(minRadius, 3));
 
 	/**
 	 * Calculates the maximum amount of action points a worm can have at a certain moment with a certain size (radius).
@@ -236,13 +301,20 @@ public class Worm {
 	public int getMaxActionPoints() {
 		return this.maxActionPoints;
 	}
+	
+	/**
+	 * Checks whether a worm's current max AP is correctly dependent on it's weight.
+	 */
+	public boolean hasProperMaxActionPoints() {
+		return (Math.round((float) this.getMass()) == maxActionPoints);
+	}
 
 	/**
 	 * Resets the worm's active Action Points to the worm's maximum amount of AP.
 	 * 
 	 * @post Each time function is called, action points get reset to their maximum
 	 *       value.
-	 *       |new.getActonPoints() = this.maxActionPoints
+	 *       |new.getActonPoints() == this.maxActionPoints
 	 */
 	@Raw
 	public void resetActionPoints() {
@@ -310,15 +382,22 @@ public class Worm {
 		return currentActionPoints;
 	}
 
+	//In Java int is primitive data type, it's default initialization is 0. Which is correct
+	//for our class invariant.
 	private int currentActionPoints;
-	private int maxActionPoints;
+	//The default initialization for an int is 0, however another class invariant states the max AP
+	//of a worm depends on it's weight. Therefore we initialize it's maxAP based on the weight (calculated before).
+	//Which we know exists since a worm starts with min radius and has it's mass calculated based on that.
+	private int maxActionPoints = Math.round((float) this.getMass());
 
 	/**
 	 * Sets the name of the worm. If the given name for a worm is invalid, meaning the name is null,
 	 * or the name contains any invalid characters a InvalidWormNameException will be thrown.
 	 * 
+	 * @param name
+	 *      The given name to try to assign to the worm.
 	 * @post Given name becomes the worm its name.
-	 * 		|new.getName() = name;
+	 * 		|new.getName() == name;
 	 * @throws InvalidWormNameException whenever character contains an invalid character. 
 	 *      |!isValidName(name)
 	 */
@@ -330,8 +409,10 @@ public class Worm {
 		this.name = name;
 		return;
 	}
-
-	private String name;
+	
+	//name is not a primitive data type, therefore it will be initialized to null. Which is not
+	//according to the class invariants. We therefore initialize the worm's name to a 'proper' name.
+	private String name = "Worm";
 
 	/**
 	 * Checks whether a character is a valid one for a worm's name.
@@ -370,9 +451,15 @@ public class Worm {
 	 * Check whether a string name only contains characters that are allowed by the
 	 * programmer.
 	 * 
-	 * @return False if the given name is null
+	 * @return False if the given name is shorter than 2 characters
 	 * 		| result ==
 	 * 		|	(name == null)
+	 * @return False if the given name is null
+	 * 		| result ==
+	 * 		|	(name.length() < 2)
+	 * @return False if the given name does not start with an uppercase character
+	 * 		| result ==
+	 * 		|	(!Character.isUpperCase(name.charAt(0))
 	 * @return True if all characters in string name are valid. 
 	 * 		|	boolean bIsValidName = true
 	 * 		|	for (char c :name.toCharArray()) 
@@ -391,6 +478,13 @@ public class Worm {
 		{
 			return false;
 		}
+		if(name.length() < 2) {
+			return false;
+		}
+		if(!Character.isUpperCase(name.charAt(0))) {
+			return false;
+		}
+		
 		boolean bNameIsValid = true;
 		
 		for (char c : name.toCharArray()) {
@@ -409,5 +503,7 @@ public class Worm {
 	public String getName() {
 		return name;
 	}
+	
+	
 
 }
