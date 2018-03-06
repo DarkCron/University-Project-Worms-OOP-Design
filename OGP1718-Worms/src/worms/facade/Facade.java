@@ -31,9 +31,8 @@ public class Facade implements IFacade {
 
 	@Override
 	public void move(Worm worm, int nbSteps) throws ModelException {
-		// TODO Auto-generated method stub
 		try {
-			
+			worm.Move(nbSteps);
 		} catch (InvalidLocationException e) {
 			throw new ModelException(e);
 		}
@@ -41,7 +40,7 @@ public class Facade implements IFacade {
 
 	@Override
 	public void turn(Worm worm, double angle) throws ModelException {
-		// TODO Auto-generated method stub
+		worm.Turn(angle);
 
 	}
 

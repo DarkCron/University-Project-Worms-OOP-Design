@@ -122,16 +122,17 @@ public class Worm {
 		return true;
 	}
 
-	//A double is a primitive type in Java, this means a double is initialized at 0.0 (it's default value)
-	//Upon declaration of this array (tuple) it's contents will be a 0.0 at index 0 and 0.0 at index 1.
-	//Therefore, the initialized state of 'location' will be a valid position for the class's invariant
+	/**
+	* A double is a primitive type in Java, this means a double is initialized at 0.0 (it's default value)
+	* Upon declaration of this array (tuple) it's contents will be a 0.0 at index 0 and 0.0 at index 1.
+	* Therefore, the initialized state of 'location' will be a valid position for the class's invariant
+	*/
 	private double[] location = new double[2];
 
 	/**
 	 * returns the worm's current x and y location.
 	 */
 	@Basic
-	@Raw
 	public double[] getLocation() {
 		return this.location;
 	}
@@ -154,7 +155,9 @@ public class Worm {
 		this.direction = direction;
 	}
 	
-	//A primitive type double in Java is initialized as 0.0, thus direction is correct for the class invariant.
+	/**
+	 * A primitive type double in Java is initialized as 0.0, thus direction is correct for the class invariant.
+	 */
 	private double direction;
 
 	/**
@@ -201,12 +204,16 @@ public class Worm {
 		setMass();
 	}
 	
-	//We introduce a static final to set the minimum lower bounds where 'every' worm should comply to.
-	private final static double minRadius = 0.25;
+	/**
+	 * We introduce a static final to set the minimum lower bounds where 'every' worm should comply to.
+	 */
+	private final static double MINIMUM_RADIUS = 0.25;
 	
-	//The default initialization would set the radius to 0.0, this however isn't correct
-	//according to the rules of the class invariant stating it should be at least equal or bigger
-	//to the minimum radius.
+	/**
+	* The default initialization would set the radius to 0.0, this however isn't correct
+	* according to the rules of the class invariant stating it should be at least equal or bigger
+	* to the minimum radius.
+	*/
 	private double radius = 0.25;
 	
 
@@ -226,15 +233,15 @@ public class Worm {
 	 * 		| minRadius > radius
 	 */
 	public boolean isValidRadius(double radius) {
-		if (minRadius > radius) {
+		if (MINIMUM_RADIUS > radius) {
 			return false;
 		}
 
-		return minRadius <= radius;
+		return MINIMUM_RADIUS <= radius;
 	}
 
 	//A given constant value, therefore a static final value.
-	private static final double worm_density = 1062;
+	private static final double WORM_DENSITY = 1062;
 
 	/**
 	 * Calculates and returns the resulting mass of a worm with it's properties
@@ -247,7 +254,7 @@ public class Worm {
 	 */
 	@Raw
 	public double calculateMass() {
-		return worm_density * (((double) 4 / (double) 3) * Math.PI * Math.pow(this.radius, 3));
+		return WORM_DENSITY * (((double) 4 / (double) 3) * Math.PI * Math.pow(this.radius, 3));
 	}
 
 	/**
@@ -278,10 +285,12 @@ public class Worm {
 		this.maxActionPoints = this.calculateMaxActionPoints();
 	}
 
-	//The default initialization for mass would be 0.0, this however isn't correct according
-	//to our class invariant. We therefore set the initial mass of a worm to be equal to the minimum
-	//size a worm can be (since a worm's radius is initialized to it's minimum lower bound).
-	private double mass =  worm_density * (((double) 4 / (double) 3) * Math.PI * Math.pow(minRadius, 3));
+	/**
+	 * The default initialization for mass would be 0.0, this however isn't correct according
+	 * to our class invariant. We therefore set the initial mass of a worm to be equal to the minimum
+	 * size a worm can be (since a worm's radius is initialized to it's minimum lower bound).
+	 */
+	private double mass =  WORM_DENSITY * (((double) 4 / (double) 3) * Math.PI * Math.pow(MINIMUM_RADIUS, 3));
 
 	/**
 	 * Calculates the maximum amount of action points a worm can have at a certain moment with a certain size (radius).
@@ -377,17 +386,21 @@ public class Worm {
 	/**
 	 * Returns the currentActionPoints for the current worm.
 	 */
-	@Raw
+	@Basic
 	public int getCurrentActionPoints() {
 		return currentActionPoints;
 	}
 
-	//In Java int is primitive data type, it's default initialization is 0. Which is correct
-	//for our class invariant.
+	/**
+	 * In Java int is primitive data type, it's default initialization is 0. Which is correct
+	 * for our class invariant.
+	 */
 	private int currentActionPoints;
-	//The default initialization for an int is 0, however another class invariant states the max AP
-	//of a worm depends on it's weight. Therefore we initialize it's maxAP based on the weight (calculated before).
-	//Which we know exists since a worm starts with min radius and has it's mass calculated based on that.
+	/**
+	 * The default initialization for an int is 0, however another class invariant states the max AP
+	 * 	of a worm depends on it's weight. Therefore we initialize it's maxAP based on the weight (calculated before).
+	 * Which we know exists since a worm starts with min radius and has it's mass calculated based on that.
+	 */
 	private int maxActionPoints = Math.round((float) this.getMass());
 
 	/**
@@ -410,8 +423,10 @@ public class Worm {
 		return;
 	}
 	
-	//name is not a primitive data type, therefore it will be initialized to null. Which is not
-	//according to the class invariants. We therefore initialize the worm's name to a 'proper' name.
+	/**
+	 * name is not a primitive data type, therefore it will be initialized to null. Which is not
+	 * according to the class invariants. We therefore initialize the worm's name to a 'proper' name.
+	 */
 	private String name = "Worm";
 
 	/**
@@ -499,11 +514,51 @@ public class Worm {
 	 * returns the given name of the worm.
 	 */
 	@Basic
-	@Raw
 	public String getName() {
 		return name;
 	}
 	
+	public void Move(int nbSteps) throws InvalidLocationException {
+		double[] deltaMovement = new double[2];
+		deltaMovement[0] = Math.cos(this.getDirection()) * this.getRadius(); 
+	    deltaMovement[1] = Math.sin(this.getDirection()) * this.getRadius();
+
+	    double[] tmpLocation = new double[2];
+	    tmpLocation[0] = deltaMovement[0] + this.getLocation()[0];
+	    tmpLocation[1] = deltaMovement[1] + this.getLocation()[1];
+	    
+	    
+		if(!isValidLocation(tmpLocation)) {
+			throw new InvalidLocationException(tmpLocation);
+		}
+		
+		
+		
+		//Should we check if the movement is possible due to the amount of current action points???
+		this.setActionPoints(this.getCurrentActionPoints() - this.getMovementCost(deltaMovement));
+		setLocation(tmpLocation);
+		
+		if(nbSteps>1) {
+			this.Move(nbSteps-1);
+		}
+	}
 	
+	public int getMovementCost(double[] deltaMovement) {
+		int cost = 0;
+		cost = (int) Math.ceil(Math.abs(Math.cos(this.getDirection())) + Math.abs(4*Math.sin(this.getDirection())));
+		
+		return cost;
+	}
+	
+	public void Turn(double angle) {
+		this.setActionPoints(this.getCurrentActionPoints() - this.getTurnCost(angle));
+		setDirection(angle + getDirection());
+	}
+	
+	public int getTurnCost(double angle) {
+		int cost = 0;
+		cost = (int)Math.ceil((angle/(2*Math.PI)*60));
+		return cost;
+	}
 
 }
