@@ -5,6 +5,7 @@ import worms.internal.gui.GUIUtils;
 import worms.internal.gui.game.PlayGameScreen;
 import worms.internal.gui.messages.MessageType;
 import worms.model.Worm;
+import worms.util.ModelException;
 
 public class Turn extends InstantaneousCommand {
 	private final Worm worm;
@@ -20,17 +21,20 @@ public class Turn extends InstantaneousCommand {
 	protected boolean canStart() {
 		return worm != null;
 	}
-	
+
 	@Override
 	protected void afterExecutionCancelled() {
-		getScreen().addMessage("This worm cannot perform that turn :(",
-				MessageType.ERROR);
+		getScreen().addMessage("This worm cannot perform that turn :(", MessageType.ERROR);
 	}
-	
+
 	@Override
 	protected void doStartExecution() {
-		double direction = getFacade().getOrientation(worm);
-		double angleToTurn = GUIUtils.restrictDirection(direction + angle) - direction;
-		getFacade().turn(worm, angleToTurn);
+		try {
+			double direction = getFacade().getOrientation(worm);
+			double angleToTurn = GUIUtils.restrictDirection(direction + angle) - direction;
+			getFacade().turn(worm, angleToTurn);
+		} catch (ModelException e) {
+			cancelExecution();
+		}
 	}
 }
