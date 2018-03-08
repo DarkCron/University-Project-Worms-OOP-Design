@@ -1,7 +1,5 @@
 package worms.model;
 
-import javax.activity.InvalidActivityException;
-
 import be.kuleuven.cs.som.annotate.*;
 import worms.exceptions.InvalidLocationException;
 import worms.exceptions.InvalidWormNameException;
@@ -24,6 +22,8 @@ import worms.exceptions.InvalidRadiusException;
  * 		| hasProperMaxActionPoints()
  * @Invar worm's name must be valid 
  * 		| nameContainsValidCharactersOnly(getName())
+ * @Invar worm's jump speed (vector)magnitude 
+ * 		| isValidJumpSpeedMagnitude(getJumpSpeedMagnitude())
  */
 public class Worm {
 
@@ -516,6 +516,18 @@ public class Worm {
 		return name;
 	}
 	
+	/**
+	 * Handles movement for a worm, defined by both a worm's radius and a given amount of steps.
+	 * Recursively handles a given step amount so that in the final function's call the amount of
+	 * given steps is exactly 1.
+	 * 
+	 * @param nbSteps
+	 * 		Amount of steps a worm should take.
+	 * @throws InvalidLocationException
+	 * 
+	 * @effect moving has a certain cost for a worm, currently handled in setActionPoints
+	 * 		| this.setActionPoints(this.getCurrentActionPoints() - this.getMovementCost());
+	 */
 	public void Move(int nbSteps) throws InvalidLocationException {
 		double[] deltaMovement = new double[2];
 		deltaMovement[0] = Math.cos(this.getDirection()) * this.getRadius(); 
@@ -533,29 +545,57 @@ public class Worm {
 		
 		
 		//Should we check if the movement is possible due to the amount of current action points???
-		this.setActionPoints(this.getCurrentActionPoints() - this.getMovementCost(deltaMovement));
-		setLocation(tmpLocation);
+		this.setActionPoints(this.getCurrentActionPoints() - this.getMovementCost());
+		this.setLocation(tmpLocation);
 		
 		if(nbSteps>1) {
 			this.Move(nbSteps-1);
 		}
 	}
 	
-	public int getMovementCost(double[] deltaMovement) {
+	/**
+	 * Returns the cost in AP of a worm based on it's current direction for moving.
+	 * An AP cost is always handled as an integer. The cost is therefore rounded up.
+	 * 
+	 * @return returns the movement cost for a single step for a worm. As an integer.
+	 * 		| result ==
+	 * 		|	(int) Math.ceil(Math.abs(Math.cos(this.getDirection())) + Math.abs(4*Math.sin(this.getDirection())))
+	 */
+	public int getMovementCost() {
 		int cost = 0;
 		cost = (int) Math.ceil(Math.abs(Math.cos(this.getDirection())) + Math.abs(4*Math.sin(this.getDirection())));
 		
 		return cost;
 	}
 	
+	/**
+	 * Changes the direction of the current worm based on a given difference between the new and old direction.
+	 * This function also handles the cost of changing the given angle amount.
+	 * 
+	 * @param angle
+	 * 		| A given angle representing the difference between the new angle and previous angle of the worm.
+	 * 		| This angle is always between -pi and pi.
+	 * @effect AP cost of changing direction is handled in setDirection
+	 * 		| setDirection(angle + this.getDirection())
+	 */
 	//ANGLE IS DIFFERENCE BETWEEN NEW AND OLD ANGLE, angle = new - old
 	public void Turn(double angle) {
-		double newDirection = (angle + getDirection());
+		double newDirection = (angle + this.getDirection());
 		this.setActionPoints(this.getCurrentActionPoints() - this.getTurnCost(angle));
 		setDirection(newDirection);
 	}
 	
+	/**
+	 * This function returns the AP cost to complete the rotation of a certain angle.
+	 * 
+	 * @param angle
+	 * 		A given angle in radians
+	 * @return Returns the cost of the rotationary angle based on a math formula.
+	 * 		| result ==
+	 * 		|	Math.abs((int)Math.ceil((angle/(2*Math.PI)*60)))
+	 */
 	public int getTurnCost(double angle) {
+		//TODO Question, preference instanced or static
 		int cost = 0;
 		cost = Math.abs((int)Math.ceil((angle/(2*Math.PI)*60)));
 		return cost;
@@ -581,10 +621,22 @@ public class Worm {
 		this.setActionPoints(0);
 	}
 	
+	/**
+	 * Returns a worm's jump force when perfoming a new jump, based on it's mass and remaining AP.
+	 */
 	public double jumpForce() {
 		return ((float)5*(float)this.getCurrentActionPoints())+(this.getMass()*GRAVITY);
 	}
 	
+	/**
+	 * Checks whether a given velocity magnitude is a valid one.
+	 * 
+	 * @param jumpSpeed
+	 * 		The given jumpSpeed to check.
+	 * @return True when the given magnitude is larger than 0, not infinite and a valid number.
+	 * 		| result ==
+	 * 		|	 ((jumpSpeed > 0) && !Double.isNaN(jumpSpeed) && !Double.isInfinite(jumpSpeed))
+	 */
 	public static boolean isValidJumpSpeedMagnitude(double jumpSpeed) {
 		if (jumpSpeed < 0) {
 			//error
@@ -603,14 +655,45 @@ public class Worm {
 		return true;
 	}
 	
+	/**
+	 * Returns the worm's current jump velocity magnitude.
+	 */
+	@Basic
 	public double getJumpSpeedMagnitude() {
 		return this.jumpSpeedMagnitude;
 	}
 	
-	private static double GRAVITY = 5.0;
-	private static double JUMP_TIME_DELTA = 0.5;
+	/**
+	 * A constant, representing a ficticious in game simulation of real life gravity. To
+	 * ensure worms fall back to the ground.
+	 */
+	private final static double GRAVITY = 5.0;
+	/**
+	 * A constant, the time in which a jump should complete in real time seconds.
+	 */
+	private final static double JUMP_TIME_DELTA = 0.5;
+	/**
+	 * The vector representation of the current jumpspeed of a worm. Defaults at zero since a
+	 * worm doesn't jump at initialization. Since this double represents a vector as a number
+	 * we assume the jump vector axis along the screen x and y coordinate space of the game.
+	 */
 	private double jumpSpeedMagnitude = 0;
 
+	/**
+	 * This function returns a theoretical position for a worm performing a jump after a
+	 * given amount of jumptime has passed.
+	 * 
+	 * @param deltaTime
+	 * 		A given time representation based on the total jump time for a worm.
+	 * @return Returns a theoretical position for a worm performing a jump after a certain given time has passed.
+	 * 		| double[] tmpLocation = new double[2];
+	 * 		| tmpLocation[0] = this.getLocation()[0] + (this.getJumpSpeedMagnitude()*Math.cos(this.getDirection())*deltaTime)
+	 * 		| tmpLocation[1] = this.getLocation()[1] + ((this.getJumpSpeedMagnitude()*Math.sin(this.getDirection())*deltaTime) - (((float)1/(float)2)*GRAVITY*Math.pow(deltaTime,2)))
+	 * 		| result == tmpLocation
+	 * @throws InvalidLocationException
+	 * 		This function returns an exception if a calculated position is an invalid one for a worm.
+	 * 		| !isValidLocation(tmpLocation)
+	 */
 	public double[] jumpStep(double deltaTime) throws InvalidLocationException{
 		//speed in air
 		double speedX = this.getJumpSpeedMagnitude()*Math.cos(this.getDirection());
@@ -628,21 +711,38 @@ public class Worm {
 		return tmpLocation;
 	}
 	
+	/**
+	 * Calculates the total jumpTime for a worm.
+	 */
 	public void CalculateJumpTime() {
 		double distance = Math.pow(this.getJumpSpeedMagnitude(), 2)*Math.sin(this.getDirection()*((float)2))/GRAVITY;
 		double timeInterval = (distance/(this.getJumpSpeedMagnitude()*Math.cos(this.getDirection())));
 		setJumpTime(timeInterval);
 	}
 
+	/**
+	 * Sets a given total air time for a jump to a worm.
+	 * 
+	 * @param time
+	 * 		A given amount of total air time.
+	 * @post A worm's jumpTime will be equal to the given time.
+	 * 		| new.jumpTime = time;
+	 */
 	public void setJumpTime(double time) {
 		this.jumpTime = time;
 	}
 	
+	/**
+	 * Returns the worm's total supposed jump air time.
+	 */
+	@Basic
 	public double getJumpTime() {
-		return jumpTime;
+		return this.jumpTime;
 	}
 
-	
+	/**
+	 * The total amount of air time for a worm performing a jump.
+	 */
 	private double jumpTime = 0;
 
 
