@@ -556,5 +556,81 @@ public class Worm {
 		cost = (int)Math.ceil((angle/(2*Math.PI)*60));
 		return cost;
 	}
+	
+	public void Jump() {
+		// Checking the worm's direction for jumping.
+		if (this.getDirection() >= 0 && this.getDirection() <= Math.PI) {
+			return;
+		}
+		
+		jumpSpeedMagnitude = (this.jumpForce()/this.getMass())*JUMP_TIME_DELTA;
+		if (!isValidJumpSpeedMagnitude(jumpSpeedMagnitude)) {
+			throw new IllegalArgumentException();//FIX DEZE SHIT	
+		}
+
+		this.setActionPointsAfterJump();
+	}
+	
+	public void setActionPointsAfterJump() {
+		this.setActionPoints(0);
+	}
+	
+	public double jumpForce() {
+		return (5*this.getCurrentActionPoints())+(this.getMass()*GRAVITY);
+	}
+	
+	public static boolean isValidJumpSpeedMagnitude(double jumpSpeed) {
+		if (jumpSpeed < 0) {
+			//error
+			return false;
+		}
+		
+		else if (Double.isNaN(jumpSpeed)) {
+			//error
+			return false;
+		}
+		
+		else if (Double.isInfinite(jumpSpeed)){
+			//error
+			return false;
+		}
+		return true;
+	}
+	
+	public double getJumpSpeedMagnitude() {
+		return this.jumpSpeedMagnitude;
+	}
+	
+	private static double GRAVITY = 5.0;
+	private static double JUMP_TIME_DELTA = 0.5;
+	private double jumpSpeedMagnitude = 0;
+
+	public double[] jumpStep(double deltaTime) throws InvalidLocationException{
+		//speed in air
+		double speedX = this.getJumpSpeedMagnitude()*Math.cos(this.getDirection());
+		double speedY = this.getJumpSpeedMagnitude()*Math.sin(this.getDirection());
+		//Position in air
+		double xPosTime = this.getLocation()[0]+(speedX*deltaTime);
+		double yPosTime = this.getLocation()[1]+(speedY*deltaTime);
+		
+		double[] tmpLocation = new double[2];
+		tmpLocation[0] = xPosTime;
+		tmpLocation[1] = yPosTime;
+		if (!isValidLocation(tmpLocation)) {
+			throw new InvalidLocationException(tmpLocation);
+		}
+		return tmpLocation;
+	}
+
+	public double getJumpTime() {
+		double distance = Math.pow(this.getJumpSpeedMagnitude(), 2)*Math.sin(this.getDirection()*2)/GRAVITY;
+		double timeInterval = (distance/(this.getJumpSpeedMagnitude()*Math.cos(this.getDirection())));
+		return timeInterval;
+	}
+
+	
+	
+
+
 
 }

@@ -46,24 +46,26 @@ public class Facade implements IFacade {
 
 	@Override
 	public void jump(Worm worm) throws ModelException {
-		// TODO Auto-generated method stub
 		try {
-			
-		} catch (InvalidLocationException e) {
+			worm.Jump();
+		} catch (IllegalArgumentException e) {
 			throw new ModelException(e);
 		}
 	}
 
 	@Override
 	public double getJumpTime(Worm worm) throws ModelException {
-		// TODO Auto-generated method stub
-		return 0;
+		
+		return worm.getJumpTime();
 	}
 
 	@Override
 	public double[] getJumpStep(Worm worm, double t) throws ModelException {
-		// TODO Auto-generated method stub
-		return null;
+		try {
+			return worm.jumpStep(t);
+		} catch (InvalidLocationException e) {
+			throw new ModelException(e);
+		}
 	}
 
 	@Override
