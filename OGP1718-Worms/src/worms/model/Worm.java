@@ -61,8 +61,9 @@ public class Worm {
 	 * 		The given location is not a valid one, the location doesn't exist ( is null) or at least one of
 	 * 		the coordinates is not a valid one (one of the coordinates is NaN, Not a Number).
 	 * 		| !isValidLocation(location)
+	 * 
+	 * @note All class invariants are satisfied upon instantiating a new Worm. Therefore we don't need the @Raw tag.
 	 */
-	@Raw
 	public Worm(double[] location, double direction, double radius, String name)
 			throws InvalidWormNameException, InvalidRadiusException, InvalidLocationException {
 		setLocation(location);
@@ -132,7 +133,7 @@ public class Worm {
 	/**
 	 * returns the worm's current x and y location.
 	 */
-	@Basic
+	@Basic @Raw
 	public double[] getLocation() {
 		return this.location;
 	}
@@ -173,7 +174,6 @@ public class Worm {
 	 * Returns the effective radius of the current worm.
 	 */
 	@Basic
-	@Raw
 	public double getRadius() {
 		return this.radius;
 	}
@@ -194,7 +194,6 @@ public class Worm {
 	 *         Whenever the radius is out of bounds.
 	 *     |!isValidRadius(radius)
 	 */
-	@Raw
 	public void setRadius(double radius) throws InvalidRadiusException {
 		if (!isValidRadius(radius)) {
 			throw new InvalidRadiusException(radius);
@@ -252,7 +251,6 @@ public class Worm {
 	 *       |result == 
 	 *       |		worm_density * (((double)4 /(double)3) * Math.PI * Math.pow(this.radius, 3))
 	 */
-	@Raw
 	public double calculateMass() {
 		return WORM_DENSITY * (((double) 4 / (double) 3) * Math.PI * Math.pow(this.radius, 3));
 	}
@@ -325,7 +323,6 @@ public class Worm {
 	 *       value.
 	 *       |new.getActonPoints() == this.maxActionPoints
 	 */
-	@Raw
 	public void resetActionPoints() {
 		this.currentActionPoints = this.maxActionPoints;
 	}
@@ -357,7 +354,6 @@ public class Worm {
 	 *       | then new.getCurrentActionPoints() == 0
 	 * 
 	 */
-	@Raw
 	public void setActionPoints(int amount) {
 		if (isValidAmountOfActionPoints(amount)) {
 			this.currentActionPoints = amount;
@@ -513,7 +509,7 @@ public class Worm {
 	/**
 	 * returns the given name of the worm.
 	 */
-	@Basic
+	@Basic @Raw
 	public String getName() {
 		return name;
 	}

@@ -78,7 +78,7 @@ public class Facade implements IFacade {
 
 	@Override
 	public double getOrientation(Worm worm) throws ModelException {
-		return worm.getRadius();
+		return worm.getDirection();
 	}
 
 	@Override
