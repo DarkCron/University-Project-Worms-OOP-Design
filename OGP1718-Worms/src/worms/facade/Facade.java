@@ -48,14 +48,13 @@ public class Facade implements IFacade {
 	public void jump(Worm worm) throws ModelException {
 		try {
 			worm.Jump();
-		} catch (IllegalArgumentException e) {
+		} catch (Exception e) {
 			throw new ModelException(e);
 		}
 	}
 
 	@Override
 	public double getJumpTime(Worm worm) throws ModelException {
-		
 		return worm.getJumpTime();
 	}
 
@@ -116,7 +115,7 @@ public class Facade implements IFacade {
 	public String getName(Worm worm) throws ModelException {
 		return worm.getName();
 	}
-
+	
 	@Override
 	public void rename(Worm worm, String newName) throws ModelException {
 		try {

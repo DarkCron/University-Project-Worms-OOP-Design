@@ -1,5 +1,7 @@
 package worms.model;
 
+import javax.activity.InvalidActivityException;
+
 import be.kuleuven.cs.som.annotate.*;
 import worms.exceptions.InvalidLocationException;
 import worms.exceptions.InvalidWormNameException;
@@ -546,29 +548,33 @@ public class Worm {
 		return cost;
 	}
 	
+	//ANGLE IS DIFFERENCE BETWEEN NEW AND OLD ANGLE, angle = new - old
 	public void Turn(double angle) {
+		double newDirection = (angle + getDirection());
 		this.setActionPoints(this.getCurrentActionPoints() - this.getTurnCost(angle));
-		setDirection(angle + getDirection());
+		setDirection(newDirection);
 	}
 	
 	public int getTurnCost(double angle) {
 		int cost = 0;
-		cost = (int)Math.ceil((angle/(2*Math.PI)*60));
+		cost = Math.abs((int)Math.ceil((angle/(2*Math.PI)*60)));
 		return cost;
 	}
 	
 	public void Jump() {
 		// Checking the worm's direction for jumping.
-		if (this.getDirection() >= 0 && this.getDirection() <= Math.PI) {
-			return;
+		if (!(this.getDirection() >= 0 && this.getDirection() <= Math.PI)) {
+			throw new RuntimeException();
 		}
 		
 		jumpSpeedMagnitude = (this.jumpForce()/this.getMass())*JUMP_TIME_DELTA;
 		if (!isValidJumpSpeedMagnitude(jumpSpeedMagnitude)) {
 			throw new IllegalArgumentException();//FIX DEZE SHIT	
 		}
-
+		this.CalculateJumpTime();
+		
 		this.setActionPointsAfterJump();
+
 	}
 	
 	public void setActionPointsAfterJump() {
@@ -576,7 +582,7 @@ public class Worm {
 	}
 	
 	public double jumpForce() {
-		return (5*this.getCurrentActionPoints())+(this.getMass()*GRAVITY);
+		return ((float)5*(float)this.getCurrentActionPoints())+(this.getMass()*GRAVITY);
 	}
 	
 	public static boolean isValidJumpSpeedMagnitude(double jumpSpeed) {
@@ -611,7 +617,7 @@ public class Worm {
 		double speedY = this.getJumpSpeedMagnitude()*Math.sin(this.getDirection());
 		//Position in air
 		double xPosTime = this.getLocation()[0]+(speedX*deltaTime);
-		double yPosTime = this.getLocation()[1]+(speedY*deltaTime);
+		double yPosTime = this.getLocation()[1]+((speedY*deltaTime) - (((float)1/(float)2)*GRAVITY*Math.pow(deltaTime,2)));
 		
 		double[] tmpLocation = new double[2];
 		tmpLocation[0] = xPosTime;
@@ -621,15 +627,23 @@ public class Worm {
 		}
 		return tmpLocation;
 	}
-
-	public double getJumpTime() {
-		double distance = Math.pow(this.getJumpSpeedMagnitude(), 2)*Math.sin(this.getDirection()*2)/GRAVITY;
+	
+	public void CalculateJumpTime() {
+		double distance = Math.pow(this.getJumpSpeedMagnitude(), 2)*Math.sin(this.getDirection()*((float)2))/GRAVITY;
 		double timeInterval = (distance/(this.getJumpSpeedMagnitude()*Math.cos(this.getDirection())));
-		return timeInterval;
+		setJumpTime(timeInterval);
+	}
+
+	public void setJumpTime(double time) {
+		this.jumpTime = time;
+	}
+	
+	public double getJumpTime() {
+		return jumpTime;
 	}
 
 	
-	
+	private double jumpTime = 0;
 
 
 
