@@ -527,6 +527,8 @@ public class Worm {
 	 * 
 	 * @effect moving has a certain cost for a worm, currently handled in setActionPoints
 	 * 		| this.setActionPoints(this.getCurrentActionPoints() - this.getMovementCost());
+	 * @effect resets any existing jump preparations
+	 * 		| this.cancelJump()
 	 */
 	public void Move(int nbSteps) throws InvalidLocationException {
 		double[] deltaMovement = new double[2];
@@ -547,6 +549,8 @@ public class Worm {
 		//Should we check if the movement is possible due to the amount of current action points???
 		this.setActionPoints(this.getCurrentActionPoints() - this.getMovementCost());
 		this.setLocation(tmpLocation);
+		
+		this.cancelJump();
 		
 		if(nbSteps>1) {
 			this.Move(nbSteps-1);
@@ -577,12 +581,15 @@ public class Worm {
 	 * 		| This angle is always between -pi and pi.
 	 * @effect AP cost of changing direction is handled in setDirection
 	 * 		| setDirection(angle + this.getDirection())
+	 * @effect resets any existing jump preparations
+	 * 		| this.cancelJump()
 	 */
 	//ANGLE IS DIFFERENCE BETWEEN NEW AND OLD ANGLE, angle = new - old
 	public void Turn(double angle) {
 		double newDirection = (angle + this.getDirection());
 		this.setActionPoints(this.getCurrentActionPoints() - this.getTurnCost(angle));
-		setDirection(newDirection);
+		this.setDirection(newDirection);
+		this.cancelJump();
 	}
 	
 	/**
@@ -602,21 +609,47 @@ public class Worm {
 	}
 	
 	public void Jump() {
+		if(this.getJumpSpeedMagnitude() == 0) {
+			this.PrepareJump();
+		}else {
+			this.PerformJump();
+		}
+	}
+
+
+	private void PrepareJump() {
 		// Checking the worm's direction for jumping.
 		if (!(this.getDirection() >= 0 && this.getDirection() <= Math.PI)) {
 			throw new RuntimeException();
 		}
 		
-		jumpSpeedMagnitude = (this.jumpForce()/this.getMass())*JUMP_TIME_DELTA;
+		setJumpSpeedMagnitude((this.jumpForce()/this.getMass())*JUMP_TIME_DELTA);
+
 		if (!isValidJumpSpeedMagnitude(jumpSpeedMagnitude)) {
 			throw new IllegalArgumentException();//FIX DEZE SHIT	
 		}
 		this.CalculateJumpTime();
 		
-		this.setActionPointsAfterJump();
-
 	}
 	
+	private void PerformJump() {
+		double distance = Math.pow(this.getJumpSpeedMagnitude(), 2)*Math.sin(this.getDirection()*((float)2))/GRAVITY;
+		
+		double[] newLocation = new double[2];
+		newLocation[0] = this.getLocation()[0] + distance;
+		newLocation[1] = this.getLocation()[1];
+		
+		this.setLocation(newLocation);
+		this.setActionPointsAfterJump();	
+		this.setJumpSpeedMagnitude(0);
+		this.setJumpTime(0);
+	}
+	
+	private void cancelJump() {
+		setJumpSpeedMagnitude(0);
+		setJumpTime(0);
+	}
+
 	public void setActionPointsAfterJump() {
 		this.setActionPoints(0);
 	}
@@ -664,6 +697,16 @@ public class Worm {
 	}
 	
 	/**
+	 * 
+	 * @param magnitude
+	 * @post
+	 * 		| new.getJumpSpeedMagnitude() == magnitude
+	 */
+	public void setJumpSpeedMagnitude(double magnitude) {
+		this.jumpSpeedMagnitude = magnitude;
+	}
+	
+	/**
 	 * A constant, representing a ficticious in game simulation of real life gravity. To
 	 * ensure worms fall back to the ground.
 	 */
@@ -708,6 +751,7 @@ public class Worm {
 		if (!isValidLocation(tmpLocation)) {
 			throw new InvalidLocationException(tmpLocation);
 		}
+		
 		return tmpLocation;
 	}
 	
