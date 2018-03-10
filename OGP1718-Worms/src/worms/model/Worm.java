@@ -64,15 +64,19 @@ public class Worm {
 	 * 		the coordinates is not a valid one (one of the coordinates is NaN, Not a Number).
 	 * 		| !isValidLocation(location)
 	 * 
+	 * @effect prepares jump logic
+	 * 		| this.PrepareJump()
+	 * 
 	 * @note All class invariants are satisfied upon instantiating a new Worm. Therefore we don't need the @Raw tag.
 	 */
 	public Worm(double[] location, double direction, double radius, String name)
 			throws InvalidWormNameException, InvalidRadiusException, InvalidLocationException {
-		setLocation(location);
-		setDirection(direction);
-		setRadius(radius);
-		setName(name);
-		resetActionPoints();
+		this.setLocation(location);
+		this.setDirection(direction);
+		this.setRadius(radius);
+		this.setName(name);
+		this.resetActionPoints();
+		this.PrepareJump();
 	}
 
 	/**
@@ -529,6 +533,8 @@ public class Worm {
 	 * 		| this.setActionPoints(this.getCurrentActionPoints() - this.getMovementCost());
 	 * @effect resets any existing jump preparations
 	 * 		| this.cancelJump()
+	 * @effect prepares jump logic
+	 * 		| this.PrepareJump()
 	 */
 	public void Move(int nbSteps) throws InvalidLocationException {
 		double[] deltaMovement = new double[2];
@@ -551,6 +557,7 @@ public class Worm {
 		this.setLocation(tmpLocation);
 		
 		this.cancelJump();
+		this.PrepareJump();
 		
 		if(nbSteps>1) {
 			this.Move(nbSteps-1);
@@ -583,6 +590,8 @@ public class Worm {
 	 * 		| setDirection(angle + this.getDirection())
 	 * @effect resets any existing jump preparations
 	 * 		| this.cancelJump()
+	 * @effect prepares jump logic
+	 * 		| this.PrepareJump()
 	 */
 	//ANGLE IS DIFFERENCE BETWEEN NEW AND OLD ANGLE, angle = new - old
 	public void Turn(double angle) {
@@ -590,6 +599,7 @@ public class Worm {
 		this.setActionPoints(this.getCurrentActionPoints() - this.getTurnCost(angle));
 		this.setDirection(newDirection);
 		this.cancelJump();
+		this.PrepareJump();
 	}
 	
 	/**
@@ -609,27 +619,27 @@ public class Worm {
 	}
 	
 	public void Jump() {
-		if(this.getJumpSpeedMagnitude() == 0) {
-			this.PrepareJump();
-		}else {
+		if(this.getJumpSpeedMagnitude() > 0) {
 			this.PerformJump();
 		}
 	}
 
 
-	private void PrepareJump() {
-		// Checking the worm's direction for jumping.
+	private void PrepareJump() {		
 		if (!(this.getDirection() >= 0 && this.getDirection() <= Math.PI)) {
-			throw new RuntimeException();
+			this.setJumpSpeedMagnitude(0f);
 		}
 		
 		setJumpSpeedMagnitude((this.jumpForce()/this.getMass())*JUMP_TIME_DELTA);
 
 		if (!isValidJumpSpeedMagnitude(jumpSpeedMagnitude)) {
-			throw new IllegalArgumentException();//FIX DEZE SHIT	
+			throw new IllegalArgumentException();
 		}
 		this.CalculateJumpTime();
 		
+		if(this.getCurrentActionPoints() == 0) {
+			this.cancelJump();
+		}
 	}
 	
 	private void PerformJump() {
