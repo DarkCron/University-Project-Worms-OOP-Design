@@ -245,7 +245,9 @@ public class Worm {
 		return MINIMUM_RADIUS <= radius;
 	}
 
-	//A given constant value, therefore a static final value.
+	/**
+	 * A given constant value, therefore a static final value.
+	 */
 	private static final double WORM_DENSITY = 1062;
 
 	/**
@@ -535,6 +537,9 @@ public class Worm {
 	 * 		| this.cancelJump()
 	 * @effect prepares jump logic
 	 * 		| this.PrepareJump()
+	 * 
+	 * @note Currently moving altough AP == 0 is still possible but can easily be implemented.
+	 * 	The assignment didn't explicitly mention this should be a feature in the current implementation.
 	 */
 	public void Move(int nbSteps) throws InvalidLocationException {
 		double[] deltaMovement = new double[2];
@@ -592,8 +597,10 @@ public class Worm {
 	 * 		| this.cancelJump()
 	 * @effect prepares jump logic
 	 * 		| this.PrepareJump()
+	 * 
+	 * @note Currently turning altough AP == 0 is still possible but can easily be implemented.
+	 * 	The assignment didn't explicitly mention this should be a feature in the current implementation.
 	 */
-	//ANGLE IS DIFFERENCE BETWEEN NEW AND OLD ANGLE, angle = new - old
 	public void Turn(double angle) {
 		double newDirection = (angle + this.getDirection());
 		this.setActionPoints(this.getCurrentActionPoints() - this.getTurnCost(angle));
@@ -612,29 +619,83 @@ public class Worm {
 	 * 		|	Math.abs((int)Math.ceil((angle/(2*Math.PI)*60)))
 	 */
 	public int getTurnCost(double angle) {
-		//TODO Question, preference instanced or static
 		int cost = 0;
 		cost = Math.abs((int)Math.ceil((angle/(2*Math.PI)*60)));
 		return cost;
 	}
 	
-	public void Jump() {
-		if(this.getJumpSpeedMagnitude() > 0) {
-			this.PerformJump();
+	/**
+	 * Makes the worm jump if it's got a valid jumpSpeedMagnitude, bigger than 0 and a valid less than infinity
+	 * magnitude.
+	 * 
+	 * @post The worm's new x coordinate will be equal to that of it's original location + the jumpdistance
+	 *		Or the worm's current jumpSpeedMagnitude is zero or invalid.
+	 * 		| new.getLocation()[0] == ((this.getLocation()[0] + Math.pow(this.getJumpSpeedMagnitude(), 2)*Math.sin(this.getDirection()*((float)2))/GRAVITY)
+	 * 		|					|| ((this.getJumpSpeedMagnitude() == 0) || !isValidJumpSpeedMagnitude(this.getJumpSpeedMagnitude()))
+	 * @throws InvalidLocationException
+	 * 		Throws an invalidLocationException if the newly calculated jump destination is invalid.
+	 * 		| double[] newLocation = new double[2]
+	 * 		| newLocation[0] = this.getLocation()[0] + Math.pow(this.getJumpSpeedMagnitude(), 2)*Math.sin(this.getDirection()*((float)2))/GRAVITY
+	 * 		| newLocation[1] = this.getLocation()[1];
+	 * 		| !isValidLocation(newLocation)
+	 * 
+	 * @effect If the jump succeeds the worm's AP will be set to 0
+	 * 		| this.setActionPointsAfterJump();
+	 * @effect If the jump succeeds the worm's JumpSpeedMagnitude will be set to 0
+	 * 		| this.setJumpSpeedMagnitude(0);
+	 * @effect If the jump succeeds the worm's jump airtime will be set to 0
+	 * 		| this.setJumpTime(0);
+	 * 
+	 * @note We currently disabled being able to jump when AP == 0.
+	 */
+	public void Jump() throws InvalidLocationException {
+		if(this.getJumpSpeedMagnitude() > 0 && isValidJumpSpeedMagnitude(this.getJumpSpeedMagnitude())) {
+			try {
+				double distance = Math.pow(this.getJumpSpeedMagnitude(), 2)*Math.sin(this.getDirection()*((float)2))/GRAVITY;
+				
+				double[] newLocation = new double[2];
+				newLocation[0] = this.getLocation()[0] + distance;
+				newLocation[1] = this.getLocation()[1];
+				
+				if(!isValidLocation(newLocation)) {
+					throw new InvalidLocationException(newLocation);
+				}
+				
+				this.setLocation(newLocation);
+				this.setActionPointsAfterJump();	
+				this.setJumpSpeedMagnitude(0);
+				this.setJumpTime(0);
+			} catch (InvalidLocationException e) {
+				throw e;
+			}
+			
 		}
 	}
 
-
+	/**
+	 * Prepares the worm for any possible jump, based on it's current direction facing and remaining AP.
+	 * Will cancel any preparations made to jump if it's AP == 0.
+	 * 
+	 * @effect The worm's jumSspeedMagnitude and jump airtime will be calculated and set. And reset if the worm's
+	 * 		AP equals to 0.
+	 * 		|if (!(this.getDirection() >= 0 && this.getDirection() <= Math.PI)) 
+	 * 		|	then this.setJumpSpeedMagnitude(0f)
+	 * 		|else
+	 * 		|	this.setJumpSpeedMagnitude((this.jumpForce()/this.getMass())*JUMP_TIME_DELTA);
+	 * 		|	this.CalculateJumpTime();
+	 * 		|	if(this.getCurrentActionPoints() == 0)
+	 * 		|		then	this.cancelJump();
+	 */
 	private void PrepareJump() {		
 		if (!(this.getDirection() >= 0 && this.getDirection() <= Math.PI)) {
 			this.setJumpSpeedMagnitude(0f);
 		}
 		
-		setJumpSpeedMagnitude((this.jumpForce()/this.getMass())*JUMP_TIME_DELTA);
+		this.setJumpSpeedMagnitude((this.jumpForce()/this.getMass())*JUMP_TIME_DELTA);
 
-		if (!isValidJumpSpeedMagnitude(jumpSpeedMagnitude)) {
-			throw new IllegalArgumentException();
-		}
+		// (!isValidJumpSpeedMagnitude(jumpSpeedMagnitude)) {
+		//	throw new IllegalArgumentException();
+		//}
 		this.CalculateJumpTime();
 		
 		if(this.getCurrentActionPoints() == 0) {
@@ -642,24 +703,25 @@ public class Worm {
 		}
 	}
 	
-	private void PerformJump() {
-		double distance = Math.pow(this.getJumpSpeedMagnitude(), 2)*Math.sin(this.getDirection()*((float)2))/GRAVITY;
-		
-		double[] newLocation = new double[2];
-		newLocation[0] = this.getLocation()[0] + distance;
-		newLocation[1] = this.getLocation()[1];
-		
-		this.setLocation(newLocation);
-		this.setActionPointsAfterJump();	
+	/**
+	 * Resets any set information about a possible jump for a worm.
+	 * 
+	 * @effect reset the worm's sjmpSpeedMagnitude
+	 * 		| this.setJumpSpeedMagnitude(0)
+	 * @effect reset the worm's jump total air time
+	 * 		| this.setJumpTime(0)
+	 */
+	private void cancelJump() {
 		this.setJumpSpeedMagnitude(0);
 		this.setJumpTime(0);
 	}
-	
-	private void cancelJump() {
-		setJumpSpeedMagnitude(0);
-		setJumpTime(0);
-	}
 
+	/**
+	 * Sets the worm's current AP to a certain default amount after jumping.
+	 * 
+	 * @effect The worm's AP will be set to a default amount
+	 * 		| this.setActionPoints(0)
+	 */
 	public void setActionPointsAfterJump() {
 		this.setActionPoints(0);
 	}
@@ -682,17 +744,12 @@ public class Worm {
 	 */
 	public static boolean isValidJumpSpeedMagnitude(double jumpSpeed) {
 		if (jumpSpeed < 0) {
-			//error
 			return false;
 		}
-		
 		else if (Double.isNaN(jumpSpeed)) {
-			//error
 			return false;
 		}
-		
 		else if (Double.isInfinite(jumpSpeed)){
-			//error
 			return false;
 		}
 		return true;
@@ -707,9 +764,11 @@ public class Worm {
 	}
 	
 	/**
+	 * Sets a given magnitude to the worm's jump speed magnitude.
 	 * 
 	 * @param magnitude
-	 * @post
+	 * 		A given jumpspeed's vector's magnitude
+	 * @post sets a worm jumpSpeedMagnitude to the given magnitude
 	 * 		| new.getJumpSpeedMagnitude() == magnitude
 	 */
 	public void setJumpSpeedMagnitude(double magnitude) {
@@ -758,6 +817,7 @@ public class Worm {
 		double[] tmpLocation = new double[2];
 		tmpLocation[0] = xPosTime;
 		tmpLocation[1] = yPosTime;
+		
 		if (!isValidLocation(tmpLocation)) {
 			throw new InvalidLocationException(tmpLocation);
 		}
@@ -767,11 +827,16 @@ public class Worm {
 	
 	/**
 	 * Calculates the total jumpTime for a worm.
+	 * 
+	 * @effect sets the calculted jumptime based on the jumpSpeedMagnitude of the worm
+	 * 		| double distance = Math.pow(this.getJumpSpeedMagnitude(), 2)*Math.sin(this.getDirection()*((float)2))/GRAVITY;
+	 *		| double timeInterval = (distance/(this.getJumpSpeedMagnitude()*Math.cos(this.getDirection())));
+	 *		| this.setJumpTime(timeInterval);
 	 */
 	public void CalculateJumpTime() {
 		double distance = Math.pow(this.getJumpSpeedMagnitude(), 2)*Math.sin(this.getDirection()*((float)2))/GRAVITY;
 		double timeInterval = (distance/(this.getJumpSpeedMagnitude()*Math.cos(this.getDirection())));
-		setJumpTime(timeInterval);
+		this.setJumpTime(timeInterval);
 	}
 
 	/**
