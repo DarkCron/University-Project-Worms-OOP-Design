@@ -48,7 +48,7 @@ public class Facade implements IFacade {
 	public void jump(Worm worm) throws ModelException {
 		try {
 			worm.Jump();
-		} catch (Exception e) {
+		} catch (InvalidLocationException e) {
 			throw new ModelException(e);
 		}
 	}

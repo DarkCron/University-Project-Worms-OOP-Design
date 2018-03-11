@@ -64,8 +64,6 @@ public class Worm {
 	 * 		the coordinates is not a valid one (one of the coordinates is NaN, Not a Number).
 	 * 		| !isValidLocation(location)
 	 * 
-	 * @effect prepares jump logic
-	 * 		| this.PrepareJump()
 	 * 
 	 * @note All class invariants are satisfied upon instantiating a new Worm. Therefore we don't need the @Raw tag.
 	 */
@@ -76,7 +74,6 @@ public class Worm {
 		this.setRadius(radius);
 		this.setName(name);
 		this.resetActionPoints();
-		this.PrepareJump();
 	}
 
 	/**
@@ -199,6 +196,9 @@ public class Worm {
 	 * @throws InvalidRadiusException
 	 *         Whenever the radius is out of bounds.
 	 *     |!isValidRadius(radius)
+	 *     
+	 * @note We currently do not change a worm's current AP when we change it's radius (and
+	 * 	therefore it's mass). This can be easily implemented later however.
 	 */
 	public void setRadius(double radius) throws InvalidRadiusException {
 		if (!isValidRadius(radius)) {
@@ -327,12 +327,12 @@ public class Worm {
 	/**
 	 * Resets the worm's active Action Points to the worm's maximum amount of AP.
 	 * 
-	 * @post Each time function is called, action points get reset to their maximum
+	 * @effect Each time function is called, action points get reset to their maximum
 	 *       value.
-	 *       |new.getActonPoints() == this.maxActionPoints
+	 *       |this.setActionPoints(this.getMaxActionPoints())
 	 */
 	public void resetActionPoints() {
-		this.currentActionPoints = this.maxActionPoints;
+		this.setActionPoints(this.getMaxActionPoints());
 	}
 
 	/**
@@ -360,7 +360,15 @@ public class Worm {
 	 *       amount is less than 0 it's AP will be set to 0. 
 	 *       |if(!isValidAmountOfActionPoints(amount) && amount < 0 ) 
 	 *       | then new.getCurrentActionPoints() == 0
+	 *
+	 * @effect Cancels out any previous jump info
+	 * 		| this.cancelJump()
+	 * @effect prepares jump logic
+	 * 		| this.PrepareJump()
 	 * 
+	 * @note The prepare jump is called here since we want to prepare jump logic every time either
+	 * 	AP changes, mass changes or direction changes. In any case AP changes (constructor, move, turn
+	 * 	and resetAP). Therefore we prepare the jump in setActionPoints.
 	 */
 	public void setActionPoints(int amount) {
 		if (isValidAmountOfActionPoints(amount)) {
@@ -370,6 +378,9 @@ public class Worm {
 		} else if (amount < 0) {
 			this.currentActionPoints = 0;
 		}
+		
+		this.cancelJump();
+		this.PrepareJump();
 	}
 
 	/**
@@ -535,11 +546,10 @@ public class Worm {
 	 * 		| this.setActionPoints(this.getCurrentActionPoints() - this.getMovementCost());
 	 * @effect resets any existing jump preparations
 	 * 		| this.cancelJump()
-	 * @effect prepares jump logic
-	 * 		| this.PrepareJump()
 	 * 
 	 * @note Currently moving altough AP == 0 is still possible but can easily be implemented.
 	 * 	The assignment didn't explicitly mention this should be a feature in the current implementation.
+	 * 
 	 */
 	public void Move(int nbSteps) throws InvalidLocationException {
 		double[] deltaMovement = new double[2];
@@ -558,11 +568,9 @@ public class Worm {
 		
 		
 		//Should we check if the movement is possible due to the amount of current action points???
+
+		this.setLocation(tmpLocation);	
 		this.setActionPoints(this.getCurrentActionPoints() - this.getMovementCost());
-		this.setLocation(tmpLocation);
-		
-		this.cancelJump();
-		this.PrepareJump();
 		
 		if(nbSteps>1) {
 			this.Move(nbSteps-1);
@@ -595,18 +603,14 @@ public class Worm {
 	 * 		| setDirection(angle + this.getDirection())
 	 * @effect resets any existing jump preparations
 	 * 		| this.cancelJump()
-	 * @effect prepares jump logic
-	 * 		| this.PrepareJump()
 	 * 
 	 * @note Currently turning altough AP == 0 is still possible but can easily be implemented.
 	 * 	The assignment didn't explicitly mention this should be a feature in the current implementation.
 	 */
 	public void Turn(double angle) {
 		double newDirection = (angle + this.getDirection());
-		this.setActionPoints(this.getCurrentActionPoints() - this.getTurnCost(angle));
 		this.setDirection(newDirection);
-		this.cancelJump();
-		this.PrepareJump();
+		this.setActionPoints(this.getCurrentActionPoints() - this.getTurnCost(angle));
 	}
 	
 	/**
