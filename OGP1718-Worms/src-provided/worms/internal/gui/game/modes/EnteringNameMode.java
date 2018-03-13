@@ -8,6 +8,7 @@ import worms.internal.gui.game.PlayGameScreen;
 
 public class EnteringNameMode extends InputMode<PlayGameScreen> {
 
+	@FunctionalInterface
 	public static interface Callback {
 		public void onNameEntered(String newName);
 	}

@@ -1,6 +1,7 @@
 package worms.internal.gui.game.commands;
 
 import worms.facade.IFacade;
+import worms.internal.gui.GUIConstants;
 import worms.internal.gui.game.PlayGameScreen;
 import worms.internal.gui.game.sprites.WormSprite;
 import worms.internal.gui.messages.MessageType;
@@ -21,7 +22,6 @@ public class Jump extends Command {
 		return worm;
 	}
 
-
 	@Override
 	protected boolean canStart() {
 		return getWorm() != null;
@@ -30,21 +30,23 @@ public class Jump extends Command {
 	@Override
 	protected void doStartExecution() {
 		try {
-			this.jumpDuration = getFacade().getJumpTime(worm);
+			this.jumpDuration = getFacade().getJumpTime(worm, GUIConstants.JUMP_TIME_STEP);
 		} catch (ModelException e) {
-			cancelExecution();
+			e.printStackTrace();
+			cancelExecution(e);
 		}
 	}
 
 	@Override
-	protected void afterExecutionCancelled() {
+	protected void afterExecutionCancelled(Throwable e) {
 		WormSprite sprite = getScreen().getWormSprite(getWorm());
 		if (sprite != null) {
 			sprite.setIsJumping(false);
 		}
-		getScreen().addMessage("This worm cannot jump :(", MessageType.ERROR);
+		getScreen().addMessage("This worm cannot jump :(" + (e != null ? "\n" + e.getMessage() : ""),
+				MessageType.ERROR);
 	}
-	
+
 	@Override
 	protected void afterExecutionCompleted() {
 		WormSprite sprite = getScreen().getWormSprite(getWorm());
@@ -62,19 +64,16 @@ public class Jump extends Command {
 				if (getElapsedTime() >= jumpDuration) {
 					if (!hasJumped) {
 						hasJumped = true;
-						getFacade()
-								.jump(getWorm());
-							double x = getFacade().getX(getWorm());
-							double y = getFacade().getY(getWorm());
-							sprite.setCenterLocation(getScreen().getScreenX(x),
-									getScreen().getScreenY(y));
+						getFacade().jump(getWorm(), GUIConstants.JUMP_TIME_STEP);
+						if (!getFacade().isTerminated(getWorm())) {
+							double[] xy = getFacade().getLocation(getWorm());
+							sprite.setCenterLocation(getScreen().getScreenX(xy[0]), getScreen().getScreenY(xy[1]));
+						}
 						completeExecution();
 					}
 				} else {
-					double[] xy = getFacade().getJumpStep(getWorm(),
-							getElapsedTime());
-					sprite.setCenterLocation(getScreen().getScreenX(xy[0]),
-							getScreen().getScreenY(xy[1]));
+					double[] xy = getFacade().getJumpStep(getWorm(), getElapsedTime());
+					sprite.setCenterLocation(getScreen().getScreenX(xy[0]), getScreen().getScreenY(xy[1]));
 				}
 			} catch (ModelException e) {
 				e.printStackTrace();

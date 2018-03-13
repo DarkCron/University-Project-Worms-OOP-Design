@@ -23,8 +23,8 @@ public class Turn extends InstantaneousCommand {
 	}
 
 	@Override
-	protected void afterExecutionCancelled() {
-		getScreen().addMessage("This worm cannot perform that turn :(", MessageType.ERROR);
+	protected void afterExecutionCancelled(Throwable e) {
+		getScreen().addMessage("This worm cannot perform that turn :(" + (e != null ? "\n" + e.getMessage() : ""), MessageType.ERROR);
 	}
 
 	@Override
@@ -34,7 +34,7 @@ public class Turn extends InstantaneousCommand {
 			double angleToTurn = GUIUtils.restrictDirection(direction + angle) - direction;
 			getFacade().turn(worm, angleToTurn);
 		} catch (ModelException e) {
-			cancelExecution();
+			cancelExecution(e);
 		}
 	}
 }

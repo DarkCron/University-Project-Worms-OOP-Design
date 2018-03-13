@@ -1,23 +1,33 @@
 package worms.internal.gui.game;
 
 import java.awt.Graphics2D;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 import worms.facade.IFacade;
 import worms.internal.gui.GUIConstants;
 import worms.internal.gui.GUIUtils;
 import worms.internal.gui.GameState;
 import worms.internal.gui.InputMode;
+import worms.internal.gui.Level;
 import worms.internal.gui.Screen;
 import worms.internal.gui.WormsGUI;
 import worms.internal.gui.game.modes.DefaultInputMode;
 import worms.internal.gui.game.modes.EnteringNameMode;
+import worms.internal.gui.game.modes.GameOverMode;
+import worms.internal.gui.game.modes.SetupInputMode;
+import worms.internal.gui.game.sprites.FoodSprite;
 import worms.internal.gui.game.sprites.WormSprite;
+import worms.internal.gui.messages.MessageType;
+import worms.model.Food;
+import worms.model.Team;
+import worms.model.World;
 import worms.model.Worm;
 
 public class PlayGameScreen extends Screen {
@@ -47,13 +57,12 @@ public class PlayGameScreen extends Screen {
 
 	@Override
 	protected InputMode<PlayGameScreen> createDefaultInputMode() {
-		return new DefaultInputMode(this, null);
+		return new SetupInputMode(this, null);
 	}
 
 	@Override
 	public void screenStarted() {
 		runGameLoop();
-		userActionHandler.startGame();
 	}
 
 	final AtomicLong lastUpdateTimestamp = new AtomicLong();
@@ -69,6 +78,7 @@ public class PlayGameScreen extends Screen {
 			repaint();
 		}
 	};
+	private Worm currentWorm;
 
 	private void runGameLoop() {
 		Timer timer = new Timer();
@@ -77,27 +87,44 @@ public class PlayGameScreen extends Screen {
 			public void uncaughtException(Thread t, Throwable e) {
 				gameLoop.cancel();
 				e.printStackTrace();
-				getGUI().showError(
-						e.getClass().getName() + ": " + e.getMessage());
+				getGUI().showError(e.getClass().getName() + ": " + e.getMessage());
 			}
 		});
 		lastUpdateTimestamp.set(System.currentTimeMillis());
 		timer.scheduleAtFixedRate(gameLoop, 0, 1000 / GUIConstants.FRAMERATE);
 	}
 
+	public void gameFinished() {
+		addMessage("Game over! The winner is " + getFacade().getWinner(getWorld())
+				+ "\n\nPress 'R' to start another game, or 'ESC' to quit.", MessageType.NORMAL);
+		gameLoop.cancel();
+		switchInputMode(new GameOverMode(this, getCurrentInputMode()));
+	}
+
 	public synchronized void update() {
+		removeInactiveSprites();
 		addNewSprites();
 		for (Sprite<?> sprite : sprites) {
 			sprite.update();
 		}
+		currentWorm = getFacade().getActiveWorm(getWorld());
 	}
-	
+
+	protected void removeInactiveSprites() {
+		for (Sprite<?> sprite : new ArrayList<Sprite<?>>(sprites)) {
+			if (!sprite.isObjectAlive()) {
+				removeSprite(sprite);
+			}
+		}
+	}
+
 	protected void addNewSprites() {
 		addNewWormSprites();
+		addNewFoodSprites();
 	}
 
 	private void addNewWormSprites() {
-		Collection<Worm> worms = getGameState().getWorms();
+		Collection<Worm> worms = getFacade().getAllWorms(getWorld());
 		if (worms != null) {
 			for (Worm worm : worms) {
 				WormSprite sprite = getWormSprite(worm);
@@ -106,6 +133,28 @@ public class PlayGameScreen extends Screen {
 				}
 			}
 		}
+	}
+
+	private void addNewFoodSprites() {
+		Collection<Food> foods = getAll(Food.class);
+		if (foods != null) {
+			for (Food food : foods) {
+				FoodSprite sprite = getSpriteOfTypeFor(FoodSprite.class, food);
+				if (sprite == null) {
+					createFoodSprite(food);
+				}
+			}
+		}
+	}
+
+	private <T> Collection<T> getAll(Class<T> type) {
+		return getFacade().getAllItems(getWorld()).stream().filter(type::isInstance).map(type::cast)
+				.collect(Collectors.toSet());
+	}
+
+	private void createFoodSprite(Food food) {
+		FoodSprite sprite = new FoodSprite(this, food);
+		addSprite(sprite);
 	}
 
 	private void createWormSprite(Worm worm) {
@@ -186,7 +235,7 @@ public class PlayGameScreen extends Screen {
 	}
 
 	public synchronized Worm getSelectedWorm() {
-		return getGameState().getSelectedWorm();
+		return currentWorm;
 	}
 
 	@Override
@@ -194,8 +243,7 @@ public class PlayGameScreen extends Screen {
 		painter.paint(g);
 	}
 
-	public static PlayGameScreen create(WormsGUI gui, GameState gameState,
-			boolean debugMode) {
+	public static PlayGameScreen create(WormsGUI gui, GameState gameState, boolean debugMode) {
 		if (!debugMode) {
 			return new PlayGameScreen(gui, gameState);
 		} else {
@@ -208,6 +256,14 @@ public class PlayGameScreen extends Screen {
 		}
 	}
 
+	protected Level getLevel() {
+		return getGameState().getLevel();
+	}
+
+	public World getWorld() {
+		return getGameState().getWorld();
+	}
+
 	public void addSprite(Sprite<?> sprite) {
 		sprites.add(sprite);
 	}
@@ -217,10 +273,39 @@ public class PlayGameScreen extends Screen {
 	}
 
 	/**
+	 * Aspect ratio of the screen
+	 */
+	private double getScreenAspectRatio() {
+		return (double) getScreenWidth() / getScreenHeight();
+	}
+
+	/**
+	 * Width of the world when displayed (in pixels)
+	 */
+	private double getWorldDisplayWidth() {
+		if (getLevel().getMapAspectRatio() >= getScreenAspectRatio()) {
+			return getScreenWidth();
+		} else {
+			return getScreenHeight() * getLevel().getMapAspectRatio();
+		}
+	}
+
+	/**
+	 * Height of the world when displayed (in pixels)
+	 */
+	private double getWorldDisplayHeight() {
+		if (getLevel().getMapAspectRatio() <= getScreenAspectRatio()) {
+			return getScreenHeight();
+		} else {
+			return getScreenWidth() / getLevel().getMapAspectRatio();
+		}
+	}
+
+	/**
 	 * Scale of the displayed world (in worm-meter per pixel)
 	 */
 	private double getDisplayScale() {
-		return GUIConstants.DISPLAY_SCALE;
+		return getLevel().getWorldWidth() / getWorldDisplayWidth();
 	}
 
 	/**
@@ -241,36 +326,39 @@ public class PlayGameScreen extends Screen {
 	 * World x coordinate to screen x coordinate
 	 */
 	public double getScreenX(double x) {
-		return getScreenWidth()/2.0 + worldToScreenDistance(x);
+		double offset = (getScreenWidth() - getWorldDisplayWidth()) / 2.0;
+		return offset + worldToScreenDistance(x);
 	}
 
 	/**
 	 * Screen x coordinate to world x coordinate
 	 */
 	public double getLogicalX(double screenX) {
-		return screenToWorldDistance(screenX - getScreenWidth()/2.0);
+		double offset = (getScreenWidth() - getWorldDisplayWidth()) / 2.0;
+		return screenToWorldDistance(screenX - offset);
 	}
 
 	/**
 	 * World y coordinate to screen y coordinate
 	 */
 	public double getScreenY(double y) {
-		return getScreenHeight()/2.0 - worldToScreenDistance(y);
+		double offset = (getScreenHeight() - getWorldDisplayHeight()) / 2.0;
+		return offset + getWorldDisplayHeight() - worldToScreenDistance(y);
 	}
 
 	/**
 	 * Screen y coordinate to world y coordinate
 	 */
 	public double getLogicalY(double screenY) {
-		return screenToWorldDistance(getScreenHeight()/2.0 - screenY);
+		double offset = (getScreenHeight() - getWorldDisplayHeight()) / 2.0;
+		return screenToWorldDistance(-screenY + offset + getWorldDisplayHeight());
 	}
 
 	public void paintTextEntry(Graphics2D g, String message, String enteredName) {
 		painter.paintTextEntry(g, message, enteredName);
 	}
 
-	public void drawTurnAngleIndicator(Graphics2D g, WormSprite wormSprite,
-			double currentAngle) {
+	public void drawTurnAngleIndicator(Graphics2D g, WormSprite wormSprite, double currentAngle) {
 		painter.drawTurnAngleIndicator(g, wormSprite, currentAngle);
 	}
 
@@ -285,13 +373,41 @@ public class PlayGameScreen extends Screen {
 		return (InputMode<PlayGameScreen>) super.getCurrentInputMode();
 	}
 
+	public void addEmptyTeam() {
+		switchInputMode(
+			new EnteringNameMode("Enter team name: ", this, getCurrentInputMode(), newName -> userActionHandler.addEmptyTeam(newName)));
+	}
+
+	private Team lastTeam;
+
+	public void setLastCreatedTeam(Team team) {
+		this.lastTeam = team;
+	}
+	
+	public Team getLastCreatedTeam() {
+		return lastTeam;
+	}
+
+	public void addPlayerControlledWorm() {
+		userActionHandler.addNewWorm();
+	}
+
+	public void addFood() {
+		userActionHandler.addNewFood();
+	}
+
+	public void startGame() {
+		lastTeam = null;
+		userActionHandler.startGame();
+	}
+
 	public void gameStarted() {
 		switchInputMode(new DefaultInputMode(this, getCurrentInputMode()));
 	}
 
 	public void renameWorm() {
-		switchInputMode(new EnteringNameMode("Enter new name for worm: ", this,
-				getCurrentInputMode(), new EnteringNameMode.Callback() {
+		switchInputMode(new EnteringNameMode("Enter new name for worm: ", this, getCurrentInputMode(),
+				new EnteringNameMode.Callback() {
 					@Override
 					public void onNameEntered(String newName) {
 						changeName(newName);
@@ -308,11 +424,7 @@ public class PlayGameScreen extends Screen {
 	}
 
 	public void selectNextWorm() {
-		getGameState().selectNextWorm();
-	}
-
-	public IActionHandler getProgramActionHandler() {
-		return programActionHandler;
+		userActionHandler.selectNextWorm();
 	}
 
 	public void selectWorm(Worm worm) {
@@ -321,12 +433,8 @@ public class PlayGameScreen extends Screen {
 		}
 	}
 
-	public void resizeWorm(int sign) {
-		Worm worm = getSelectedWorm();
-		
-		if (worm != null) {
-			userActionHandler.resizeWorm(worm, sign);
-		}
+	public IActionHandler getProgramActionHandler() {
+		return programActionHandler;
 	}
 
 }

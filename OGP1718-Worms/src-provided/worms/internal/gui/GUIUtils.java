@@ -12,6 +12,11 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Collections;
+import java.util.Random;
+
+import worms.facade.IFacade;
+import worms.model.World;
 
 public class GUIUtils {
 
@@ -88,5 +93,48 @@ public class GUIUtils {
 			}
 		}
 		return url;
+	}
+	
+	// ideally, this constant would only exist once in the code, but we cannot refer to the constant from worms.model
+	private static final double ADJACENCY_RADIUS_FRACTION = 0.1;
+
+	public static double[] findFreeAdjacentSpot(IFacade facade, World world, double radius, Random random) {
+		double worldWidth = facade.getWorldWidth(world);
+		double worldHeight = facade.getWorldHeight(world);
+
+		// start at random location
+		double x = random.nextDouble() * worldWidth;
+		double y = random.nextDouble() * worldHeight;
+		int n = 0;
+		// move towards center
+		double angle = Math.atan((worldHeight / 2 - y) / (worldWidth / 2 - x));
+		while (!isValidLocation(facade, world, x, y, radius)) {
+			// at some point, give up and start somewhere else
+			if (!liesInWorld(worldWidth, worldHeight, x, y) || n % 1000 == 0) {
+				x = random.nextDouble() * worldWidth;
+				y = random.nextDouble() * worldHeight;
+				angle = Math.atan((worldHeight / 2 - y) / (worldWidth / 2 - x));
+				n = 0;
+			}
+			double d = ADJACENCY_RADIUS_FRACTION / 2 * radius;
+			x += d * Math.cos(angle);
+			y += d * Math.sin(angle);
+			n += 1;
+		}
+		return new double[] { x, y };
+	}
+
+	private static boolean isValidLocation(IFacade facade, World world, double x, double y, double radius) {
+		double[] center = { x, y };
+		return facade.isPassable(world, center, radius) &&
+		 facade.isAdjacent(world, center , radius);
+	}
+
+	private static boolean liesInWorld(double width, double height, double x, double y) {
+		return 0 <= x && x <= width && 0 <= y && y <= height;
+	}
+
+	public static String numberToName(int n) {
+		return String.join("",  Collections.nCopies(n / 26, "Z")) + (char)('A' + (n % 26));
 	}
 }

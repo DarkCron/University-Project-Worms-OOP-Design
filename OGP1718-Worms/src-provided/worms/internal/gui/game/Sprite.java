@@ -20,6 +20,8 @@ public abstract class Sprite<T> {
 	
 	public abstract T getObject();
 	
+	public abstract boolean isObjectAlive();
+	
 	protected IFacade getFacade() {
 		return getScreen().getFacade();
 	}
