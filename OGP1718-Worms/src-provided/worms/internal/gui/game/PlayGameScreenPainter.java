@@ -3,6 +3,7 @@ package worms.internal.gui.game;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
@@ -14,17 +15,27 @@ import java.util.StringTokenizer;
 import worms.internal.gui.AbstractPainter;
 import worms.internal.gui.GUIUtils;
 import worms.internal.gui.GameState;
+import worms.internal.gui.Level;
+import worms.internal.gui.game.sprites.FoodSprite;
 import worms.internal.gui.game.sprites.WormSprite;
+import worms.model.World;
+import worms.util.ModelException;
 
 public class PlayGameScreenPainter extends AbstractPainter<PlayGameScreen> {
 
-	protected static final Color SELECTION_FILL_COLOR = new Color(0xaa84b6cc, true);
-	protected static final Color SELECTION_IMPASSABLE_FILL_COLOR = new Color(0xaacc8484, true);
-	protected static final Color SELECTION_OUTLINE_COLOR = new Color(0xaaffffff, true);
-	protected static final Color DIRECTION_MARKER_COLOR = new Color(0xcc84b6cc, true);
-	protected static final Color TURN_ANGLE_MARKER_COLOR = new Color(0xcccc84b6, true);
+	protected static final Color SELECTION_FILL_COLOR = new Color(0xaa84b6cc,
+			true);
+	protected static final Color SELECTION_IMPASSABLE_FILL_COLOR = new Color(
+			0xaacc8484, true);
+	protected static final Color SELECTION_OUTLINE_COLOR = new Color(
+			0xaaffffff, true);
+	protected static final Color DIRECTION_MARKER_COLOR = new Color(0xcc84b6cc,
+			true);
+	protected static final Color TURN_ANGLE_MARKER_COLOR = new Color(
+			0xcccc84b6, true);
 	protected static final Color INVALID_TURN_ANGLE_MARKER_COLOR = Color.RED;
-	protected static final Color ACTION_POINTS_COLOR = new Color(0xcc00cc00, true);
+	protected static final Color ACTION_POINTS_COLOR = new Color(0xcc00cc00,
+			true);
 
 	protected static final double ACTION_BAR_WIDTH = 30;
 	protected static final double ACTION_BAR_HEIGHT = 5;
@@ -32,15 +43,16 @@ public class PlayGameScreenPainter extends AbstractPainter<PlayGameScreen> {
 	protected static final Color HIT_POINTS_COLOR = new Color(0xccff6a00, true);
 
 	protected static final Color BAR_OUTLINE_COLOR = Color.WHITE;
-	protected static final Color NAME_BAR_BACKGROUND = new Color(0x40ffffff, true);
-	protected static final Color WEAPON_BAR_BACKGROUND = new Color(0x806666ff, true);
+	protected static final Color NAME_BAR_BACKGROUND = new Color(0x40ffffff,
+			true);
 	protected static final Color NAME_BAR_TEXT = Color.WHITE;
 
 	protected static final double TEXT_BAR_H_MARGIN = 4;
 	protected static final double TEXT_BAR_V_MARGIN = 3;
 	protected static final double TEXT_BAR_V_OFFSET = 2;
 
-	protected static final Color RENAME_BACKGROUND_COLOR = new Color(0x600e53a7, true);
+	protected static final Color RENAME_BACKGROUND_COLOR = new Color(
+			0x600e53a7, true);
 	protected static final Color RENAME_TEXT_COLOR = Color.WHITE;
 	protected static final Color JUMP_MARKER_COLOR = Color.GRAY;
 
@@ -48,19 +60,40 @@ public class PlayGameScreenPainter extends AbstractPainter<PlayGameScreen> {
 	protected static final double DIRECTION_INDICATOR_SIZE = 10;
 
 	protected Graphics2D currentGraphics;
+	private Image scaledImage;
 
 	public PlayGameScreenPainter(PlayGameScreen screen) {
 		super(screen);
+	}
+
+	private void createBackgroundImage() {
+		if (scaledImage == null) {
+			scaledImage = GUIUtils.scaleTo(getState().getLevel().getMapImage(),
+					getScreen().getScreenWidth(),
+					getScreen().getScreenHeight(), Image.SCALE_SMOOTH);
+		}
 	}
 
 	protected GameState getState() {
 		return getScreen().getGameState();
 	}
 
+	protected World getWorld() {
+		return getState().getWorld();
+	}
+
+	protected Level getLevel() {
+		return getState().getLevel();
+	}
+
 	public void paint(Graphics2D g) {
 		this.currentGraphics = g;
-		
+
 		paintLevel();
+
+		for (FoodSprite sprite : getScreen().getSpritesOfType(FoodSprite.class)) {
+			paintFood(sprite);
+		}
 
 		for (WormSprite sprite : getScreen().getSpritesOfType(WormSprite.class)) {
 			if (sprite.getWorm() == getScreen().getSelectedWorm()) {
@@ -72,8 +105,16 @@ public class PlayGameScreenPainter extends AbstractPainter<PlayGameScreen> {
 		this.currentGraphics = null;
 	}
 
+	protected void paintFood(FoodSprite sprite) {
+		sprite.draw(currentGraphics);
+	}
+
 	protected void paintLevel() {
-		
+		createBackgroundImage();
+
+		int x = (int) getScreenX(0);
+		int y = (int) getScreenY(getLevel().getWorldHeight());
+		currentGraphics.drawImage(scaledImage, x, y, null);
 	}
 
 	protected double getScreenX(double x) {
@@ -91,6 +132,7 @@ public class PlayGameScreenPainter extends AbstractPainter<PlayGameScreen> {
 		drawName(sprite);
 
 		drawActionBar(sprite);
+		drawHitpointsBar(sprite);
 
 		if (getScreen().getSelectedWorm() == sprite.getWorm()) {
 			drawDirectionIndicator(sprite);
@@ -106,16 +148,29 @@ public class PlayGameScreenPainter extends AbstractPainter<PlayGameScreen> {
 			name = "(null)";
 		}
 
-		Rectangle2D bounds = currentGraphics.getFontMetrics().getStringBounds(name, currentGraphics);
+		String teamName = null;
+		try {
+			teamName = sprite.getTeamName();
+		} catch (ModelException e) {
+			// no team
+		}
+
+		if (teamName != null) {
+			name += " (" + teamName + ")";
+		}
+
+		Rectangle2D bounds = currentGraphics.getFontMetrics().getStringBounds(
+				name, currentGraphics);
 		final double stringWidth = bounds.getWidth();
 		final double stringHeight = bounds.getHeight();
 
 		final double x = sprite.getCenterX() - stringWidth / 2;
 		final double y = sprite.getCenterY() - voffset - TEXT_BAR_V_OFFSET;
 
-		RoundRectangle2D nameBarFill = new RoundRectangle2D.Double(x - TEXT_BAR_H_MARGIN,
-				y - stringHeight - TEXT_BAR_V_MARGIN, stringWidth + 2 * TEXT_BAR_H_MARGIN,
-				stringHeight + 2 * TEXT_BAR_V_MARGIN, 5, 5);
+		RoundRectangle2D nameBarFill = new RoundRectangle2D.Double(x
+				- TEXT_BAR_H_MARGIN, y - stringHeight - TEXT_BAR_V_MARGIN,
+				stringWidth + 2 * TEXT_BAR_H_MARGIN, stringHeight + 2
+						* TEXT_BAR_V_MARGIN, 5, 5);
 		currentGraphics.setColor(NAME_BAR_BACKGROUND);
 		currentGraphics.fill(nameBarFill);
 
@@ -132,23 +187,53 @@ public class PlayGameScreenPainter extends AbstractPainter<PlayGameScreen> {
 		double actionPoints = sprite.getActionPoints();
 		double maxActionPoints = sprite.getMaxActionPoints();
 
-		RoundRectangle2D actionBarFill = new RoundRectangle2D.Double(x - ACTION_BAR_WIDTH / 2, y + spriteHeight / 2,
-				actionPoints * ACTION_BAR_WIDTH / maxActionPoints, ACTION_BAR_HEIGHT, 5, 5);
+		RoundRectangle2D actionBarFill = new RoundRectangle2D.Double(x
+				- ACTION_BAR_WIDTH / 2, y + spriteHeight / 2, actionPoints
+				* ACTION_BAR_WIDTH / maxActionPoints, ACTION_BAR_HEIGHT, 5, 5);
 		currentGraphics.setColor(ACTION_POINTS_COLOR);
 		currentGraphics.fill(actionBarFill);
 
-		RoundRectangle2D actionBar = new RoundRectangle2D.Double(x - ACTION_BAR_WIDTH / 2, y + spriteHeight / 2,
-				ACTION_BAR_WIDTH, ACTION_BAR_HEIGHT, 5, 5);
+		RoundRectangle2D actionBar = new RoundRectangle2D.Double(x
+				- ACTION_BAR_WIDTH / 2, y + spriteHeight / 2, ACTION_BAR_WIDTH,
+				ACTION_BAR_HEIGHT, 5, 5);
 		currentGraphics.setColor(BAR_OUTLINE_COLOR);
 		currentGraphics.draw(actionBar);
+	}
+
+	protected void drawHitpointsBar(WormSprite sprite) {
+		double x = sprite.getCenterX();
+		double y = sprite.getCenterY();
+		double spriteHeight = sprite.getHeight(currentGraphics);
+
+		double hitPoints = sprite.getHitPoints().doubleValue();
+		double maxHitPoints = 2000;
+		hitPoints = Math.max(hitPoints, maxHitPoints);
+
+		RoundRectangle2D hitpointsBarFill = new RoundRectangle2D.Double(x
+				- ACTION_BAR_WIDTH / 2, y + spriteHeight / 2
+				+ ACTION_BAR_HEIGHT, hitPoints * ACTION_BAR_WIDTH
+				/ maxHitPoints, ACTION_BAR_HEIGHT, 5, 5);
+		currentGraphics.setColor(HIT_POINTS_COLOR);
+		currentGraphics.fill(hitpointsBarFill);
+
+		RoundRectangle2D hitpointsBar = new RoundRectangle2D.Double(x
+				- ACTION_BAR_WIDTH / 2, y + spriteHeight / 2
+				+ ACTION_BAR_HEIGHT, ACTION_BAR_WIDTH, ACTION_BAR_HEIGHT, 5, 5);
+		currentGraphics.setColor(BAR_OUTLINE_COLOR);
+		currentGraphics.draw(hitpointsBar);
 	}
 
 	protected void drawSelection(WormSprite sprite) {
 		double x = sprite.getCenterX();
 		double y = sprite.getCenterY();
-		double spriteHeight = Math.max(sprite.getWidth(currentGraphics), sprite.getHeight(currentGraphics));
+		double spriteHeight = Math.max(sprite.getWidth(currentGraphics),
+				sprite.getHeight(currentGraphics));
 
-		currentGraphics.setColor(SELECTION_FILL_COLOR);
+		if (sprite.isAtImpassableTerrain()) {
+			currentGraphics.setColor(SELECTION_IMPASSABLE_FILL_COLOR);
+		} else {
+			currentGraphics.setColor(SELECTION_FILL_COLOR);
+		}
 
 		Shape circle = GUIUtils.circleAt(x, y, spriteHeight / 2);
 		currentGraphics.fill(circle);
@@ -157,41 +242,47 @@ public class PlayGameScreenPainter extends AbstractPainter<PlayGameScreen> {
 	protected void drawDirectionIndicator(WormSprite sprite) {
 		double x = sprite.getCenterX();
 		double y = sprite.getCenterY();
-		double distance = Math.max(sprite.getWidth(currentGraphics), sprite.getHeight(currentGraphics)) / 2;
+		double distance = Math.max(sprite.getWidth(currentGraphics),
+				sprite.getHeight(currentGraphics)) / 2;
 		distance += DIRECTION_INDICATOR_SIZE / 2;
 		double direction = GUIUtils.restrictDirection(sprite.getOrientation());
 
 		currentGraphics.setColor(DIRECTION_MARKER_COLOR);
 
-		Shape directionIndicator = new Ellipse2D.Double(
-				x + distance * Math.cos(direction) - DIRECTION_INDICATOR_SIZE / 2,
-				y - distance * Math.sin(direction) - DIRECTION_INDICATOR_SIZE / 2, DIRECTION_INDICATOR_SIZE,
-				DIRECTION_INDICATOR_SIZE);
+		Shape directionIndicator = new Ellipse2D.Double(x + distance
+				* Math.cos(direction) - DIRECTION_INDICATOR_SIZE / 2,
+				y - distance * Math.sin(direction) - DIRECTION_INDICATOR_SIZE
+						/ 2, DIRECTION_INDICATOR_SIZE, DIRECTION_INDICATOR_SIZE);
 		currentGraphics.fill(directionIndicator);
 	}
 
-	void drawTurnAngleIndicator(Graphics2D graphics, WormSprite sprite, double angle) {
+	void drawTurnAngleIndicator(Graphics2D graphics, WormSprite sprite,
+			double angle) {
 		if (sprite == null) {
 			return;
 		}
 		double x = sprite.getCenterX();
 		double y = sprite.getCenterY();
-		double distance = Math.max(sprite.getWidth(graphics), sprite.getHeight(graphics)) / 2;
+		double distance = Math.max(sprite.getWidth(graphics),
+				sprite.getHeight(graphics)) / 2;
 		distance += DIRECTION_INDICATOR_SIZE / 2;
-		double direction = GUIUtils.restrictDirection(sprite.getOrientation() + angle);
+		double direction = GUIUtils.restrictDirection(sprite.getOrientation()
+				+ angle);
 
 		/*
-		 * can't do this when getting information from sprite if
-		 * (getFacade().canTurn(sprite.getWorm(), angle)) {
-		 * graphics.setColor(TURN_ANGLE_MARKER_COLOR); } else {
-		 * graphics.setColor(INVALID_TURN_ANGLE_MARKER_COLOR); }
-		 */
+		 can't do this when getting information from sprite
+		if (getFacade().canTurn(sprite.getWorm(), angle)) {
+			graphics.setColor(TURN_ANGLE_MARKER_COLOR);
+		} else {
+			graphics.setColor(INVALID_TURN_ANGLE_MARKER_COLOR);
+		}
+		*/
 		graphics.setColor(TURN_ANGLE_MARKER_COLOR);
 
-		Shape directionIndicator = new Ellipse2D.Double(
-				x + distance * Math.cos(direction) - DIRECTION_INDICATOR_SIZE / 2,
-				y - distance * Math.sin(direction) - DIRECTION_INDICATOR_SIZE / 2, DIRECTION_INDICATOR_SIZE,
-				DIRECTION_INDICATOR_SIZE);
+		Shape directionIndicator = new Ellipse2D.Double(x + distance
+				* Math.cos(direction) - DIRECTION_INDICATOR_SIZE / 2,
+				y - distance * Math.sin(direction) - DIRECTION_INDICATOR_SIZE
+						/ 2, DIRECTION_INDICATOR_SIZE, DIRECTION_INDICATOR_SIZE);
 		graphics.fill(directionIndicator);
 	}
 
@@ -202,7 +293,8 @@ public class PlayGameScreenPainter extends AbstractPainter<PlayGameScreen> {
 				if (xy != null) {
 					double jumpX = getScreenX(xy[0]);
 					double jumpY = getScreenY(xy[1]);
-					drawCrossMarker(jumpX, jumpY, JUMP_MARKER_SIZE, JUMP_MARKER_COLOR);
+					drawCrossMarker(jumpX, jumpY, JUMP_MARKER_SIZE,
+							JUMP_MARKER_COLOR);
 				}
 			}
 		}
@@ -210,8 +302,10 @@ public class PlayGameScreenPainter extends AbstractPainter<PlayGameScreen> {
 
 	protected void drawCrossMarker(double x, double y, int size, Color color) {
 		currentGraphics.setColor(color);
-		currentGraphics.drawLine((int) (x - size), (int) y, (int) (x + size), (int) y);
-		currentGraphics.drawLine((int) x, (int) (y - size), (int) x, (int) (y + size));
+		currentGraphics.drawLine((int) (x - size), (int) y, (int) (x + size),
+				(int) y);
+		currentGraphics.drawLine((int) x, (int) (y - size), (int) x,
+				(int) (y + size));
 	}
 
 	void paintTextEntry(Graphics2D g, String message, String enteredText) {
@@ -219,7 +313,8 @@ public class PlayGameScreenPainter extends AbstractPainter<PlayGameScreen> {
 		g.fillRect(0, 0, getScreen().getScreenWidth(), 120);
 		g.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 20));
 		g.setColor(RENAME_TEXT_COLOR);
-		GUIUtils.drawCenteredString(g, message + enteredText + "\u2502", getScreen().getScreenWidth(), 100);
+		GUIUtils.drawCenteredString(g, message + enteredText + "\u2502",
+				getScreen().getScreenWidth(), 100);
 	}
 
 	public void paintInstructions(Graphics2D g, String message) {

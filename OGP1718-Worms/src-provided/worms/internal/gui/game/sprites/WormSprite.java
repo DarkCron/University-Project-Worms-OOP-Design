@@ -1,24 +1,32 @@
 package worms.internal.gui.game.sprites;
 
+import java.math.BigInteger;
+
+import worms.internal.gui.GUIConstants;
 import worms.internal.gui.GUIUtils;
 import worms.internal.gui.game.ImageSprite;
 import worms.internal.gui.game.PlayGameScreen;
+import worms.model.Team;
 import worms.model.Worm;
 import worms.util.ModelException;
+import worms.util.MustNotImplementException;
 
 public class WormSprite extends ImageSprite<Worm> {
 
 	private static final double MAX_SCALE = 100;
 	private static final double MIN_SCALE = 0.05;
 	private final Worm worm;
-
+	
 	private boolean isJumping;
 	private boolean isMoving;
 	private double[][] xys;
 	private double orientation;
 	private String name;
+	private String teamName;
+	private boolean atImpassableTerrain;
 	private long actionPoints;
 	private long maxActionPoints;
+	private BigInteger hitPoints;
 	private double actualX;
 	private double actualY;
 	private double radius;
@@ -83,22 +91,42 @@ public class WormSprite extends ImageSprite<Worm> {
 	}
 
 	@Override
+	public boolean isObjectAlive() {
+		return !getFacade().isTerminated(getWorm());
+	}
+
+	@Override
 	public synchronized void update() {
+		double[] xy = getFacade().getLocation(getWorm());
 		if (isJumping || isMoving) {
 			// don't update the location here, because it may differ from the
-			// location in the model
+			// location in the model (interpolation)
 		} else {
-			setCenterLocation(getScreen().getScreenX(getFacade().getX(getWorm())),
-					getScreen().getScreenY(getFacade().getY(worm)));
+			setCenterLocation(
+					getScreen().getScreenX(xy[0]),
+					getScreen().getScreenY(xy[1]));
 		}
-		this.actualX = getFacade().getX(getWorm());
-		this.actualY = getFacade().getY(getWorm());
+		this.actualX = xy[0];
+		this.actualY = xy[1];
 		setRadius(getFacade().getRadius(getWorm()));
 		setDirection(getFacade().getOrientation(getWorm()));
 		updateJumpTime();
 		setName(getFacade().getName(getWorm()));
+		try {
+			Team team = getFacade().getTeam(getWorm());
+			if (team != null) {
+				setTeamName(getFacade().getName(team));
+			} else {
+				setTeamName("_teamless_");
+			}
+		} catch (MustNotImplementException e) {
+			setTeamName("No Teams");
+		}
+		this.atImpassableTerrain = !getFacade().isPassable(getScreen().getWorld(), 
+				xy, getFacade().getRadius(getWorm()));
 		this.actionPoints = getFacade().getNbActionPoints(getWorm());
 		this.maxActionPoints = getFacade().getMaxNbActionPoints(getWorm());
+		this.hitPoints = getFacade().getNbHitPoints(getWorm());
 	}
 
 	public void setIsJumping(boolean isJumping) {
@@ -113,7 +141,7 @@ public class WormSprite extends ImageSprite<Worm> {
 
 	private void updateJumpTime() {
 		try {
-			double time = getFacade().getJumpTime(getWorm());
+			double time = getFacade().getJumpTime(getWorm(), GUIConstants.JUMP_TIME_STEP);
 			if (time > 0) {
 				int n = 1 + (int) (time / JUMP_MARKER_TIME_DISTANCE);
 				xys = new double[n][];
@@ -146,12 +174,28 @@ public class WormSprite extends ImageSprite<Worm> {
 		this.name = name;
 	}
 
+	public synchronized String getTeamName() {
+		return teamName;
+	}
+
+	private void setTeamName(String teamName) {
+		this.teamName = teamName;
+	}
+
+	public synchronized boolean isAtImpassableTerrain() {
+		return atImpassableTerrain;
+	}
+
 	public synchronized long getActionPoints() {
 		return actionPoints;
 	}
 
 	public synchronized long getMaxActionPoints() {
 		return maxActionPoints;
+	}
+
+	public synchronized BigInteger getHitPoints() {
+		return hitPoints;
 	}
 
 	public synchronized double getActualX() {

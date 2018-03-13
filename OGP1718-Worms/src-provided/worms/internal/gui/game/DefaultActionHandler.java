@@ -5,11 +5,14 @@ import java.util.concurrent.Executors;
 
 import worms.facade.IFacade;
 import worms.internal.gui.GameState;
+import worms.internal.gui.game.commands.AddNewFood;
+import worms.internal.gui.game.commands.AddNewTeam;
+import worms.internal.gui.game.commands.AddNewWorm;
 import worms.internal.gui.game.commands.Command;
 import worms.internal.gui.game.commands.Jump;
 import worms.internal.gui.game.commands.Move;
 import worms.internal.gui.game.commands.Rename;
-import worms.internal.gui.game.commands.Resize;
+import worms.internal.gui.game.commands.SelectNextWorm;
 import worms.internal.gui.game.commands.StartGame;
 import worms.internal.gui.game.commands.Turn;
 import worms.internal.gui.messages.MessageType;
@@ -84,11 +87,24 @@ class DefaultActionHandler implements IActionHandler {
 		executeCommand(new Rename(getFacade(), worm, newName, getScreen()));
 	}
 
+	public void selectNextWorm() {
+		executeCommand(new SelectNextWorm(getFacade(), getScreen()));
+	}
+
 	public void startGame() {
 		executeCommand(new StartGame(getFacade(), getScreen()));
 	}
 
-	public void resizeWorm(Worm worm, int sign) {
-		executeCommand(new Resize(getFacade(), worm, 1 + sign * 0.2, getScreen()));
+	public void addNewWorm() {
+		executeCommand(new AddNewWorm(getFacade(), getScreen()));
 	}
+
+	public void addEmptyTeam(String name) {
+		executeCommand(new AddNewTeam(getFacade(), name, getScreen()));
+	}
+
+	public void addNewFood() {
+		executeCommand(new AddNewFood(getFacade(), getScreen()));
+	}
+
 }

@@ -2,6 +2,7 @@ package worms.internal.gui.game.commands;
 
 import worms.facade.IFacade;
 import worms.internal.gui.game.PlayGameScreen;
+import worms.model.World;
 
 public abstract class Command {
 
@@ -26,9 +27,13 @@ public abstract class Command {
 		return facade;
 	}
 
+	protected World getWorld() {
+		return getScreen().getWorld();
+	}
+
 	public final void startExecution() {
 		if (canStart()) {
-			started = true;			
+			started = true;
 			doStartExecution();
 			afterExecutionStarted();
 		} else {
@@ -37,8 +42,12 @@ public abstract class Command {
 	}
 
 	protected final void cancelExecution() {
+		cancelExecution(null);
+	}
+
+	protected final void cancelExecution(Throwable e) {
 		cancelled = true;
-		afterExecutionCancelled();
+		afterExecutionCancelled(e);
 	}
 
 	protected final void completeExecution() {
@@ -52,6 +61,9 @@ public abstract class Command {
 			doUpdate(dt);
 			if (isTerminated()) {
 				getScreen().update();
+				if (!getFacade().hasActiveGame(getWorld())) {
+					getScreen().gameFinished();
+				}
 			}
 		}
 	}
@@ -71,12 +83,11 @@ public abstract class Command {
 	}
 
 	/**
-	 * Returns whether or not the execution of this command is terminated,
-	 * either by cancellation or by successful completion.
+	 * Returns whether or not the execution of this command is terminated, either by
+	 * cancellation or by successful completion.
 	 */
 	public final boolean isTerminated() {
-		return isExecutionCancelled()
-				|| (hasBeenStarted() && isExecutionCompleted());
+		return isExecutionCancelled() || (hasBeenStarted() && isExecutionCompleted());
 	}
 
 	/**
@@ -111,9 +122,10 @@ public abstract class Command {
 	}
 
 	/**
-	 * Called when the execution of the command has been cancelled.
+	 * Called when the execution of the command has been cancelled, with an optional
+	 * throwable that indicates the cause of the cancellation.
 	 */
-	protected void afterExecutionCancelled() {
+	protected void afterExecutionCancelled(Throwable e) {
 	}
 
 	/**
@@ -131,11 +143,8 @@ public abstract class Command {
 
 	@Override
 	public String toString() {
-		return this.getClass().getSimpleName()
-				+ " ("
-				+ (hasBeenStarted() ? "elapsed: "
-						+ String.format("%.2f", getElapsedTime()) + "s)"
-						: "queued)");
+		return this.getClass().getSimpleName() + " ("
+				+ (hasBeenStarted() ? "elapsed: " + String.format("%.2f", getElapsedTime()) + "s)" : "queued)");
 	}
 
 }

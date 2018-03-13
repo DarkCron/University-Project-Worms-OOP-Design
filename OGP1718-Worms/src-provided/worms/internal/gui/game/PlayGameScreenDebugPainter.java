@@ -1,17 +1,117 @@
 package worms.internal.gui.game;
 
 import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.RenderingHints;
 import java.awt.Shape;
+import java.awt.geom.Ellipse2D.Double;
+import java.awt.image.BufferedImage;
 
 import worms.internal.gui.GUIUtils;
+import worms.internal.gui.Level;
+import worms.internal.gui.game.sprites.FoodSprite;
 import worms.internal.gui.game.sprites.WormSprite;
+import worms.model.World;
 
 public class PlayGameScreenDebugPainter extends PlayGameScreenPainter {
 
 	private static final int LOCATION_MARKER_SIZE = 4;
 
+	private static final double MAX_DIVERSION = 0.7875;
+
+	private static final boolean PAINT_PASSABLE = true;
+
+	/**
+	 * Step size for sampling; lower = more details (but takes longer)
+	 */
+	private static final double PASSABLE_STEP_SIZE =  3; // screen pixels
+
+	/**
+	 * Radius for sampling; lower = more details (but takes longer)
+	 */
+	private static final double PASSABLE_TEST_RADIUS = 10	; // screen pixels
+	
+
+	private Image passableImage;
+
 	public PlayGameScreenDebugPainter(PlayGameScreen screen) {
 		super(screen);
+	}
+
+	@Override
+	public void paint(Graphics2D g) {
+		super.paint(g);
+	}
+
+	@Override
+	protected void paintLevel() {
+		super.paintLevel();
+
+		if (passableImage == null) {
+			BufferedImage image = createPassableImage();
+			this.passableImage = image;
+		}
+
+		currentGraphics.drawImage(passableImage, 0, 0, null);
+
+		drawCrossMarker(getScreenX(0), getScreenY(0), 10, Color.BLUE);
+		drawCrossMarker(getScreenX(0), getScreenY(getLevel().getWorldHeight()),
+				10, Color.BLUE);
+		drawCrossMarker(getScreenX(getLevel().getWorldWidth()), getScreenY(0),
+				10, Color.BLUE);
+		drawCrossMarker(getScreenX(getLevel().getWorldWidth()),
+				getScreenY(getLevel().getWorldHeight()), 10, Color.BLUE);
+	}
+
+	protected BufferedImage createPassableImage() {
+		Level level = getState().getLevel();
+		World world = getState().getWorld();
+
+		BufferedImage image = new BufferedImage(getScreen().getScreenWidth(),
+				getScreen().getScreenHeight(), BufferedImage.TYPE_4BYTE_ABGR);
+		BufferedImage adjacencyImage = new BufferedImage(getScreen()
+				.getScreenWidth(), getScreen().getScreenHeight(),
+				BufferedImage.TYPE_4BYTE_ABGR);
+		Graphics2D imGfx = image.createGraphics();
+		imGfx.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+				RenderingHints.VALUE_ANTIALIAS_ON);
+		Graphics2D imAdjacencyGfx = adjacencyImage.createGraphics();
+		imAdjacencyGfx.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+				RenderingHints.VALUE_ANTIALIAS_ON);
+
+		double testRadius = getScreen().screenToWorldDistance(PASSABLE_TEST_RADIUS); 
+		double stepSize = getScreen().screenToWorldDistance(PASSABLE_STEP_SIZE);
+		for (double x = testRadius; x <= level.getWorldWidth() - testRadius; x += stepSize) {
+			for (double y = testRadius; y <= level.getWorldHeight()
+					- testRadius; y += stepSize) {
+				double randomizedX = x + (-0.5 + Math.random()) * stepSize * 2;
+				double randomizedY = y + (-0.5 + Math.random()) * stepSize * 2;
+				Graphics2D targetGraphics = imGfx;
+				boolean isPassable = false;
+				if (!getState().getFacade().isPassable(world, new double[] {randomizedX,
+						randomizedY}, testRadius)) {
+					targetGraphics.setColor(new Color(255, 0, 0, 4));
+				} else if (getState().getFacade().isAdjacent(world,
+						new double[] { randomizedX, randomizedY} , testRadius)) {
+					targetGraphics = imAdjacencyGfx;
+					targetGraphics.setColor(new Color(0, 255, 0, 64));
+				} else {
+					isPassable = true;
+					targetGraphics.setColor(new Color(0, 0, 255, 4));
+				}
+				if (!isPassable || PAINT_PASSABLE) {
+					Double circle = GUIUtils.circleAt(getScreenX(randomizedX),
+							getScreenY(randomizedY), getScreen()
+									.worldToScreenDistance(testRadius));
+					targetGraphics.fill(circle);
+				}
+			}
+		}
+		imGfx.drawImage(adjacencyImage, 0, 0, null);
+		imAdjacencyGfx.dispose();
+		imGfx.dispose();
+		return image;
 	}
 
 	@Override
@@ -20,6 +120,7 @@ public class PlayGameScreenDebugPainter extends PlayGameScreenPainter {
 		drawName(sprite);
 
 		drawActionBar(sprite);
+		drawHitpointsBar(sprite);
 
 		drawOutline(sprite);
 		drawJumpMarkers(sprite); // also draw for other worms
@@ -28,11 +129,6 @@ public class PlayGameScreenDebugPainter extends PlayGameScreenPainter {
 
 		drawLocationMarker(sprite);
 
-	}
-	
-	@Override
-	protected void paintLevel() {
-		drawCrossMarker(getScreenX(0), getScreenY(0), 10, Color.BLUE);
 	}
 
 	@Override
@@ -70,6 +166,21 @@ public class PlayGameScreenDebugPainter extends PlayGameScreenPainter {
 				Color.YELLOW);
 	}
 
+	@Override
+	protected void paintFood(FoodSprite sprite) {
+		super.paintFood(sprite);
+		double r = sprite.getRadius();
+		double x = sprite.getCenterX();
+		double y = sprite.getCenterY();
+
+		currentGraphics.setColor(Color.CYAN);
+		Shape circle = GUIUtils.circleAt(x, y, getScreen()
+				.worldToScreenDistance(r));
+		currentGraphics.fill(circle);
+		currentGraphics.setColor(Color.DARK_GRAY);
+		currentGraphics.draw(circle);
+	}
+
 	protected void drawOutline(WormSprite sprite) {
 		double r = sprite.getRadius();
 		double x = sprite.getCenterX();
@@ -89,6 +200,18 @@ public class PlayGameScreenDebugPainter extends PlayGameScreenPainter {
 		double direction = sprite.getOrientation();
 
 		currentGraphics.setColor(Color.YELLOW);
+		currentGraphics.drawLine((int) x, (int) y,
+				(int) (x + dist * Math.cos(direction)),
+				(int) (y - dist * Math.sin(direction)));
+
+		// draw move tolerance
+
+		direction = direction - MAX_DIVERSION;
+		currentGraphics.drawLine((int) x, (int) y,
+				(int) (x + dist * Math.cos(direction)),
+				(int) (y - dist * Math.sin(direction)));
+
+		direction = direction + 2 * MAX_DIVERSION;
 		currentGraphics.drawLine((int) x, (int) y,
 				(int) (x + dist * Math.cos(direction)),
 				(int) (y - dist * Math.sin(direction)));

@@ -51,12 +51,6 @@ public class DefaultInputMode extends InputMode<PlayGameScreen> {
 		case 'N':
 			getScreen().renameWorm();
 			break;
-		case '+':
-			getScreen().resizeWorm(+1);
-			break;
-		case '-':
-			getScreen().resizeWorm(-1);
-			break;
 		}
 	}
 
