@@ -14,6 +14,7 @@ import worms.model.World;
 import worms.model.WorldConstants;
 import worms.model.Worm;
 import worms.util.ModelException;
+import worms.util.MustNotImplementException;
 
 public class Facade implements IFacade {
 
@@ -393,4 +394,64 @@ public class Facade implements IFacade {
 		return null;
 	}
 
+	@Override
+	public Team createTeam(World world, String name) throws ModelException, MustNotImplementException {
+		// TODO Auto-generated method stub
+		return IFacade.super.createTeam(world, name);
+	}
+	
+	@Override
+	public void terminate(Team team) throws ModelException, MustNotImplementException {
+		// TODO Auto-generated method stub
+		IFacade.super.terminate(team);
+	}
+	
+	@Override
+	public boolean isTerminated(Team team) throws ModelException, MustNotImplementException {
+		// TODO Auto-generated method stub
+		return IFacade.super.isTerminated(team);
+	}
+	
+	@Override
+	public String getName(Team team) throws ModelException, MustNotImplementException {
+		// TODO Auto-generated method stub
+		return IFacade.super.getName(team);
+	}
+	
+	@Override
+	public Team getTeam(Worm worm) throws ModelException {
+		// TODO Auto-generated method stub
+		return IFacade.super.getTeam(worm);
+	}
+	
+	@Override
+	public int getNbWormsOfTeam(Team team) throws ModelException, MustNotImplementException {
+		// TODO Auto-generated method stub
+		return IFacade.super.getNbWormsOfTeam(team);
+	}
+	
+	@Override
+	public List<Worm> getAllWormsOfTeam(Team team) throws ModelException, MustNotImplementException {
+		// TODO Auto-generated method stub
+		return IFacade.super.getAllWormsOfTeam(team);
+	}
+	
+	@Override
+	public void addWormsToTeam(Team team, Worm... worms) throws ModelException, MustNotImplementException {
+		// TODO Auto-generated method stub
+		IFacade.super.addWormsToTeam(team, worms);
+	}
+	
+	@Override
+	public void removeWormsFromTeam(Team team, Worm... worms) throws ModelException, MustNotImplementException {
+		// TODO Auto-generated method stub
+		IFacade.super.removeWormsFromTeam(team, worms);
+	}
+	
+	@Override
+	public void mergeTeams(Team recevingTeam, Team supplyingTeam) throws ModelException, MustNotImplementException {
+		// TODO Auto-generated method stub
+		IFacade.super.mergeTeams(recevingTeam, supplyingTeam);
+	}
+	
 }

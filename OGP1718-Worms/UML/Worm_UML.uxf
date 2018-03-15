@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="14.2">
+  <zoom_level>9</zoom_level>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>72</x>
+      <y>90</y>
+      <w>243</w>
+      <h>297</h>
+    </coordinates>
+    <panel_attributes>/GameObject/
+--
+location
+radius
+mass
+fromWorld
+bTerminated
+--
+getAlpha()
+setAlpha(alpha)
+/isValidAlpha(alpha)/
+/generateMass()/
+removeFromWorld(World) {TODO def}
+/terminate()/ {TODO}
+isTerminated() {TODO}
+isOverlapping(GameObject) {TODO}
+
+
+
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>72</x>
+      <y>468</y>
+      <w>180</w>
+      <h>207</h>
+    </coordinates>
+    <panel_attributes>Food
+--
+--
+consumeFood(Worm)</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>288</x>
+      <y>468</y>
+      <w>198</w>
+      <h>207</h>
+    </coordinates>
+    <panel_attributes>Worm
+--
+hitpoints {TODO, integer}
+INIT_MIN_HP = 1000
+INIT_MAX_HP = 2000
+wormTeam
+--
+static generateRandomHP(min,max) {TODO total}
+getHP() {TODO}
+setHP(amount) {TODO total}
+getTeam() {TODO}
+setTeam(team) {TODO}</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>117</x>
+      <y>378</y>
+      <w>27</w>
+      <h>108</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>10.0;100.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>117</x>
+      <y>378</y>
+      <w>234</w>
+      <h>108</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>240.0;100.0;240.0;40.0;10.0;40.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>504</x>
+      <y>90</y>
+      <w>297</w>
+      <h>288</h>
+    </coordinates>
+    <panel_attributes>World
+--
+width
+height
+[][] passableMap
+set&lt;GameObjects&gt;
+final static MAX_TEAMS = 10
+currentAmountOfTeams = 0
+worldTeams[MAX_TEAMS]
+--
+isWithinWorld(GameObject) {TODO def}
+removeFromWorld(GameObject) {TODO def}
+hasAsGameObject(GameObject, class) {TODO -self-
+//So you give an object and what class it's supposed to be
+//pro's very extensible and a single function for all
+//different types of gameobjects
+//con's, none really, more difficult I guess.
+getAllGameObjects(class) {TODO DEF -self-}
+//See above
+isAdjacentToImpTerrain(area, center, radius) {TODO}
+isOnPassableTerrain(area, center, radius) {TODO}
+startGame(???)
+finishGame(???)
+//hasActiveGame from Facade manages whether a game is going on
+//or not. With this the game figures out whether a game has
+//been won.
+gameHasWinner()
+//This function should be called when switching worms to check
+//whether there's only 1 worm left or whether all living worms
+//are from the same team
+
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>306</x>
+      <y>144</y>
+      <w>216</w>
+      <h>45</h>
+    </coordinates>
+    <panel_attributes>lt=-
+m1=0..1
+m2=0..n
+Exists in &gt;
+&lt; For</panel_attributes>
+    <additional_attributes>10.0;20.0;220.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLPackage</id>
+    <coordinates>
+      <x>54</x>
+      <y>45</y>
+      <w>1530</w>
+      <h>747</h>
+    </coordinates>
+    <panel_attributes>Worms.Model
+--
+bg=orange
+layer=-2</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1008</x>
+      <y>90</y>
+      <w>261</w>
+      <h>288</h>
+    </coordinates>
+    <panel_attributes>Team
+//EVERYTHING DEFENSIVELY
+--
+list&lt;Worm&gt; teamList
+final name
+bTerminated
+--
+canChangeTeamName()
+isValidTeamName(string)
+getName()
+setName(name)
+isWormNameInTeam(name)
+//All worm names inside a team should be unique
+getWorms()
+addWorms(Worm... worms)
+removeWorms(Worm...worms)
+mergeTeams(otherTeam)
+getWormTeamIndex(name)
+//Figure out the spot for a worm in a team based on it's 
+//name. Returns -1 if the worm's name is already in the list.
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>792</x>
+      <y>90</y>
+      <w>234</w>
+      <h>135</h>
+    </coordinates>
+    <panel_attributes>lt=-
+m2=0..MAX_TEAMS
+contains &gt;</panel_attributes>
+    <additional_attributes>10.0;130.0;80.0;130.0;80.0;10.0;240.0;10.0</additional_attributes>
+  </element>
+</diagram>
