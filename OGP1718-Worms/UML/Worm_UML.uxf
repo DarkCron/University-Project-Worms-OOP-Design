@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <diagram program="umlet" version="14.2">
-  <zoom_level>9</zoom_level>
+  <zoom_level>7</zoom_level>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>72</x>
-      <y>90</y>
-      <w>243</w>
-      <h>297</h>
+      <x>224</x>
+      <y>406</y>
+      <w>189</w>
+      <h>231</h>
     </coordinates>
     <panel_attributes>/GameObject/
 --
@@ -20,7 +20,6 @@ bTerminated
 getAlpha()
 setAlpha(alpha)
 /isValidAlpha(alpha)/
-/generateMass()/
 removeFromWorld(World) {TODO def}
 /terminate()/ {TODO}
 isTerminated() {TODO}
@@ -34,10 +33,10 @@ isOverlapping(GameObject) {TODO}
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>72</x>
-      <y>468</y>
-      <w>180</w>
-      <h>207</h>
+      <x>224</x>
+      <y>700</y>
+      <w>140</w>
+      <h>161</h>
     </coordinates>
     <panel_attributes>Food
 --
@@ -48,10 +47,10 @@ consumeFood(Worm)</panel_attributes>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>288</x>
-      <y>468</y>
-      <w>198</w>
-      <h>207</h>
+      <x>392</x>
+      <y>700</y>
+      <w>154</w>
+      <h>161</h>
     </coordinates>
     <panel_attributes>Worm
 --
@@ -70,10 +69,10 @@ setTeam(team) {TODO}</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>117</x>
-      <y>378</y>
-      <w>27</w>
-      <h>108</h>
+      <x>259</x>
+      <y>630</y>
+      <w>21</w>
+      <h>84</h>
     </coordinates>
     <panel_attributes>lt=&lt;-</panel_attributes>
     <additional_attributes>10.0;100.0;10.0;10.0</additional_attributes>
@@ -81,10 +80,10 @@ setTeam(team) {TODO}</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>117</x>
-      <y>378</y>
-      <w>234</w>
-      <h>108</h>
+      <x>259</x>
+      <y>630</y>
+      <w>182</w>
+      <h>84</h>
     </coordinates>
     <panel_attributes>lt=&lt;-</panel_attributes>
     <additional_attributes>240.0;100.0;240.0;40.0;10.0;40.0;10.0;10.0</additional_attributes>
@@ -92,10 +91,10 @@ setTeam(team) {TODO}</panel_attributes>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>504</x>
-      <y>90</y>
-      <w>297</w>
-      <h>288</h>
+      <x>560</x>
+      <y>406</y>
+      <w>231</w>
+      <h>224</h>
     </coordinates>
     <panel_attributes>World
 --
@@ -134,10 +133,10 @@ gameHasWinner()
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>306</x>
-      <y>144</y>
-      <w>216</w>
-      <h>45</h>
+      <x>406</x>
+      <y>448</y>
+      <w>168</w>
+      <h>35</h>
     </coordinates>
     <panel_attributes>lt=-
 m1=0..1
@@ -149,10 +148,10 @@ Exists in &gt;
   <element>
     <id>UMLPackage</id>
     <coordinates>
-      <x>54</x>
-      <y>45</y>
-      <w>1530</w>
-      <h>747</h>
+      <x>210</x>
+      <y>371</y>
+      <w>1190</w>
+      <h>581</h>
     </coordinates>
     <panel_attributes>Worms.Model
 --
@@ -163,10 +162,10 @@ layer=-2</panel_attributes>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>1008</x>
-      <y>90</y>
-      <w>261</w>
-      <h>288</h>
+      <x>952</x>
+      <y>406</y>
+      <w>203</w>
+      <h>224</h>
     </coordinates>
     <panel_attributes>Team
 //EVERYTHING DEFENSIVELY
@@ -194,14 +193,200 @@ getWormTeamIndex(name)
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>792</x>
-      <y>90</y>
-      <w>234</w>
-      <h>135</h>
+      <x>784</x>
+      <y>406</y>
+      <w>182</w>
+      <h>105</h>
     </coordinates>
     <panel_attributes>lt=-
 m2=0..MAX_TEAMS
 contains &gt;</panel_attributes>
     <additional_attributes>10.0;130.0;80.0;130.0;80.0;10.0;240.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLPackage</id>
+    <coordinates>
+      <x>210</x>
+      <y>0</y>
+      <w>1106</w>
+      <h>350</h>
+    </coordinates>
+    <panel_attributes>Worms.ValueData
+--
+bg=orange
+layer=-1</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>238</x>
+      <y>28</y>
+      <w>126</w>
+      <h>119</h>
+    </coordinates>
+    <panel_attributes>Name
+--
+name
+--
+Name(name)</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>574</x>
+      <y>28</y>
+      <w>182</w>
+      <h>119</h>
+    </coordinates>
+    <panel_attributes>Radius
+--
+radius
+minRadius
+--
+Radius(radius,minRadius)</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>413</x>
+      <y>28</y>
+      <w>126</w>
+      <h>119</h>
+    </coordinates>
+    <panel_attributes>Location
+--
+double[] location
+--
+Location(x,y)
+getX()
+getY()</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>406</x>
+      <y>140</y>
+      <w>266</w>
+      <h>315</h>
+    </coordinates>
+    <panel_attributes>lt=-
+&lt; is radius of
+m1=1</panel_attributes>
+    <additional_attributes>10.0;420.0;140.0;420.0;140.0;220.0;360.0;220.0;360.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>406</x>
+      <y>140</y>
+      <w>77</w>
+      <h>427</h>
+    </coordinates>
+    <panel_attributes>lt=-
+&lt; is location of
+
+
+m1=
+
+
+
+
+
+
+
+
+
+1</panel_attributes>
+    <additional_attributes>10.0;410.0;90.0;410.0;90.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>161</x>
+      <y>140</y>
+      <w>245</w>
+      <h>588</h>
+    </coordinates>
+    <panel_attributes>lt=-
+m2=1
+is name of &gt;</panel_attributes>
+    <additional_attributes>160.0;10.0;160.0;170.0;10.0;170.0;10.0;770.0;310.0;770.0;310.0;810.0;330.0;810.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>329</x>
+      <y>140</y>
+      <w>637</w>
+      <h>322</h>
+    </coordinates>
+    <panel_attributes>lt=-
+
+m2=1
+is name of &gt;</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;170.0;690.0;170.0;690.0;430.0;890.0;430.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>784</x>
+      <y>28</y>
+      <w>182</w>
+      <h>119</h>
+    </coordinates>
+    <panel_attributes>Mass
+--
+mass
+density
+--
+Mass(radius,density)
+generateMass()</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>406</x>
+      <y>140</y>
+      <w>483</w>
+      <h>329</h>
+    </coordinates>
+    <panel_attributes>lt=-
+&lt; is weight of
+m1=1</panel_attributes>
+    <additional_attributes>10.0;440.0;190.0;440.0;190.0;270.0;670.0;270.0;670.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1008</x>
+      <y>28</y>
+      <w>182</w>
+      <h>119</h>
+    </coordinates>
+    <panel_attributes>HP
+--
+hp
+--
+Mass(minHP,maxHP)
+generateHP()</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>469</x>
+      <y>140</y>
+      <w>728</w>
+      <h>574</h>
+    </coordinates>
+    <panel_attributes>lt=-
+m2=1
+&lt; is HP of</panel_attributes>
+    <additional_attributes>1020.0;10.0;1020.0;740.0;10.0;740.0;10.0;800.0</additional_attributes>
   </element>
 </diagram>
