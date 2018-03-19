@@ -120,7 +120,7 @@ public class Location {
 	/**
 	 * Returns a textual representation of the location.
 	 * @return Returns an open accolade followed by the x-coordinate, semicolom, the y-coordinate and a closing accolade as a textual representation.
-	 * 		  |"{" + getX() + ";" + getY() + "}";
+	 * 		  |result.equals("{" + getX() + ";" + getY() + "}")
 	 */
 	@Override
 	public String toString() {

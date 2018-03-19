@@ -105,7 +105,7 @@ public class Radius {
 	/**
 	 * Returns a textual representation of the radius.
 	 * @return Returns 'Radius:' followed by the radius, a comma, 'min radius: ' and the the minimum allowed radius.
-	 * 		  |"{" + getX() + ";" + getY() + "}";
+	 * 		  |result.equals("Radius: " + ((Double)this.getRadius()).toString() + ", min radius: "+((Double)this.getMinRadius()).toString())
 	 */
 	@Override
 	public String toString() {
