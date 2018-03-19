@@ -1,16 +1,19 @@
 package worms.model.values;
 
-import javax.naming.InvalidNameException;
-
 import be.kuleuven.cs.som.annotate.*;
 import worms.exceptions.InvalidLocationException;
+
 /**
+ * A class for handling Location of various game objects.
+ * 
  * @invar	Returns true if and only if the location only has valid coordinates.
  * 			|isValidLocation(getX(), getY())
  */
 @Value 
 public class Location {
 	/**
+	 * Initializes this new Location based on a given location.
+	 * 
 	 * @param location
 	 * 		  The location for this new Location.
 	 * @post the location for this new Location, is the same as the given location.
