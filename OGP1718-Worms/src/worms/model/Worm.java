@@ -394,10 +394,6 @@ public class Worm extends GameObject{
 			throw new InvalidLocationException(tmpLocation);
 		}
 		
-		
-		
-		//Should we check if the movement is possible due to the amount of current action points???
-
 		this.setLocation(tmpLocation);	
 		this.setActionPoints(this.getCurrentActionPoints() - this.getMovementCost());
 		

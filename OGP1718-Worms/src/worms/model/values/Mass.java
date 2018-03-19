@@ -1,9 +1,16 @@
 package worms.model.values;
 
 import be.kuleuven.cs.som.annotate.Value;
-
+/**
+ * 
+ * @invar 
+ *
+ */
 @Value
 public class Mass {
+	public Mass() {
+		
+	}
 	@Override
 	public boolean equals(Object obj) {
 		// TODO Auto-generated method stub
