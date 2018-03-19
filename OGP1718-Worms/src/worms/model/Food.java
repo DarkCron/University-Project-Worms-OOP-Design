@@ -24,19 +24,13 @@ public class Food extends GameObject{
 	 */
 	@Raw
 	public Food(double[] location, double radius) throws InvalidLocationException,InvalidRadiusException {
-		super(location, radius);
+		super(location, radius,World.getFoodRadius());
 	}
 
 	@Override
 	public void generateMass() {
-		this.setMass(calculateMass(WorldConstants.getFoodDensity()));
+		this.setMass(calculateMass(World.getFoodDensity()));
 	}
-
-	@Override
-	public boolean isValidRadius(double radius) {
-		return radius == WorldConstants.getFoodRadius();
-	}
-	
 	
 
 }

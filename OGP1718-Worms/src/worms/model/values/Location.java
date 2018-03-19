@@ -86,6 +86,13 @@ public class Location {
 	private final double x;
 	private final double y;
 	
+	public double[] getLocation() {
+		double[] loc = new double[2];
+		loc[0] = x;
+		loc[1] = y;
+		return loc;
+	}
+	
 	/**
 	 * Check whether this Location is equal to the given object.
 	 * 

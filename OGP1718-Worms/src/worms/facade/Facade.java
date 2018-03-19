@@ -11,7 +11,6 @@ import worms.exceptions.InvalidWormNameException;
 import worms.model.Food;
 import worms.model.Team;
 import worms.model.World;
-import worms.model.WorldConstants;
 import worms.model.Worm;
 import worms.util.ModelException;
 import worms.util.MustNotImplementException;
@@ -50,7 +49,7 @@ public class Facade implements IFacade {
 
 	@Override
 	public void turn(Worm worm, double angle) throws ModelException {
-		worm.Turn(angle);
+		worm.turn(angle);
 
 	}
 
@@ -100,7 +99,7 @@ public class Facade implements IFacade {
 	@Override
 	public void setRadius(Worm worm, double newRadius) throws ModelException {
 		try {
-			worm.setRadius(newRadius);
+			worm.setNewRadius(newRadius);
 		} catch (InvalidRadiusException e) {
 			throw new ModelException(e);
 		}
@@ -350,7 +349,7 @@ public class Facade implements IFacade {
 	public Food createFood(World world, double[] location) throws ModelException {
 		Food f;
 		try {
-			f = new Food(location, WorldConstants.getFoodRadius());
+			f = new Food(location, World.getFoodRadius());
 		} catch (Exception e) {
 			throw new ModelException(e);
 		}

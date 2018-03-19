@@ -1,8 +1,7 @@
 package worms.model.values;
 
-import javax.naming.InvalidNameException;
-
 import be.kuleuven.cs.som.annotate.*;
+import worms.exceptions.InvalidWormNameException;
 /**
  * @invar	Returns true if and only if the name only has valid characters.
  * 			|nameContainsValidCharactersOnly(getName())
@@ -14,14 +13,14 @@ public class Name {
 	 * 		  The name for this new Name.
 	 * @post the name for this new Name, is the same as the given name.
 	 * 		 |new.getName().equals(name)
-	 * @throws InvalidNameException()
+	 * @throws InvalidWormNameException()
 	 * 		  The given name is not a valid name.
 	 * 		 | ! nameContainsValidCharactersOnly(name)
 	 */
 	@Raw
-	public Name(String name) throws InvalidNameException{
+	public Name(String name) throws InvalidWormNameException{
 		if (!nameContainsValidCharactersOnly(name)){
-			throw new InvalidNameException(name);
+			throw new InvalidWormNameException(name);
 		}
 		this.name = name;
 	}
