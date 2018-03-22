@@ -37,6 +37,10 @@ public class HP {
 		}
 		
 	}
+	
+	/**
+	 * Returns this HP's hitpoints value.
+	 */
 	@Basic @Raw @Immutable
 	public int getHp() {
 		return this.hitpoints;

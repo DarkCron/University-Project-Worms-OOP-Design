@@ -24,6 +24,12 @@ public class Name {
 		}
 		this.name = name;
 	}
+	
+	/**
+	 * A default Name that adheres to the class invariants.
+	 */
+	public final static Name DEFAULT_NAME = new Name("Please name me");
+	
 	/**
 	 * Returns the name.
 	 */
@@ -113,7 +119,23 @@ public class Name {
 		return bNameIsValid;
 	}
 	
+	/**
+	 * name member of Name.
+	 */
 	private final String name;
+	
+	/**
+	 * Checks whether this current Name is a valid one.
+	 * 
+	 * @return True if and only if this name is valid, only contains valid characters and if it starts with a capital letter.
+	 * 		| result ==
+	 * 		|		nameContainsValidCharactersOnly(this.getName())
+	 */
+	public boolean isValid()
+	{
+		return nameContainsValidCharactersOnly(this.getName());
+	}
+	
 	/**
 	 * Check whether this Name is equal to the given object.
 	 * 

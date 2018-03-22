@@ -12,6 +12,10 @@ import worms.model.Food;
 import worms.model.Team;
 import worms.model.World;
 import worms.model.Worm;
+import worms.model.values.Direction;
+import worms.model.values.Location;
+import worms.model.values.Name;
+import worms.model.values.Radius;
 import worms.util.ModelException;
 import worms.util.MustNotImplementException;
 
@@ -49,8 +53,7 @@ public class Facade implements IFacade {
 
 	@Override
 	public void turn(Worm worm, double angle) throws ModelException {
-		worm.turn(angle);
-
+		worm.turn(new Direction(angle));
 	}
 
 //	@Override
@@ -88,18 +91,18 @@ public class Facade implements IFacade {
 
 	@Override
 	public double getOrientation(Worm worm) throws ModelException {
-		return worm.getDirection();
+		return worm.getDirection().getAngle();
 	}
 
 	@Override
 	public double getRadius(Worm worm) throws ModelException {
-		return worm.getRadius();
+		return worm.getRadius().getRadius();
 	}
 
 	@Override
 	public void setRadius(Worm worm, double newRadius) throws ModelException {
 		try {
-			worm.setNewRadius(newRadius);
+			worm.setRadius(new Radius(newRadius, World.getWormMinimumRadius()));
 		} catch (InvalidRadiusException e) {
 			throw new ModelException(e);
 		}
@@ -128,8 +131,8 @@ public class Facade implements IFacade {
 	@Override
 	public void rename(Worm worm, String newName) throws ModelException {
 		try {
-			worm.setName(newName);
-		} catch (InvalidLocationException e) {
+			worm.setName(new Name(newName));
+		} catch (InvalidWormNameException e) {
 			throw new ModelException(e);
 		}
 	}
@@ -349,12 +352,12 @@ public class Facade implements IFacade {
 	public Food createFood(World world, double[] location) throws ModelException {
 		Food f;
 		try {
-			f = new Food(location, World.getFoodRadius());
+			f = new Food(new Location(location), new Radius(World.getFoodRadius(),World.getFoodRadius()));
 		} catch (Exception e) {
 			throw new ModelException(e);
 		}
 
-		return null;
+		return f;
 	}
 
 	@Override

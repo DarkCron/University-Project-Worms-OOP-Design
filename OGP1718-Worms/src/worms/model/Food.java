@@ -3,6 +3,7 @@ package worms.model;
 import be.kuleuven.cs.som.annotate.Raw;
 import worms.exceptions.InvalidLocationException;
 import worms.exceptions.InvalidRadiusException;
+import worms.model.values.*;
 
 public class Food extends GameObject{
 
@@ -21,10 +22,12 @@ public class Food extends GameObject{
 	 * 		The given location is not a valid one, the location doesn't exist ( is null) or at least one of
 	 * 		the coordinates is not a valid one (one of the coordinates is NaN, Not a Number).
 	 * 		| !isValidLocation(location)
+	 * 
+	 * @see super
 	 */
 	@Raw
-	public Food(double[] location, double radius) throws InvalidLocationException,InvalidRadiusException {
-		super(location, radius,World.getFoodRadius());
+	public Food(Location location, Radius radius) throws InvalidLocationException,InvalidRadiusException {
+		super(location, radius);
 	}
 
 	@Override

@@ -1,8 +1,6 @@
 package worms.model;
 
-import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 
 public class World {
@@ -38,7 +36,7 @@ public class World {
 	private Set<GameObject> worldObjects = new HashSet<GameObject>();
 	
 	/**
-	 * A constant, representing a ficticious in game simulation of real life gravity. To
+	 * A constant, representing a fictitious in game simulation of real life gravity. To
 	 * ensure worms fall back to the ground.
 	 */
 	private final static double GRAVITY = 5.0;

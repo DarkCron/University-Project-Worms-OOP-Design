@@ -31,6 +31,11 @@ public class Radius {
 		this.minRadius = minRadius;
 	}
 	
+	/**
+	 * A default radius that complies to the class invariants.
+	 */
+	public static final Radius DEFAULT_RADIUS = new Radius(0, 0);
+	
 
 	/**
 	 * Returns whether a given radius is greater or equal to a given minimum radius.
@@ -43,7 +48,7 @@ public class Radius {
 	 * 		|	result ==
 	 * 		|		(radius >= minRadius)
 	 */
-	public boolean isValidRadius(double radius,double minRadius) {
+	public static boolean isValidRadius(double radius,double minRadius) {
 		if (minRadius > radius) {
 			return false;
 		}
@@ -69,6 +74,17 @@ public class Radius {
 	
 	private final double radius;
 	private final double minRadius;
+	
+	/**
+	 * Checks whether this Radius is a valid one.
+	 * 
+	 * @return True if and only if the radius is greater or equal to the minRadius
+	 * 		|	result ==
+	 * 		|		(this.getRadius() >= this.getMinRadius())
+	 */
+	public boolean isValid() {
+		return isValidRadius(this.getRadius(), this.getMinRadius());
+	}
 	
 	/**
 	 * Check whether this Radius is equal to the given object.

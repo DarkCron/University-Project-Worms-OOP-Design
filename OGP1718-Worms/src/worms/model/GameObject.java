@@ -5,6 +5,16 @@ import worms.exceptions.InvalidLocationException;
 import worms.exceptions.InvalidRadiusException;
 import worms.model.values.*;
 
+/**
+ * A class describing our in-game characters, the worms.
+ * 
+ * @author Liam, Bernd
+ * 
+ * @Invar GameObject's location is valid and within bounds.
+ * 		| isValidLocation(getLocation())
+ * @Invar worm's radius must be valid, larger than the minimum radius 
+ * 		| isValidRadius(getRadius())
+ */
 public abstract class GameObject{
 	/**
 	 * 
@@ -12,53 +22,56 @@ public abstract class GameObject{
 	 * @param radius
 	 * 
 	 * @post The location of the gameObject is the same as the given location.
-	 * 		| new.location.getX() == location[0]
-	 * 		| new.location.getY() == location[1]
+	 * 		| new.getLocation() == location
 	 * @post The radius of the worm is the same as the given radius.
-	 * 		|new.radius.getRadius() == radius
+	 * 		|new.getRadius() == radius
 	 * 
 	 * @throws InvalidRadiusException
 	 * 		The given radius is not a valid one, the given radius is less than the minimum allowed radius.
-	 * 		| !isValidRadius(location)
+	 * 		| !isValidRadius(radius)
 	 * @throws InvalidLocationException
 	 * 		The given location is not a valid one, the location doesn't exist ( is null) or at least one of
 	 * 		the coordinates is not a valid one (one of the coordinates is NaN, Not a Number).
 	 * 		| !isValidLocation(location)
 	 */
 	@Raw
-	public GameObject(double[] location, double radius, double minRadius) throws InvalidLocationException,InvalidRadiusException {
+	public GameObject(Location location, Radius radius) throws InvalidLocationException,InvalidRadiusException {
+		if(!isValidRadius(radius)) {
+			throw new InvalidRadiusException(radius);
+		}
+		this.setRadius(radius);
+		if(!isValidLocation(location)) {
+			throw new InvalidLocationException(location);
+		}
 		this.setLocation(location);
-		this.setRadius(radius,minRadius);
 	}
 	
 	/**
 	 * Sets the location of a worm. If the given location is invalid for any worm,
-	 * the location doesn't exist (null) or contains invalid coordinates, any coordinate being
-	 * NaN (Not a Number), the location will be rejected and a InvalidLocationException will be thrown.
+	 * the location will be rejected and a InvalidLocationException will be thrown.
 	 * 
 	 * @param location
-	 * 		A given tuple of coordinates, with at index 0 the supposed x-coordinate and at index 1 the supposed
-	 * 		y - coordinate.
+	 * 		A location of class Location. 
 	 * 
 	 * @post Location of the worm should be the given location. 
 	 * 		|new.getLocation() == location
 	 * 
 	 * @throws InvalidLocationException
-	 *         Given location doesn't resemble a valid location.
-	 *      |!isValidlocation(location)
+	 *        If the given Location is invalid or not effective.
+	 *      |!isValidLocation(location)
 	 * 
+	 * @note location's restrictions are handled and checked in it's class. A manual check call can be made using 'x'.isValid()
 	 */
 	@Raw
-	public void setLocation(double[] location) throws InvalidLocationException {
-		try {
-			this.location = new Location(location);
-		} catch (InvalidLocationException e) {
-			throw e;
+	public void setLocation(Location location) throws InvalidLocationException {
+		if(!isValidLocation(location)) {
+			throw new InvalidLocationException(location);
 		}
+		this.location = location;
 	}
 
 	/**
-	 * returns the worm's current x location.
+	 * returns the gameObjects's current x location.
 	 */
 	@Basic @Raw
 	public double getX() {
@@ -66,29 +79,45 @@ public abstract class GameObject{
 	}
 	
 	/**
-	 * returns the worm's current y location.
+	 * returns the gameObjects's current y location.
 	 */
 	@Basic @Raw
 	public double getY() {
 		return this.location.getY();
 	}
 	
-	public boolean isValidLocation(Location location) {
-		return (location != null) && ();
+	/**
+	 * Return the gameobject's Location
+	 * 
+	 */
+	@Basic @Raw
+	public Location getLocation() {
+		return this.location;
 	}
 	
 	/**
+	 * Checks whether this gameobject's is a valid one.
 	 * 
+	 * @return Returns true if and only if this GameObject's location is effective and
+	 * 			the location is valid.
+	 * 			| result == (location != null) && (location.isValid())
 	 */
-	private Location location;
+	public static boolean isValidLocation(Location location) {
+		return (location != null) && (location.isValid());
+	}
+	
+	/**
+	 * The location of a gameObject in gameSpace coordinates x and y contained in a value object Location.
+	 */
+	private Location location = Location.ORIGIN;
 	
 
 	/**
 	 * Returns the effective radius of the current worm.
 	 */
-	@Basic
-	public double getRadius() {
-		return this.getRadius();
+	@Basic @Raw
+	public Radius getRadius() {
+		return this.radius;
 	}
 
 	/**
@@ -97,30 +126,40 @@ public abstract class GameObject{
 	 * 
 	 * @param radius
 	 *        The given radius for a worm, bigger radius is bigger worm. Minimum
-	 *        radius may be in effect.
+	 *        radius may be in effect. Minimum radius is always packed in with radius.
 	 * @post Sets the worm its radius to the given radius.
 	 * 		|new.getRadius() == radius
+	 * @post TODO --mass
 	 * @effect This function also changes the mass and thus max Action Points, since
 	 *         a worm's weight depends on it's size.
 	 *     | setMass()
 	 * @throws InvalidRadiusException
-	 *         Whenever the radius is out of bounds.
-	 *     |!isValidRadius(radius)
+	 *         Whenever the radius is out of bounds or invalid.
+	 *     |!isValidRadius(new.getRadius())
 	 *     
-	 * @note We currently do not change a worm's current AP when we change it's radius (and
-	 * 	therefore it's mass). This can be easily implemented later however.
 	 */
-	public void setRadius(double radius, double minRadius) throws InvalidRadiusException {
-		try {
-			this.radius = new Radius(radius, minRadius);
-		} catch (InvalidRadiusException e) {
-			throw e;
+	public void setRadius(Radius radius) throws InvalidRadiusException {
+		if(!isValidRadius(radius)) {
+			throw new InvalidRadiusException(radius);
 		}
 		this.generateMass();
 	}
 	
 	/**
+	 * Checks whether this gameobject's Radius is a valid one.
 	 * 
+	 * @return Returns true if and only if this GameObject's radius is effective and
+	 * 			the radius is valid.
+	 * 			| result == (radius != null) && (radius.isValid())
+	 */
+	public static boolean isValidRadius(Radius radius) {
+		return (radius != null) && (radius.isValid());
+	}
+	
+	
+	/**
+	 * The radius of a gameObject contained in a value object Radius.
+	 * Every radius value comes with it's own minimum radius possible.
 	 */
 	private Radius radius;
 	
@@ -131,10 +170,10 @@ public abstract class GameObject{
 	 * @return calculateMass returns the worms effective mass, calculated using its
 	 *       own radius and density.
 	 *       |result == 
-	 *       |		density * (((double)4 /(double)3) * Math.PI * Math.pow(this.radius, 3))
+	 *       |		density * (((double)4 /(double)3) * Math.PI * Math.pow(this.getRadius().getRadius(), 3))
 	 */
 	protected double calculateMass(double density) {
-		return density * (((double) 4 / (double) 3) * Math.PI * Math.pow(this.getRadius(), 3));
+		return density * (((double) 4 / (double) 3) * Math.PI * Math.pow(this.getRadius().getRadius(), 3));
 	}
 
 	/**

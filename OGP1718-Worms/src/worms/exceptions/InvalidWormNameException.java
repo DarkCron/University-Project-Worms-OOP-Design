@@ -1,6 +1,7 @@
 package worms.exceptions;
 
 import be.kuleuven.cs.som.annotate.*;
+import worms.model.values.Name;
 
 /**
  * A class for signaling invalid names for various objects
@@ -20,6 +21,27 @@ public class InvalidWormNameException extends RuntimeException {
      */
     public InvalidWormNameException(String name) {
     	this.value = name;
+    }
+    
+    /**
+     * Initialize this new illegal location exception with given value.
+     * 
+     * @param   name
+     *          The string for the new invalid name exception.
+     * @post    The value of the new illegal name exception is set
+     *          to the given value. If the given Name was null this value will be set to an invalid value null.
+     *          | if name == null
+     *          |	then
+     *          |		this.value = null
+     *          |	else
+     *          |		this.value = name.getName()
+     */
+    public InvalidWormNameException(Name name) {
+    	if(name == null) {
+    		this.value = null;
+    	}else {
+    		this.value = name.getName();
+    	}
     }
     
     /**

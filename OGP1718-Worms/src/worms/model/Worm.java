@@ -10,21 +10,20 @@ import worms.exceptions.InvalidRadiusException;
  * A class describing our in-game characters, the worms.
  * 
  * @author Liam, Bernd
- * @Invar worm's location is within bounds.
- * 		| isValidLocation(getLocation())
+ * 
  * @Invar worm's direction is within the bounds of 0 and 2Pi.
  * 		| getDirection() >= 0 && getDirection() < math.PI * 2
- * @Invar worm's radius must be valid, larger than the minimum radius 
- * 		|isValidRadius(getRadius())
  * @Invar worm's action points may never be less than 0 or larger than the
  *        worm's max AP
  *      | isValidAmountOfActionPoints(getCurrentActionPoints())
  * @Invar worm's max AP is always the worm's mass rounded up
  * 		| hasProperMaxActionPoints()
  * @Invar worm's name must be valid 
- * 		| nameContainsValidCharactersOnly(getName())
+ * 		| isValidName(getName())
  * @Invar worm's jump speed (vector)magnitude 
  * 		| isValidJumpSpeedMagnitude(getJumpSpeedMagnitude())
+ * 
+ * @see super
  */
 public class Worm extends GameObject{
 
@@ -64,9 +63,9 @@ public class Worm extends GameObject{
 	 * 
 	 * @note All class invariants are satisfied upon instantiating a new Worm. Therefore we don't need the @Raw tag.
 	 */
-	public Worm(double[] location, double direction, double radius, String name)
+	public Worm(Location location, Direction direction, Radius radius, Name name)
 			throws InvalidWormNameException, InvalidRadiusException, InvalidLocationException {
-		super(location, radius,World.getWormMinimumRadius());
+		super(location, radius);
 		this.setDirection(direction);
 		this.setName(name);
 		this.resetActionPoints();
@@ -83,13 +82,22 @@ public class Worm extends GameObject{
 	 *            The given direction the worm should be facing
 	 * @pre direction has to be bigger than 0 or equal to 0 and smaller than 2PI
 	 *      |direction >= 0 && direction < 2*Math.pi
-	 * @post given direction equals worm's direction 
-	 * 		|new.getDirection() == direction
+	 * @post if the given direction is a valid one the given direction is the new direction.
+	 * 		In all other cases the same direction remains.
+	 * 		|if isValidDirection(direction)
+	 * 		|	then
+	 * 		|		new.direction == direction
+	 * 		|	else
+	 * 		|		new.direction == this.getDirection()
 	 */
 	@Raw
-	public void setDirection(double direction) {
+	public void setDirection(Direction direction) {
 		assert isValidDirection(direction);
-		this.direction = direction;
+		if(isValidDirection(direction)) {
+			this.direction = direction;
+		}else {
+			this.direction = this.getDirection();
+		}
 	}
 	
 	/**
@@ -102,24 +110,24 @@ public class Worm extends GameObject{
 	 * 		| result ==
 	 * 		|		(direction >= 0 && direction < 2 * Math.PI)
 	 */
-	public boolean isValidDirection(double direction) {
-		if (direction >= 0 && direction < 2 * Math.PI) {
+	public static boolean isValidDirection(Direction direction) {
+		if (direction.getAngle() >= 0 && direction.getAngle() < 2 * Math.PI) {
 			return true;
 		}
 		return false;
 	}
 	
 	/**
-	 * A primitive type double in Java is initialized as 0.0, thus direction is correct for the class invariant.
+	 * A value object Direction containing a worm's direction.
 	 */
-	private double direction;
+	private Direction direction = Direction.DEFAULT_DIRECTION;
 
 	/**
 	 * getDirection returns the worm its direction.
 	 */
 	@Basic
 	@Raw
-	public double getDirection() {
+	public Direction getDirection() {
 		return this.direction;
 	}
 
@@ -274,112 +282,40 @@ public class Worm extends GameObject{
 	private int maxActionPoints = Math.round((float) this.getMass());
 
 	/**
-	 * Sets the name of the worm. If the given name for a worm is invalid, meaning the name is null,
-	 * or the name contains any invalid characters a InvalidWormNameException will be thrown.
+	 * Sets the name of the worm.
 	 * 
 	 * @param name
-	 *      The given name to try to assign to the worm.
+	 *      The given name to assign to the worm.
 	 * @post Given name becomes the worm its name.
 	 * 		|new.getName() == name;
-	 * @throws InvalidWormNameException whenever character contains an invalid character. 
+	 * @throws InvalidWormNameException whenever a given name is invalid or not effective. 
 	 *      |!isValidName(name)
 	 */
 	@Raw
-	public void setName(String name) throws InvalidWormNameException {
-		try {
-			this.name = new Name(name);
-		} catch (InvalidWormNameException e) {
-			throw e;
+	public void setName(Name name) throws InvalidWormNameException {
+		if(!isValidName(name)) {
+			throw new InvalidWormNameException(name);
 		}
+		this.name = name;
 	}
 	
 	/**
-	 * name is not a primitive data type, therefore it will be initialized to null. Which is not
-	 * according to the class invariants. We therefore initialize the worm's name to a 'proper' name.
+	 * A value object Name that holds the name of the worm.
 	 */
-	private Name name;
+	private Name name = Name.DEFAULT_NAME;
 
 	/**
-	 * Checks whether a character is a valid one for a worm's name.
-	 * Currently only letters, whitespaces (blank spaces) and single quotation
-	 * marks are allowed, any other character is rejected.
+	 * Checks whether a given name is valid for any and all worms.
 	 * 
-	 * @return returns true if given character is a letter
+	 * @param name
+	 * 		the given name to check.
+	 * @return True if and only if the name is effective and if the given name is effective.
 	 * 		| result ==
-	 * 		| 	Character.isLetter(c)
-	 * @return returns true if given character is a whitespace (blank space)
-	 * 		| result ==
-	 * 		| 	Character.isWhitespace(c)
-	 * @return returns true if given character is a single quotation mark '
-	 * 		| result ==
-	 * 		| 	c == '\''
-	 * @return returns false if given character not a valid character.
-	 * 			Not a letter, whitespace or single quotation mark.
-	 * 		| result ==
-	 * 		| 	(!Character.isLetter(c) && !(c == '\'') && !Character.isLetter(c))
+	 * 		|		(name!=null) && (name.isValid())
 	 */
-	public static boolean isValidCharacter(char c) {
-		if (Character.isLetter(c)) {
-			return true;
-		}
-
-		if (Character.isWhitespace(c)) {
-			return true;
-		}
-		if (c == '\'') {
-			return true;
-		}
-		return false;
+	public static boolean isValidName(Name name) {
+		return (name!=null) && (name.isValid());
 	}
-
-	/**
-	 * Check whether a string name only contains characters that are allowed by the
-	 * programmer.
-	 * 
-	 * @return False if the given name is shorter than 2 characters
-	 * 		| result ==
-	 * 		|	(name == null)
-	 * @return False if the given name is null
-	 * 		| result ==
-	 * 		|	(name.length() < 2)
-	 * @return False if the given name does not start with an uppercase character
-	 * 		| result ==
-	 * 		|	(!Character.isUpperCase(name.charAt(0))
-	 * @return True if all characters in string name are valid. 
-	 * 		|	let bIsValidName = true in
-	 * 		|	for (char c :name.toCharArray()) 
-	 * 		|		bIsValidName = isValidCharacter(c)
-	 * 		|	if bIsValidName
-	 * 		|	then	result == true
-	 * @return False if a single character in string name is invalid. 
-	 * 		|	let bIsValidName = false in
-	 * 		|	for (char c :name.toCharArray()) 
-	 * 		|		bIsValidName = isValidCharacter(c)
-	 * 		|		if !bIsValidName
-	 * 		|		then	result == false
-	 */
-	public static boolean nameContainsValidCharactersOnly(String name){
-		if (name == null)
-		{
-			return false;
-		}
-		if(name.length() < 2) {
-			return false;
-		}
-		if(!Character.isUpperCase(name.charAt(0))) {
-			return false;
-		}
-		
-		boolean bNameIsValid = true;
-		
-		for (char c : name.toCharArray()) {
-			if (!isValidCharacter(c)) {
-				bNameIsValid = false;
-			}	
-		}
-		return bNameIsValid;
-	}
-
 	/**
 	 * returns the given name of the worm.
 	 */
@@ -408,8 +344,8 @@ public class Worm extends GameObject{
 	 */
 	public void move(int nbSteps) throws InvalidLocationException,RuntimeException {
 		double[] deltaMovement = new double[2];
-		deltaMovement[0] = Math.cos(this.getDirection()) * this.getRadius(); 
-	    deltaMovement[1] = Math.sin(this.getDirection()) * this.getRadius();
+		deltaMovement[0] = Math.cos(this.getDirection().getAngle()) * this.getRadius().getRadius(); 
+	    deltaMovement[1] = Math.sin(this.getDirection().getAngle()) * this.getRadius().getRadius();
 
 	    double[] tmpLocation = new double[2];
 	    tmpLocation[0] = deltaMovement[0] + this.getX();
@@ -422,7 +358,7 @@ public class Worm extends GameObject{
 		
 	    
 	    try {
-			this.setLocation(tmpLocation);
+			this.setLocation(new Location(tmpLocation));
 		} catch (InvalidLocationException e) {
 			throw e;
 		}
@@ -444,7 +380,7 @@ public class Worm extends GameObject{
 	 */
 	public int getMovementCost() {
 		int cost = 0;
-		cost = (int) Math.ceil(Math.abs(Math.cos(this.getDirection())) + Math.abs(4*Math.sin(this.getDirection())));
+		cost = (int) Math.ceil(Math.abs(Math.cos(this.getDirection().getAngle())) + Math.abs(4*Math.sin(this.getDirection().getAngle())));
 		
 		return cost;
 	}
@@ -462,28 +398,46 @@ public class Worm extends GameObject{
 	 * 		| isValidDirection(this.getDirection())
 	 * @pre the sum between the worm's current direction and the given angle
 	 * 		is a valid angle between 0 or 2*PI radians, 0 included.
-	 * 		| isValidDirection(this.getDirection() + angle)
+	 * 		| isValidDirection(this.getDirection().getAngle() + angle.getAngle())
 	 * @pre the cost for turning the given angle should be possible.
-	 * 		| isActionCostPossible(this.getTurnCost(angle))
+	 * 		| this.isActionCostPossible(this.getTurnCost(angle))
 	 * 
 	 * @effect AP cost of changing direction is handled in setDirection
-	 * 		| setDirection(angle + this.getDirection())
-	 * @effect resets any existing jump preparations
-	 * 		| this.cancelJump()
+	 * 		| setDirection(new Direction(this.getDirection().getAngle() + angle.getAngle()))
+	 * 
+	 * @post The worm's AP shall be reduced by the turnCost amount of the angle,
+	 * 		if the cost is higher than the worm's AP a cost of 0 will be applied (no cost).
+	 * 		|if isActionCostPossible(this.getTurnCost(angle))
+	 * 		|	then
+	 * 		|		new.getCurrentActionPoints() == this.getCurrentActionPoints() - this.getTurnCost(angle)
+	 * 		|	else
+	 * 		|		new.getCurrentActionPoints() == this.getCurrentActionPoints()
+	 * @post The worm shall turn the given angle, unless the new direction is invalid or the cost
+	 * 		of turning is higher than the worm's AP. In those cases a worm doesn't turn.
+	 * 		| if isValidDirection(newDirection)
+	 * 		|	then
+	 * 		|		new.getDirection() == new Direction(this.getDirection().getAngle() + angle.getAngle())
+	 * 		|	else
+	 * 		|		new.getDirection() == this.getDirection()
 	 * 
 	 * @note Currently turning altough AP == 0 is still possible but can easily be implemented.
 	 * 	The assignment didn't explicitly mention this should be a feature in the current implementation.
 	 */
-	public void turn(double angle) {
+	public void turn(Direction angle) {
 		assert isValidDirection(angle);
 		assert isValidDirection(this.getDirection());
-		assert isValidDirection(this.getDirection() + angle);
-		assert isActionCostPossible(this.getTurnCost(angle));
+		assert isValidDirection(new Direction(this.getDirection().getAngle() + angle.getAngle()));
+		assert this.isActionCostPossible(this.getTurnCost(angle));
 		
-		double newDirection = (angle + this.getDirection());
+		Direction newDirection = new Direction(this.getDirection().getAngle() + angle.getAngle());
 		
-		if(!isActionCostPossible(this.getMovementCost())) {
-
+		if(!isValidDirection(newDirection)) {
+			newDirection = this.getDirection();
+			angle = new Direction(0);
+		}
+		if(!isActionCostPossible(this.getTurnCost(angle))) {
+			newDirection = this.getDirection();
+			angle = new Direction(0);
 		}
 		this.setDirection(newDirection);
 		this.setActionPoints(this.getCurrentActionPoints() - this.getTurnCost(angle));
@@ -498,9 +452,9 @@ public class Worm extends GameObject{
 	 * 		| result ==
 	 * 		|	Math.abs((int)Math.ceil((angle/(2*Math.PI)*60)))
 	 */
-	public int getTurnCost(double angle) {
+	public int getTurnCost(Direction angle) {
 		int cost = 0;
-		cost = Math.abs((int)Math.ceil((angle/(2*Math.PI)*60)));
+		cost = Math.abs((int)Math.ceil((angle.getAngle()/(2*Math.PI)*60)));
 		return cost;
 	}
 	
@@ -528,74 +482,29 @@ public class Worm extends GameObject{
 	 * 
 	 * @note We currently disabled being able to jump when AP == 0.
 	 */
-	public void jump() throws InvalidLocationException {
-		if(this.getJumpSpeedMagnitude() > 0 && isValidJumpSpeedMagnitude(this.getJumpSpeedMagnitude())) {
-			try {
-				double distance = Math.pow(this.getJumpSpeedMagnitude(), 2)*Math.sin(this.getDirection()*((float)2))/World.getGravity();
-
-				try {
-					double[] tmp = new double[2];
-					tmp[0] = this.getX() + distance;;
-					tmp[1] = this.getY();
-					this.setLocation(tmp);
-				} catch (InvalidLocationException e) {
-					throw e;
-				}
-
-				
-				
-				this.setActionPointsAfterJump();	
-				this.setJumpSpeedMagnitude(0);
-				this.setJumpTime(0);
-			} catch (InvalidLocationException e) {
-				throw e;
-			}
-			
-		}
-	}
-
-	/**
-	 * Prepares the worm for any possible jump, based on it's current direction facing and remaining AP.
-	 * Will cancel any preparations made to jump if it's AP == 0.
-	 * 
-	 * @effect The worm's jumSspeedMagnitude and jump airtime will be calculated and set. And reset if the worm's
-	 * 		AP equals to 0.
-	 * 		|if (!(this.getDirection() >= 0 && this.getDirection() <= Math.PI)) 
-	 * 		|	then this.setJumpSpeedMagnitude(0f)
-	 * 		|else
-	 * 		|	this.setJumpSpeedMagnitude((this.jumpForce()/this.getMass())*JUMP_TIME_DELTA);
-	 * 		|	this.CalculateJumpTime();
-	 * 		|	if(this.getCurrentActionPoints() == 0)
-	 * 		|		then	this.cancelJump();
-	 */
-	private void prepareJump() {		
-		if (!(this.getDirection() >= 0 && this.getDirection() <= Math.PI)) {
-			this.setJumpSpeedMagnitude(0f);
+	public void jump() throws InvalidLocationException,RuntimeException{
+		double jumpSpeedMagnitude = this.getJumpSpeedMagnitude();
+		
+		if(!isValidJumpSpeedMagnitude(jumpSpeedMagnitude)) {
+			throw new RuntimeException(""+jumpSpeedMagnitude);
 		}
 		
-		this.setJumpSpeedMagnitude((this.jumpForce()/this.getMass())*World.getJumpTimeDelta());
-
-		// (!isValidJumpSpeedMagnitude(jumpSpeedMagnitude)) {
-		//	throw new IllegalArgumentException();
-		//}
-		this.calculateJumpTime();
+		double jumpTime = this.getJumpTime();
 		
-		if(this.getCurrentActionPoints() == 0) {
-			this.cancelJump();
+		if(!isValidJumpTime(jumpTime)) {
+			throw new RuntimeException(""+jumpTime);
 		}
-	}
-	
-	/**
-	 * Resets any set information about a possible jump for a worm.
-	 * 
-	 * @effect reset the worm's sjmpSpeedMagnitude
-	 * 		| this.setJumpSpeedMagnitude(0)
-	 * @effect reset the worm's jump total air time
-	 * 		| this.setJumpTime(0)
-	 */
-	private void cancelJump() {
-		this.setJumpSpeedMagnitude(0);
-		this.setJumpTime(0);
+		
+		double distance = Math.pow(jumpSpeedMagnitude, 2)*Math.sin(this.getDirection().getAngle()*((float)2))/World.getGravity();
+		
+		Location tmp = new Location(this.getX() + distance, this.getY());
+		
+		if(!isValidLocation(tmp)) {
+			throw new InvalidLocationException(tmp);
+		}
+		
+		this.setLocation(tmp);				
+		this.setActionPointsAfterJump();	
 	}
 
 	/**
@@ -606,13 +515,6 @@ public class Worm extends GameObject{
 	 */
 	public void setActionPointsAfterJump() {
 		this.setActionPoints(0);
-	}
-	
-	/**
-	 * Returns a worm's jump force when perfoming a new jump, based on it's mass and remaining AP.
-	 */
-	public double jumpForce() {
-		return ((float)5*(float)this.getCurrentActionPoints())+(this.getMass()*World.getGravity());
 	}
 	
 	/**
@@ -637,33 +539,27 @@ public class Worm extends GameObject{
 		return true;
 	}
 	
+	public static boolean isValidJumpTime(double jumpSpeed) {
+		if (jumpSpeed < 0) {
+			return false;
+		}
+		else if (Double.isNaN(jumpSpeed)) {
+			return false;
+		}
+		else if (Double.isInfinite(jumpSpeed)){
+			return false;
+		}
+		return true;
+	}
+	
 	/**
 	 * Returns the worm's current jump velocity magnitude.
 	 */
 	@Basic
 	public double getJumpSpeedMagnitude() {
-		return this.jumpSpeedMagnitude;
+		double jumpForce = (5D*this.getCurrentActionPoints())+(this.getMass()*World.getGravity());
+		return (jumpForce/this.getMass())*World.getJumpTimeDelta();
 	}
-	
-	/**
-	 * Sets a given magnitude to the worm's jump speed magnitude.
-	 * 
-	 * @param magnitude
-	 * 		A given jumpspeed's vector's magnitude
-	 * @post sets a worm jumpSpeedMagnitude to the given magnitude
-	 * 		| new.getJumpSpeedMagnitude() == magnitude
-	 */
-	public void setJumpSpeedMagnitude(double magnitude) {
-		this.jumpSpeedMagnitude = magnitude;
-	}
-	
-
-	/**
-	 * The vector representation of the current jumpspeed of a worm. Defaults at zero since a
-	 * worm doesn't jump at initialization. Since this double represents a vector as a number
-	 * we assume the jump vector axis along the screen x and y coordinate space of the game.
-	 */
-	private double jumpSpeedMagnitude = 0;
 
 	/**
 	 * This function returns a theoretical position for a worm performing a jump after a
@@ -681,80 +577,50 @@ public class Worm extends GameObject{
 	 * 		This function returns an exception if a calculated position is an invalid one for a worm.
 	 * 		| !isValidLocation(tmpLocation)
 	 */
-	public double[] jumpStep(double deltaTime) throws InvalidLocationException{
-		//TODO defensive deltaTime >= 0 en <= totalJumpTime
+	public double[] jumpStep(double deltaTime) throws InvalidLocationException,IllegalArgumentException,RuntimeException{
+		
+		if(!isValidJumpTime(deltaTime)) {
+			throw new IllegalArgumentException(((Double)deltaTime).toString());
+		}
+		
+		if(!isValidDirection(this.getDirection())) {
+			throw new RuntimeException("The direction of the worm trying to jump is invalid. Not equal or larger than 0 and less than 2*PI." + this.getDirection().toString());
+		}
+		
+		double jumpSpeedMagnitude = this.getJumpSpeedMagnitude();
+		if(jumpSpeedMagnitude < 0) {
+			throw new RuntimeException("The jumpSpeedMagnitude of the worm tring to jump is invalid. Less than 0 "+jumpSpeedMagnitude);
+		}
 		
 		//speed in air
-		double speedX = this.getJumpSpeedMagnitude()*Math.cos(this.getDirection());
-		double speedY = this.getJumpSpeedMagnitude()*Math.sin(this.getDirection());
+		double speedX = jumpSpeedMagnitude * Math.cos(this.getDirection().getAngle());
+		double speedY = jumpSpeedMagnitude * Math.sin(this.getDirection().getAngle());
 		//Position in air
 		double xPosTime = this.getX()+(speedX*deltaTime);
-		double yPosTime = this.getY()+((speedY*deltaTime) - (((float)1/(float)2)*World.getGravity()*Math.pow(deltaTime,2)));
+		double yPosTime = this.getY()+((speedY*deltaTime) - ((1D/2D)*World.getGravity()*Math.pow(deltaTime,2)));
 		
-		Location tmpLocation;
-
+		Location tmpLocation = new Location(xPosTime,yPosTime);
 		
-		try {
-			double[] tmp = new double[2];
-			tmp[0] = xPosTime;
-			tmp[1] = yPosTime;
-			
-			tmpLocation = new Location(tmp);
-		} catch (InvalidLocationException e) {
-			throw e;
+		if(!isValidLocation(tmpLocation)) {
+			throw new InvalidLocationException(tmpLocation);
 		}
 
 		return tmpLocation.getLocation();
 	}
 	
-	/**
-	 * Calculates the total jumpTime for a worm.
-	 * 
-	 * @effect sets the calculated jumptime based on the jumpSpeedMagnitude of the worm
-	 * 		| double distance = Math.pow(this.getJumpSpeedMagnitude(), 2)*Math.sin(this.getDirection()*((float)2))/GRAVITY;
-	 *		| double timeInterval = (distance/(this.getJumpSpeedMagnitude()*Math.cos(this.getDirection())));
-	 *		| this.setJumpTime(timeInterval);
-	 */
-	public void calculateJumpTime() {
-		double distance = Math.pow(this.getJumpSpeedMagnitude(), 2)*Math.sin(this.getDirection()*((float)2))/World.getGravity();
-		double timeInterval = (distance/(this.getJumpSpeedMagnitude()*Math.cos(this.getDirection())));
-		this.setJumpTime(timeInterval);
+
+	public double calculateJumpTime() {
+		double distance = Math.pow(this.getJumpSpeedMagnitude(), 2)*Math.sin(this.getDirection().getAngle()*2D)/World.getGravity();
+		double timeInterval = (distance/(this.getJumpSpeedMagnitude()*Math.cos(this.getDirection().getAngle())));
+		return timeInterval;
 	}
 
-	/**
-	 * Sets a given total air time for a jump to a worm.
-	 * 
-	 * @param time
-	 * 		A given amount of total air time.
-	 * @post A worm's jumpTime will be equal to the given time.
-	 * 		| new.jumpTime = time;
-	 */
-	public void setJumpTime(double time) {
-		this.jumpTime = time;
+
+	public double getJumpTime() throws RuntimeException{
+		double jumpTime = this.calculateJumpTime();
+		if(isValidJumpTime(jumpTime)) {
+			throw new RuntimeException("Invalid jumptime calculated. "+jumpTime);
+		}
+		return jumpTime;
 	}
-	
-	/**
-	 * Returns the worm's total supposed jump air time.
-	 * 
-	 * @effect prepares jump logic
-	 * 		| this.PrepareJump()
-	 */
-	@Basic
-	public double getJumpTime() {
-		this.prepareJump();
-		
-		return this.jumpTime;
-	}
-
-	/**
-	 * The total amount of air time for a worm performing a jump.
-	 */
-	private double jumpTime = 0;
-
-
-	public void setNewRadius(double newRadius) {
-		// TODO Auto-generated method stub
-		
-	}
-
 }

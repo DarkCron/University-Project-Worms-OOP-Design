@@ -25,18 +25,52 @@ public class Location {
 	 */
 	@Raw
 	public Location(double[] location) throws InvalidLocationException{
-		if (!isValidLocation(location)) {
+		if (!this.isValidLocation(location)) {
 			throw new InvalidLocationException(location);
 		}
 		this.x = location[0];
 		this.y = location[1];
 	}
 	
+	/**
+	 * Initializes this new Location based on a given location.
+	 * 
+	 * @param location
+	 * 		  The location for this new Location.
+	 * @post the location for this new Location, is the same as the given location.
+	 * 		 |new.getX() == x
+	 * 		 |new.getY() == y
+	 * @throws InvalidLocationException()
+	 * 		  The given location is not a valid location.
+	 * 		 | ! isValidLocation(x,y)
+	 */
+	@Raw
+	public Location(double x, double y) throws InvalidLocationException{
+		if (!this.isValidLocation(x,y)) {
+			throw new InvalidLocationException(x,y);
+		}
+		this.x = x;
+		this.y = y;
+	}
+	
+	/**
+	 * Origin reference point constant at coordinates {0,0}
+	 */
+	public static final Location ORIGIN = new Location(0,0);
+	
+	/**
+	 * Returns the x-coordinate of this location.
+	 * 
+	 */
 	@Basic @Raw @Immutable
 	public double getX() {
 		return this.x;
 	}
 	
+	/**
+	 * Returns the y-coordinate of this location.
+	 * 
+	 */
 	@Basic @Raw @Immutable
 	public double getY() {
 		return this.y;
@@ -53,11 +87,11 @@ public class Location {
 	 *         | (location != null)
 	 *         | && isValidLocation(location[0], location[1])
 	 */
-	public static boolean isValidLocation(double[] location) {
+	public boolean isValidLocation(double[] location) {
 		if (location == null) {
 			return false;
 		}
-		if (!isValidLocation(location[0], location[1])) {
+		if (!this.isValidLocation(location[0], location[1])) {
 			return false;
 		}
 		
@@ -76,21 +110,48 @@ public class Location {
 	 *         |result == 
 	 *         | (x !=Double.NaN && y != Double.NaN)
 	 */
-	public static boolean isValidLocation(double x, double y) {
+	public boolean isValidLocation(double x, double y) {
 		if (x == Double.NaN || y == Double.NaN) {
 			return false;
 		}
 		return true;
 	}
 	
+	/**
+	 * The x coordinate of the location
+	 */
 	private final double x;
+	/**
+	 * The y coordinate of the location
+	 */
 	private final double y;
 	
+	/**
+	 * Returns an array representation of this location
+	 * 
+	 * @return Returns an array with at index 0 the x-coordinate and at index 1 the y-coordinate
+	 * 		| let double[] loc = new double[2] in
+	 * 		|	loc[0] = getX();
+	 * 		|	loc[1] = getY();
+	 * 		|	result.equals(loc)
+	 */
 	public double[] getLocation() {
 		double[] loc = new double[2];
-		loc[0] = x;
-		loc[1] = y;
+		loc[0] = this.getX();
+		loc[1] = this.getY();
 		return loc;
+	}
+	
+	/**
+	 * Checks whether this Location is a valid one.
+	 
+	 * @return return true if and only if this location is effective (true since this is an
+	 * 			instanced function) and both x and y are valid coordinates.
+	 * 			| result == this.isValidLocation(this.getX(), this.getY());
+	 * 
+	 */
+	public boolean isValid() {
+		return this.isValidLocation(this.getX(), this.getY());
 	}
 	
 	/**
