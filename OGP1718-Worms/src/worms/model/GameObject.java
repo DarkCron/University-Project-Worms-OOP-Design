@@ -44,6 +44,7 @@ public abstract class GameObject{
 			throw new InvalidLocationException(location);
 		}
 		this.setLocation(location);
+		this.setGameObjectTypeID(new GameObjectTypeID(this.getClass()));
 	}
 	
 	/**
@@ -142,6 +143,7 @@ public abstract class GameObject{
 		if(!isValidRadius(radius)) {
 			throw new InvalidRadiusException(radius);
 		}
+		this.radius = radius;
 		this.generateMass();
 	}
 	
@@ -191,6 +193,16 @@ public abstract class GameObject{
 	public abstract void generateMass();
 
 	private double mass;
+	
+	public void setGameObjectTypeID(GameObjectTypeID ID) {
+		this.goID = ID;
+	}
+	
+	public GameObjectTypeID getTypeID() {
+		return this.goID;
+	}
+	
+	private GameObjectTypeID goID;
 	
 	private World fromWorld;
 }

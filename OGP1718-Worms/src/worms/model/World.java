@@ -1,6 +1,8 @@
 package worms.model;
 
-import java.util.HashSet;
+
+import java.util.ArrayList;
+import java.util.Map;
 import java.util.Set;
 
 public class World {
@@ -33,7 +35,9 @@ public class World {
 	
 	private boolean[][] passableMap;
 	
-	private Set<GameObject> worldObjects = new HashSet<GameObject>();
+	private ArrayList<Set<GameObject>> worldObjects = new ArrayList<Set<GameObject>>();
+	
+	private Map<Class, Set<GameObject>> wo;
 	
 	/**
 	 * A constant, representing a fictitious in game simulation of real life gravity. To

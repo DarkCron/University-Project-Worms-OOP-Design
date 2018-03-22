@@ -210,7 +210,9 @@ public class Facade implements IFacade {
 
 	@Override
 	public List<Worm> getAllWorms(World world) throws ModelException {
-		// TODO Auto-generated method stub
+		Worm w = new Worm(new Location(0,0), new Direction(0), new Radius(5, World.getWormMinimumRadius()), new Name("Worm"));
+		Food f = new Food(new Location(0,0), new Radius(World.getFoodRadius(), World.getFoodRadius()));
+		Worm w2 = new Worm(new Location(0,0), new Direction(0), new Radius(5, World.getWormMinimumRadius()), new Name("Worm"));
 		return null;
 	}
 
@@ -219,7 +221,9 @@ public class Facade implements IFacade {
 		// TODO Auto-generated method stub
 		return false;
 	}
+	
 
+	
 	@Override
 	public void addFood(World world, Food food) throws ModelException {
 		// TODO Auto-generated method stub
@@ -284,6 +288,7 @@ public class Facade implements IFacade {
 	public Worm createWorm(World world, double[] location, double direction, double radius, String name, Team team)
 			throws ModelException {
 		// TODO Auto-generated method stub
+		Worm w = new Worm(new Location(location), new Direction(direction), new Radius(radius, World.getWormMinimumRadius()), new Name(name));
 		return null;
 	}
 
