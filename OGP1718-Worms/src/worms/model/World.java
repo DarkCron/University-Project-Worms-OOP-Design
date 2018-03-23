@@ -2,9 +2,12 @@ package worms.model;
 
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import be.kuleuven.cs.som.annotate.*;
 import worms.model.values.GameObjectTypeID;
 
 public class World {
@@ -19,12 +22,29 @@ public class World {
 		this.worldWidth = width;
 		this.worldHeight = height;	
 		this.passableMap = passableMap;
+		this.worldObjects = new HashMap<GameObjectTypeID, HashSet<GameObject>>() ;
 	}
 
+	/**
+	 * Returns this world's height.
+	 */
+	@Basic @Raw
+	public double getWorldHeight() {
+		return this.worldHeight;
+	}
+	
+	/**
+	 * Returns this world's width.
+	 */
+	@Basic @Raw
+	public double getWorldWidth() {
+		return this.worldWidth;
+	}
 	
 	private final double worldWidth;
 	private final double worldHeight;
 	
+
 	public boolean isValidWorldSize(double size) {
 		if(size == Double.NaN) {
 			return false;
@@ -36,8 +56,54 @@ public class World {
 	}
 	
 	private boolean[][] passableMap;
+	
+	public void addGameObject(GameObject gameObject) throws IllegalArgumentException{
+		if(gameObject == null) {
+			throw new IllegalArgumentException("The given gameObject was equal to null.");
+		}
+		
+		if(worldObjectsMapHasGameObjectTypeKey(gameObject.getTypeID())) {
+			worldObjects.get(gameObject.getTypeID()).add(gameObject);
+		}else {
+			worldObjects.put(gameObject.getTypeID(), new HashSet<GameObject>());
+		}
+	}
+	
 
-	private Map<GameObjectTypeID, Set<GameObject>> wo;
+	private boolean worldObjectsMapHasGameObjectTypeKey(GameObjectTypeID typeID) {
+		return worldObjects.containsKey(typeID);
+	}
+	
+	public HashMap<GameObjectTypeID, HashSet<GameObject>> getWorldObjects(){
+		return this.worldObjects;
+	}
+	
+	public boolean hasGameObject(GameObject gameObject) {
+		if(gameObject == null) {
+			throw new IllegalArgumentException("The given gameObject was equal to null.");
+		}
+		
+		if(!worldObjectsMapHasGameObjectTypeKey(gameObject.getTypeID())) {
+			throw new IllegalArgumentException("The given gameObject was not a part of the world.");
+		}
+		
+		return worldObjects.get(gameObject.getTypeID()).contains(gameObject);
+	}
+
+	private final HashMap<GameObjectTypeID, HashSet<GameObject>> worldObjects ;
+	
+
+	public void removeGameObject(GameObject gameObject) {
+		if(gameObject == null) {
+			throw new IllegalArgumentException("The given gameObject was equal to null.");
+		}	
+		
+		if(!worldObjectsMapHasGameObjectTypeKey(gameObject.getTypeID())) {
+			throw new IllegalArgumentException("The given gameObject was not a part of the world.");
+		}
+		
+		worldObjects.get(gameObject.getTypeID()).remove(gameObject);
+	}
 	
 	/**
 	 * A constant, representing a fictitious in game simulation of real life gravity. To
@@ -77,4 +143,5 @@ public class World {
 	public static double getJumpTimeDelta() {
 		return JUMP_TIME_DELTA;
 	}
+
 }

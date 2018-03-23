@@ -63,9 +63,9 @@ public class Worm extends GameObject{
 	 * 
 	 * @note All class invariants are satisfied upon instantiating a new Worm. Therefore we don't need the @Raw tag.
 	 */
-	public Worm(Location location, Direction direction, Radius radius, Name name)
+	public Worm(Location location, Direction direction, World world, Radius radius, Name name)
 			throws InvalidWormNameException, InvalidRadiusException, InvalidLocationException {
-		super(location, radius);
+		super(location, radius, world);
 		this.setDirection(direction);
 		this.setName(name);
 		this.resetActionPoints();
@@ -496,7 +496,7 @@ public class Worm extends GameObject{
 		
 		Location tmp = new Location(this.getX() + distance, this.getY());
 		
-		if(!isValidLocation(tmp)) {
+		if(!isValidLocation(tmp,this.getWorld())) {
 			throw new InvalidLocationException(tmp);
 		}
 		
@@ -598,7 +598,7 @@ public class Worm extends GameObject{
 		
 		Location tmpLocation = new Location(xPosTime,yPosTime);
 		
-		if(!isValidLocation(tmpLocation)) {
+		if(!isValidLocation(tmpLocation,this.getWorld())) {
 			throw new InvalidLocationException(tmpLocation);
 		}
 		
