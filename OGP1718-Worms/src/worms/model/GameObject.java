@@ -44,6 +44,7 @@ public abstract class GameObject{
 			throw new InvalidLocationException(location);
 		}
 		this.setLocation(location);
+		
 		this.setGameObjectTypeID(new GameObjectTypeID(this.getClass()));
 	}
 	

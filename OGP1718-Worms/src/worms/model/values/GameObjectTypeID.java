@@ -12,6 +12,7 @@ import java.util.ArrayList;
  * @author bernd
  *
  */
+@Value
 public class GameObjectTypeID {
 	
 	/**
@@ -89,7 +90,7 @@ public class GameObjectTypeID {
 	 *			| result == false
 	 *		
 	 */
-	public static boolean typeExists(Class<?> type) {
+	public static boolean typeExists(Class<? extends GameObject> type) {
 		for(GameObjectTypeID t : assignedTypesList) {
 			if(t.getGameObjectType().equals(type)) {
 				return true;
@@ -125,8 +126,8 @@ public class GameObjectTypeID {
 		if (this.getClass() != obj.getClass()) {
 			return false;
 		}
-		GameObjectTypeID otherDirection = (GameObjectTypeID) obj;
-		return this.getID() == otherDirection.getID();
+		GameObjectTypeID otherID = (GameObjectTypeID) obj;
+		return this.getID() == otherID.getID();
 	}
 	
 	/**

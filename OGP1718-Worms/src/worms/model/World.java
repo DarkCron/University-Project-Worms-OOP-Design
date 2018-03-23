@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
 
+import worms.model.values.GameObjectTypeID;
+
 public class World {
 	
 	public World(double width, double height, boolean[][] passableMap) {
@@ -34,10 +36,8 @@ public class World {
 	}
 	
 	private boolean[][] passableMap;
-	
-	private ArrayList<Set<GameObject>> worldObjects = new ArrayList<Set<GameObject>>();
-	
-	private Map<Class, Set<GameObject>> wo;
+
+	private Map<GameObjectTypeID, Set<GameObject>> wo;
 	
 	/**
 	 * A constant, representing a fictitious in game simulation of real life gravity. To

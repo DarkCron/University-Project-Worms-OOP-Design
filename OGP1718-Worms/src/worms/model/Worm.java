@@ -392,13 +392,11 @@ public class Worm extends GameObject{
 	 * @param angle
 	 * 		| A given angle representing the difference between the new angle and previous angle of the worm.
 	 * 
-	 * @pre the given angle is valid angle between 0 or 2*PI radians, 0 included.
-	 * 		| isValidDirection(angle)
 	 * @pre the worm's current direction is a valid angle between 0 or 2*PI radians, 0 included.
 	 * 		| isValidDirection(this.getDirection())
 	 * @pre the sum between the worm's current direction and the given angle
 	 * 		is a valid angle between 0 or 2*PI radians, 0 included.
-	 * 		| isValidDirection(this.getDirection().getAngle() + angle.getAngle())
+	 * 		| isValidDirection(this.getDirection().getAngle() + angle)
 	 * @pre the cost for turning the given angle should be possible.
 	 * 		| this.isActionCostPossible(this.getTurnCost(angle))
 	 * 
@@ -423,21 +421,20 @@ public class Worm extends GameObject{
 	 * @note Currently turning altough AP == 0 is still possible but can easily be implemented.
 	 * 	The assignment didn't explicitly mention this should be a feature in the current implementation.
 	 */
-	public void turn(Direction angle) {
-		assert isValidDirection(angle);
+	public void turn(double angle) {
 		assert isValidDirection(this.getDirection());
-		assert isValidDirection(new Direction(this.getDirection().getAngle() + angle.getAngle()));
+		assert isValidDirection(new Direction(this.getDirection().getAngle() + angle));
 		assert this.isActionCostPossible(this.getTurnCost(angle));
 		
-		Direction newDirection = new Direction(this.getDirection().getAngle() + angle.getAngle());
+		Direction newDirection = new Direction(this.getDirection().getAngle() + angle);
 		
 		if(!isValidDirection(newDirection)) {
 			newDirection = this.getDirection();
-			angle = new Direction(0);
+			angle = 0;
 		}
 		if(!isActionCostPossible(this.getTurnCost(angle))) {
 			newDirection = this.getDirection();
-			angle = new Direction(0);
+			angle = 0;
 		}
 		this.setDirection(newDirection);
 		this.setActionPoints(this.getCurrentActionPoints() - this.getTurnCost(angle));
@@ -452,9 +449,9 @@ public class Worm extends GameObject{
 	 * 		| result ==
 	 * 		|	Math.abs((int)Math.ceil((angle/(2*Math.PI)*60)))
 	 */
-	public int getTurnCost(Direction angle) {
+	public int getTurnCost(double angle) {
 		int cost = 0;
-		cost = Math.abs((int)Math.ceil((angle.getAngle()/(2*Math.PI)*60)));
+		cost = Math.abs((int)Math.ceil((angle/(2*Math.PI)*60)));
 		return cost;
 	}
 	
@@ -604,7 +601,7 @@ public class Worm extends GameObject{
 		if(!isValidLocation(tmpLocation)) {
 			throw new InvalidLocationException(tmpLocation);
 		}
-
+		
 		return tmpLocation.getLocation();
 	}
 	
@@ -618,7 +615,7 @@ public class Worm extends GameObject{
 
 	public double getJumpTime() throws RuntimeException{
 		double jumpTime = this.calculateJumpTime();
-		if(isValidJumpTime(jumpTime)) {
+		if(!isValidJumpTime(jumpTime)) {
 			throw new RuntimeException("Invalid jumptime calculated. "+jumpTime);
 		}
 		return jumpTime;
