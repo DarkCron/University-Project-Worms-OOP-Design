@@ -89,7 +89,7 @@ public class GameObjectTypeID {
 	 *			| result == false
 	 *		
 	 */
-	public static boolean typeExists(Class<?> type) {
+	public static boolean typeExists(Class<? extends GameObject> type) {
 		for(GameObjectTypeID t : assignedTypesList) {
 			if(t.getGameObjectType().equals(type)) {
 				return true;
