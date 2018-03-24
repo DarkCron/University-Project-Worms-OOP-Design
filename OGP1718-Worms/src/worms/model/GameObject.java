@@ -11,9 +11,10 @@ import worms.model.values.*;
  * @author Liam, Bernd
  * 
  * @Invar GameObject's location is valid and within bounds.
- * 		| isValidLocation(getLocation())
+ * 		| isValidLocation(getLocation(),getWorld())
  * @Invar worm's radius must be valid, larger than the minimum radius 
  * 		| isValidRadius(getRadius())
+ * @Invar | isValidWorld(getWorld())
  */
 public abstract class GameObject{
 	/**
@@ -32,18 +33,27 @@ public abstract class GameObject{
 	 * @throws InvalidLocationException
 	 * 		The given location is not a valid one, the location doesn't exist ( is null) or at least one of
 	 * 		the coordinates is not a valid one (one of the coordinates is NaN, Not a Number).
-	 * 		| !isValidLocation(location)
+	 * 		| !isValidLocation(location,getWorld())
 	 */
 	@Raw
-	public GameObject(Location location, Radius radius) throws InvalidLocationException,InvalidRadiusException {
+	public GameObject(Location location, Radius radius, World world) throws InvalidLocationException,InvalidRadiusException {
 		if(!isValidRadius(radius)) {
 			throw new InvalidRadiusException(radius);
 		}
 		this.setRadius(radius);
-		if(!isValidLocation(location)) {
+		
+		if(!isValidWorld(world)) {
+			throw new IllegalArgumentException("Invalid world.");
+		}
+		this.setWorld(world);
+		
+		if(!isValidLocation(location,this.getWorld())) {
 			throw new InvalidLocationException(location);
 		}
 		this.setLocation(location);
+		
+
+		
 		this.setGameObjectTypeID(new GameObjectTypeID(this.getClass()));
 	}
 	
@@ -59,13 +69,13 @@ public abstract class GameObject{
 	 * 
 	 * @throws InvalidLocationException
 	 *        If the given Location is invalid or not effective.
-	 *      |!isValidLocation(location)
+	 *      |!isValidLocation(location,getWorld())
 	 * 
 	 * @note location's restrictions are handled and checked in it's class. A manual check call can be made using 'x'.isValid()
 	 */
 	@Raw
 	public void setLocation(Location location) throws InvalidLocationException {
-		if(!isValidLocation(location)) {
+		if(!isValidLocation(location,this.getWorld())) {
 			throw new InvalidLocationException(location);
 		}
 		this.location = location;
@@ -101,10 +111,10 @@ public abstract class GameObject{
 	 * 
 	 * @return Returns true if and only if this GameObject's location is effective and
 	 * 			the location is valid.
-	 * 			| result == (location != null) && (location.isValid())
+	 * 			| result == (location != null) && (location.isValid()) && isValidWorldLocation(location,world)
 	 */
-	public static boolean isValidLocation(Location location) {
-		return (location != null) && (location.isValid());
+	public static boolean isValidLocation(Location location, World world) {
+		return ((location != null) && location.isValid() && isValidWorldLocation(location,world));
 	}
 	
 	/**
@@ -204,5 +214,70 @@ public abstract class GameObject{
 	
 	private GameObjectTypeID goID;
 	
+	/**
+	 * Sets the world of this gameObject.
+	 * 
+	 * @param world
+	 * 
+	 * @post | new.getWorld() == world
+	 * 
+	 * @throws IllegalArgumentException
+	 * 		| !isValidWorld(world)
+	 */
+	public void setWorld(World world) throws IllegalArgumentException{
+		this.fromWorld = world;
+	}
+	
+	/**
+	 * Returns the world the GameObject resides in.
+	 */
+	@Raw @Basic
+	public World getWorld() {
+		return this.fromWorld;
+	}
+	
+	/**
+	 * Checks whether the world is a valid one
+	 * @param world
+	 * 
+	 * @return | result == (world!=null)
+	 */
+	public static boolean isValidWorld(World world) {
+		return world != null;
+	}
+
+	/**
+	 * Checks whether a location is within a given gameObject's world boundaries.
+	 * 
+	 * @param location
+	 *
+	 * @return | result == (location.getX()>= 0 && location.getX() <= this.getWorld().getWorldWidth()) && 
+	 * 		   | 	(location.getY()>= 0 && location.getY() <= this.getWorld().getWorldHeight())
+	 */
+	public static boolean isValidWorldLocation(Location location, World world) {
+		if((location.getX()>= 0 && location.getX() <= world.getWorldWidth())
+				&& (location.getY()>= 0 && location.getY() <= world.getWorldHeight())) {
+			return true;
+		}
+		return false;
+	}
+	
 	private World fromWorld;
+	
+	
+	public void Terminate() {
+		isTerminated = true;
+		this.fromWorld = null;
+		this.getWorld().removeGameObject(this);
+	}
+	
+	/**
+	 * Is the current gameObject terminated.
+	 */
+	@Basic
+	public boolean isTerminated() {
+		return this.isTerminated;
+	}
+	
+	boolean isTerminated = false;
 }

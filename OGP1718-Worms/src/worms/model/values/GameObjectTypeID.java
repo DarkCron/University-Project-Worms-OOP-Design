@@ -12,6 +12,7 @@ import java.util.ArrayList;
  * @author bernd
  *
  */
+@Value
 public class GameObjectTypeID {
 	
 	/**
@@ -125,8 +126,8 @@ public class GameObjectTypeID {
 		if (this.getClass() != obj.getClass()) {
 			return false;
 		}
-		GameObjectTypeID otherDirection = (GameObjectTypeID) obj;
-		return this.getID() == otherDirection.getID();
+		GameObjectTypeID otherID = (GameObjectTypeID) obj;
+		return this.getID() == otherID.getID();
 	}
 	
 	/**

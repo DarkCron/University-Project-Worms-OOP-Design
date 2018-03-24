@@ -11,6 +11,9 @@ import worms.util.ModelException;
 
 public class AddNewWorm extends InstantaneousCommand {
 
+	private static final double MIN_RADIUS = 0.25;
+	private static final double MAX_RADIUS = Math.pow(2, 1.0/3.0) * MIN_RADIUS;
+	
 	public AddNewWorm(IFacade facade, PlayGameScreen screen) {
 		super(facade, screen);
 	}
@@ -26,8 +29,8 @@ public class AddNewWorm extends InstantaneousCommand {
 			Random random = getScreen().getGameState().getRandom();
 			int nbWorms = getFacade().getAllWorms(getWorld()).size();
 			String name = "Worm " + GUIUtils.numberToName(nbWorms++);
-			 // ensures all worms have radius in [0.25, 0.50[, so minimum radius and team size conditions are always fulfilled
-			double radius = 0.25  * (1.0 + random.nextDouble());
+			// ensures minimum radius and team size conditions are always fulfilled
+			double radius = MIN_RADIUS + (MAX_RADIUS - MIN_RADIUS) * random.nextDouble();
 
 			double[] p = GUIUtils.findFreeAdjacentSpot(getFacade(), getWorld(), radius, random);
 

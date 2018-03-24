@@ -26,8 +26,8 @@ public class Food extends GameObject{
 	 * @see super
 	 */
 	@Raw
-	public Food(Location location, Radius radius) throws InvalidLocationException,InvalidRadiusException {
-		super(location, radius);
+	public Food(Location location, Radius radius, World world) throws InvalidLocationException,InvalidRadiusException {
+		super(location, radius, world);
 	}
 
 	@Override

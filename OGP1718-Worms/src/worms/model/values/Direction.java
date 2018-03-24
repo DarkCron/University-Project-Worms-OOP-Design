@@ -3,6 +3,7 @@ package worms.model.values;
 import be.kuleuven.cs.som.annotate.Basic;
 import be.kuleuven.cs.som.annotate.Immutable;
 import be.kuleuven.cs.som.annotate.Raw;
+import be.kuleuven.cs.som.annotate.Value;
 
 /**
  * A class for handling Direction for various game objects.
@@ -10,6 +11,7 @@ import be.kuleuven.cs.som.annotate.Raw;
  * @invar	A Direction's direction must be valid. Between 0 included and 2 * PI
  * 			|isValidDirection(getDirection())
  */
+@Value
 public class Direction {
 	/**
 	 * Initializes this new Direction based on a given direction.

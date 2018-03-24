@@ -53,7 +53,7 @@ public class Facade implements IFacade {
 
 	@Override
 	public void turn(Worm worm, double angle) throws ModelException {
-		worm.turn(new Direction(angle));
+		worm.turn(angle);
 	}
 
 //	@Override
@@ -210,9 +210,9 @@ public class Facade implements IFacade {
 
 	@Override
 	public List<Worm> getAllWorms(World world) throws ModelException {
-		Worm w = new Worm(new Location(0,0), new Direction(0), new Radius(5, World.getWormMinimumRadius()), new Name("Worm"));
-		Food f = new Food(new Location(0,0), new Radius(World.getFoodRadius(), World.getFoodRadius()));
-		Worm w2 = new Worm(new Location(0,0), new Direction(0), new Radius(5, World.getWormMinimumRadius()), new Name("Worm"));
+		Worm w = new Worm(new Location(0,0), new Direction(0),world, new Radius(5, World.getWormMinimumRadius()), new Name("Worm"));
+		Food f = new Food(new Location(0,0), new Radius(World.getFoodRadius(), World.getFoodRadius()),world);
+		Worm w2 = new Worm(new Location(0,0), new Direction(0),world, new Radius(5, World.getWormMinimumRadius()), new Name("Worm"));
 		return null;
 	}
 
@@ -288,7 +288,7 @@ public class Facade implements IFacade {
 	public Worm createWorm(World world, double[] location, double direction, double radius, String name, Team team)
 			throws ModelException {
 		// TODO Auto-generated method stub
-		Worm w = new Worm(new Location(location), new Direction(direction), new Radius(radius, World.getWormMinimumRadius()), new Name(name));
+		Worm w = new Worm(new Location(location), new Direction(direction),world, new Radius(radius, World.getWormMinimumRadius()), new Name(name));
 		return null;
 	}
 
@@ -357,7 +357,7 @@ public class Facade implements IFacade {
 	public Food createFood(World world, double[] location) throws ModelException {
 		Food f;
 		try {
-			f = new Food(new Location(location), new Radius(World.getFoodRadius(),World.getFoodRadius()));
+			f = new Food(new Location(location), new Radius(World.getFoodRadius(),World.getFoodRadius()),world);
 		} catch (Exception e) {
 			throw new ModelException(e);
 		}
