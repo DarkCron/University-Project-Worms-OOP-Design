@@ -13,6 +13,7 @@ import worms.model.Team;
 import worms.model.World;
 import worms.model.Worm;
 import worms.model.values.Direction;
+import worms.model.values.GameObjectTypeID;
 import worms.model.values.Location;
 import worms.model.values.Name;
 import worms.model.values.Radius;
@@ -210,10 +211,8 @@ public class Facade implements IFacade {
 
 	@Override
 	public List<Worm> getAllWorms(World world) throws ModelException {
-		Worm w = new Worm(new Location(0,0), new Direction(0),world, new Radius(5, World.getWormMinimumRadius()), new Name("Worm"));
-		Food f = new Food(new Location(0,0), new Radius(World.getFoodRadius(), World.getFoodRadius()),world);
-		Worm w2 = new Worm(new Location(0,0), new Direction(0),world, new Radius(5, World.getWormMinimumRadius()), new Name("Worm"));
-		return null;
+		//TODO
+		return world.getAllObjectsOfType(Worm.class);
 	}
 
 	@Override
