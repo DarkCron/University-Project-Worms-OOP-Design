@@ -297,6 +297,11 @@ public class World {
 		return objectTypeList;
 	}
 	
+	public boolean isAdjacantToImpassableTerrain() {
+		
+		return false;
+	}
+	
 	/**
 	 * A constant, representing a fictitious in game simulation of real life gravity. To
 	 * ensure worms fall back to the ground.
