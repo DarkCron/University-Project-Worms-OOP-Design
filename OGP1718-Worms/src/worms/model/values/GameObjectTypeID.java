@@ -9,6 +9,8 @@ import java.util.ArrayList;
  * 
  * @invar |typeExists(this)
  * 
+ * @invar | getID() == getTypeID(getGameObjectType())
+ * 
  * @author bernd
  *
  */
@@ -103,6 +105,17 @@ public class GameObjectTypeID {
 		return assignedType;
 	}
 	
+	/**
+	 * A static list that contains every single possible type of GameObject Created during runtime.
+	 * Keeps track of a unique ID number and class.
+	 * 
+	 * @invar | assignedTypesList != null
+	 * 
+	 * @invar 	| for each typeID in assignedTypesList
+	 * 			|		typeID != null
+	 * 			|		&& typeExists(typeID)
+	 * 			|		&& typeID.getID() == getTypeID(typeID.getGameObjectType())
+	 */
 	private static final ArrayList<GameObjectTypeID> assignedTypesList = new ArrayList<GameObjectTypeID>();
 	private static long typeCounter = 0;
 	

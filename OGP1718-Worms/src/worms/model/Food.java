@@ -17,11 +17,11 @@ public class Food extends GameObject{
 	 * 
 	 * @throws InvalidRadiusException
 	 * 		The given radius is not a valid one, the given radius is less than the minimum allowed radius.
-	 * 		| !isValidRadius(location)
+	 * 		| !isValidRadius(radius)
 	 * @throws InvalidLocationException
 	 * 		The given location is not a valid one, the location doesn't exist ( is null) or at least one of
 	 * 		the coordinates is not a valid one (one of the coordinates is NaN, Not a Number).
-	 * 		| !isValidLocation(location)
+	 * 		| !isValidLocation(location,world)
 	 * 
 	 * @see super
 	 */

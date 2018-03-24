@@ -78,6 +78,9 @@ public abstract class GameObject{
 		if(!isValidLocation(location,this.getWorld())) {
 			throw new InvalidLocationException(location);
 		}
+		if(!isValidWorldLocation(location, this.getWorld())) {
+			this.terminate();
+		}
 		this.location = location;
 	}
 
@@ -114,7 +117,7 @@ public abstract class GameObject{
 	 * 			| result == (location != null) && (location.isValid()) && isValidWorldLocation(location,world)
 	 */
 	public static boolean isValidLocation(Location location, World world) {
-		return ((location != null) && location.isValid() && isValidWorldLocation(location,world));
+		return ((location != null) && location.isValid());//TODO && isValidWorldLocation(location,world));
 	}
 	
 	/**
@@ -264,8 +267,10 @@ public abstract class GameObject{
 	
 	private World fromWorld;
 	
-	
-	public void Terminate() {
+	/**
+	 * Terminates this gameObject.
+	 */
+	public void terminate() {
 		isTerminated = true;
 		this.fromWorld = null;
 		this.getWorld().removeGameObject(this);
@@ -279,5 +284,5 @@ public abstract class GameObject{
 		return this.isTerminated;
 	}
 	
-	boolean isTerminated = false;
+	private boolean isTerminated = false;
 }

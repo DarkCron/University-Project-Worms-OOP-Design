@@ -370,6 +370,10 @@ public class Worm extends GameObject{
 		}
 	}
 	
+	public Location getFurthestLocationInDirection(Direction direction, double distance) {
+		return Location.ORIGIN;
+	}
+	
 	/**
 	 * Returns the cost in AP of a worm based on it's current direction for moving.
 	 * An AP cost is always handled as an integer. The cost is therefore rounded up.

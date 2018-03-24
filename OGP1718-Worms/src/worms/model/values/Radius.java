@@ -20,7 +20,13 @@ public class Radius {
 	 * 		The given new radius for this Radius
 	 * @param minRadius
 	 * 		The given min radius for this Radius
+	 * 
+	 * @post |new.getRadius() == radius
+	 * 
+	 * @post |new.getMinRadius() == minRadius
+	 * 
 	 * @throws InvalidRadiusException
+	 * 		| !isValidRadius(radius, minRadius)
 	 */
 	@Raw
 	public Radius(double radius, double minRadius) throws InvalidRadiusException{
@@ -29,6 +35,30 @@ public class Radius {
 		}
 		this.radius = radius;
 		this.minRadius = minRadius;
+	}
+	
+	/**
+	 * Initializes this new Radius based on both a given radius and a minimum allowed min radius.
+	 * 
+	 * @param radius
+	 * 		The given new radius for this Radius
+	 * @param minRadius
+	 * 		The given min radius for this Radius
+	 * 
+	 * @post |new.getRadius() == radius
+	 * 
+	 * @post |new.getMinRadius() == radius
+	 * 
+	 * @throws InvalidRadiusException
+	 * 		| !isValidRadius(radius, minRadius)
+	 */
+	@Raw
+	public Radius(double radius) throws InvalidRadiusException{
+		if(!isValidRadius(radius, radius)) {
+			throw new InvalidRadiusException(radius);
+		}
+		this.radius = radius;
+		this.minRadius = radius;
 	}
 	
 	/**
