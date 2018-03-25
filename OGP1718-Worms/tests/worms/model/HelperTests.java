@@ -6,6 +6,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import worms.model.ShapeHelp.Circle;
+import worms.model.ShapeHelp.Rectangle;
 import worms.model.values.Location;
 import worms.model.values.Radius;
 
@@ -16,7 +17,7 @@ public class HelperTests {
 	}
 
 	@Test
-	public void test() {
+	public void circleTest() {
 		Circle c = new Circle(Location.ORIGIN, new Radius(5));
 		assertFalse(c.contains(new Location(50,0)));
 		assertFalse(c.contains(new Location(0,50)));
@@ -64,6 +65,14 @@ public class HelperTests {
 		assertTrue(c.overlaps(c2));
 		c2.setCenter(new Location(0,-9.9));
 		assertTrue(c.overlaps(c2));
+	}
+	
+	@Test
+	public void rectangleTest() {
+		Rectangle r = new Rectangle(new Location(0,0),new Location(10, 10));
+		assertTrue(r.getSize().equals(new Location(10, 10)));
+		Circle c = new Circle(Location.ORIGIN, new Radius(5));
+		assertTrue(c.getBoundingRectangle().getCenter().equals(new Location(c.getCenter().getX() - c.getRadius().getRadius(), c.getCenter().getY() - c.getRadius().getRadius())) && c.getBoundingRectangle().getSize().equals(r.getSize()));
 	}
 
 }

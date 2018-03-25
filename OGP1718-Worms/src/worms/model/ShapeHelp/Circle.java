@@ -120,4 +120,14 @@ public class Circle extends Shape {
 		distance = Math.abs(distance);
 		return distance < (this.getRadius().getRadius() + c.getRadius().getRadius());
 	}
+	
+	/**
+	 * Returns the bounding rectangle around this circle, exactly containing it.
+	 * 
+	 * @return | result == new Rectangle(this.getRadius().getRadius() * 2, this.getRadius().getRadius() * 2)
+	 */
+	public Rectangle getBoundingRectangle() {
+		double length = this.getRadius().getRadius() * 2;
+		return new Rectangle(new Location(this.getCenter().getX()-this.getRadius().getRadius(), this.getCenter().getY()-this.getRadius().getRadius()), new Location(length, length));
+	}
 }

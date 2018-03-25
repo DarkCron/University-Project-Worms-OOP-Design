@@ -59,6 +59,32 @@ public class World {
 	}
 	
 	/**
+	 * Creates this new world.
+	 * 
+	 * @param passableMap
+	 * 
+	 * @post |new.getWorldHeight() == passableMap[0].length
+	 * 
+	 * @post |new.getWorldWidth() == passableMap.length
+	 * 
+	 * @post |new.passableMap() == passableMap
+	 * 
+	 * @post |new.getWorldObjects() != null
+	 * 
+	 * @note we worked out width and height in a total manner since no specific
+	 * 	manner was defined.
+	 */
+	public World(boolean[][] passableMap) {
+		if(isValidPassableMap(passableMap)) {
+			throw new IllegalArgumentException("Invalid passableMap upon world creation.");
+		}
+
+		this.worldWidth = passableMap.length;
+		this.worldHeight = passableMap[0].length;	
+		this.passableMap = passableMap;
+	}
+	
+	/**
 	 * Checks whether a given map is valid for any and all worlds.
 	 * 
 	 * @param passableMap
