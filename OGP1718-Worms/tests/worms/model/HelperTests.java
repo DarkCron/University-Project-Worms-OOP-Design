@@ -18,14 +18,52 @@ public class HelperTests {
 	@Test
 	public void test() {
 		Circle c = new Circle(Location.ORIGIN, new Radius(5));
-		assertFalse(c.Contains(new Location(50,0)));
-		assertFalse(c.Contains(new Location(0,50)));
-		assertFalse(c.Contains(new Location(50,50)));
-		assertTrue(c.Contains(Location.ORIGIN));
-		assertTrue(c.Contains(new Location(0.5, 3)));
+		assertFalse(c.contains(new Location(50,0)));
+		assertFalse(c.contains(new Location(0,50)));
+		assertFalse(c.contains(new Location(50,50)));
+		assertTrue(c.contains(Location.ORIGIN));
+		assertTrue(c.contains(new Location(0.5, 3)));
 		
 		c.setCenter(new Location(20,20));
-		assertTrue(c.Contains(new Location(22,22)));
+		assertTrue(c.contains(new Location(22,22)));
+		Circle c2 = new Circle(Location.ORIGIN, new Radius(5));
+		assertFalse(c.contains(c2));
+		c2.setCenter(new Location(17,21));
+		assertTrue(c.contains(c2));
+		c2.setCenter(new Location(23,21));
+		assertTrue(c.contains(c2));
+		c2.setCenter(new Location(21,23));
+		assertTrue(c.contains(c2));
+		c2.setCenter(new Location(21,17));
+		assertTrue(c.contains(c2));
+		c2.setCenter(new Location(23,23));
+		assertTrue(c.contains(c2));
+		c2.setCenter(new Location(16,16));
+		assertTrue(c.contains(c2));
+		c2.setCenter(new Location(20,15));
+		assertTrue(c.contains(c2));
+		c2.setCenter(new Location(20,9.9));
+		assertFalse(c.contains(c2)); //<-----
+		c2.setCenter(new Location(20,10));
+		assertTrue(c.contains(c2)); // <-----
+		
+		c2.setRadius(new Radius(3));
+		assertFalse(c.contains(c2));
+		c2.setCenter(new Location(20,12));
+		assertTrue(c.contains(c2));
+		c2.setCenter(new Location(20,11.9999));
+		assertFalse(c.contains(c2));
+	}
+	
+	@Test
+	public void circleOverlapTest() {
+		Circle c = new Circle(Location.ORIGIN, new Radius(5));
+		Circle c2 = new Circle(new Location(0,10), new Radius(5));
+		assertFalse(c.overlaps(c2));
+		c2.setCenter(new Location(0,9.9));
+		assertTrue(c.overlaps(c2));
+		c2.setCenter(new Location(0,-9.9));
+		assertTrue(c.overlaps(c2));
 	}
 
 }

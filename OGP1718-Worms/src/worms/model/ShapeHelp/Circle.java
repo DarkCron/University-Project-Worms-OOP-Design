@@ -78,12 +78,46 @@ public class Circle extends Shape {
 	 * 
 	 * @param point
 	 * @return Pythagorean theorem
-	 * 			| result == sqrt(square(point.getX() - getCenter().getX()) + square(point.getY() - getCenter().getY())) < this.getRadius().getRadius()
+	 * 			| result == sqrt(square(point.getX() - getCenter().getX()) + square(point.getY() - getCenter().getY())) <= this.getRadius().getRadius()
 	 */
-	public boolean Contains(Location point) {
+	public boolean contains(Location point) {
 		double deltaX = point.getX() - getCenter().getX();
 		double deltaY = point.getY() - getCenter().getY();
 		double distance = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY,2));
-		return distance < this.getRadius().getRadius();
+		return distance <= this.getRadius().getRadius();
+	}
+	
+	/**
+	 * Checks whether a given location (point) lies within this circle.
+	 * 
+	 * @param point
+	 * @return Pythagorean theorem, but applied to 2 circles. So returns true if and only if
+	 * 			the distance between the center points of the circles is less or equal to this radius + c's radius
+	 * 			| result == abs(sqrt(square(point.getX() - getCenter().getX()) + square(point.getY() - getCenter().getY())))
+	 * 			|				 <= (this.getRadius().getRadius() + c.getRadius().getRadius())
+	 */
+	public boolean contains(Circle c) {
+		double deltaX = c.getCenter().getX() - getCenter().getX();
+		double deltaY = c.getCenter().getY() - getCenter().getY();
+		double distance = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY,2));
+		distance = Math.abs(distance);
+		return distance <= (this.getRadius().getRadius() + c.getRadius().getRadius());
+	}
+	
+	/**
+	 * Checks whether a given circle overlap within this circle.
+	 * 
+	 * @param point
+	 * @return Pythagorean theorem, but applied to 2 circles. So returns true if and only if
+	 * 			the distance between the center points of the circles is less  than this radius + c's radius
+	 * 			| result == abs(sqrt(square(point.getX() - getCenter().getX()) + square(point.getY() - getCenter().getY())))
+	 * 			|				 < (this.getRadius().getRadius() + c.getRadius().getRadius())	 
+	 */
+	public boolean overlaps(Circle c) {
+		double deltaX = c.getCenter().getX() - getCenter().getX();
+		double deltaY = c.getCenter().getY() - getCenter().getY();
+		double distance = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY,2));
+		distance = Math.abs(distance);
+		return distance < (this.getRadius().getRadius() + c.getRadius().getRadius());
 	}
 }
