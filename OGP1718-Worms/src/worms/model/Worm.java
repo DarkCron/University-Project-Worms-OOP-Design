@@ -1,5 +1,8 @@
 package worms.model;
 
+import java.math.BigInteger;
+import java.util.Iterator;
+
 import be.kuleuven.cs.som.annotate.*;
 import worms.exceptions.InvalidLocationException;
 import worms.exceptions.InvalidWormNameException;
@@ -71,7 +74,36 @@ public class Worm extends GameObject{
 		this.resetActionPoints();
 	}
 
+	
+	
+	@Override
+	public void setLocation(Location location) throws InvalidLocationException {
+		super.setLocation(location);
+		checkForFood();
+		
+	}
 
+	public void checkForFood() {
+		boolean bMustRecheckFoodDeletion = false;
+		for (GameObject o: this.getWorld().getAllObjectsOfType(Food.class)) {
+			if(o instanceof Food) {
+				if(this.overlapsWith(o)) {
+					this.consumesFood((Food)o);
+					bMustRecheckFoodDeletion = true;
+					break;
+				}
+			}
+		}
+		if(bMustRecheckFoodDeletion == true) {
+			checkForFood();
+		}
+	}
+	
+	private void consumesFood(Food o) {
+		this.getWorld().removeGameObject(o);
+		o.terminate();
+		this.setRadius(new Radius(this.getRadius().getRadius()*1.1d));
+	}
 
 	/**
 	 * Sets the direction that the worm should be facing. Direction is presented in
@@ -281,6 +313,16 @@ public class Worm extends GameObject{
 	 */
 	private int maxActionPoints = Math.round((float) this.getMass());
 
+	public BigInteger getHitPoints() {
+		return hitpoints.getHp();
+	}
+	
+	//TODO
+	public void increaseHitPoints(long amount) {
+		hitpoints = new HP (hitpoints.getHp().add(BigInteger.valueOf(amount)));
+	}
+	
+	private HP hitpoints;
 	/**
 	 * Sets the name of the worm.
 	 * 
@@ -623,5 +665,28 @@ public class Worm extends GameObject{
 			throw new RuntimeException("Invalid jumptime calculated. "+jumpTime);
 		}
 		return jumpTime;
+	}
+	
+	public void resetTurn() {
+		this.resetActionPoints();
+		this.increaseHitPoints(10);
+	}
+
+	public boolean mustEndTurn() {
+		if(this.getHitPoints().compareTo(new BigInteger ("0"))== 0) {
+			return true;
+		}
+		if(this.getCurrentActionPoints() == 0) {
+			return true;
+		}
+		return false;
+	}
+	//TODO
+	public boolean canRepositionAfterFoodConsumption() {
+		return true;
+	}
+	
+	public void repositionAfterFoodConsumption() {
+		
 	}
 }

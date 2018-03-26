@@ -40,6 +40,10 @@ public class HP {
 		
 	}
 	
+	public HP(BigInteger amount){
+		this(amount, amount);		
+	}
+	
 	/**
 	 * Returns this HP's hitpoints value.
 	 */

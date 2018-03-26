@@ -433,6 +433,7 @@ public class World {
 	public void endFirstPlayerWormTurn() {
 		wormTurnCycle.add(wormTurnCycle.getFirst());
 		wormTurnCycle.remove(0);
+		wormTurnCycle.getFirst().resetTurn();
 	}
 	
 	private boolean gameIsActive = false;

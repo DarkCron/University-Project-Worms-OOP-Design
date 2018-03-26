@@ -294,14 +294,13 @@ public class Facade implements IFacade {
 
 	@Override
 	public BigInteger getNbHitPoints(Worm worm) throws ModelException {
-		// TODO Auto-generated method stub
-		return null;
+		return worm.getHitPoints();
+		
 	}
 
 	@Override
 	public void incrementNbHitPoints(Worm worm, long delta) throws ModelException {
-		// TODO Auto-generated method stub
-		
+		worm.increaseHitPoints(delta);
 	}
 
 	@Override

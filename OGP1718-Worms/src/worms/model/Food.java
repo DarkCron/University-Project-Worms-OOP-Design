@@ -35,12 +35,4 @@ public class Food extends GameObject{
 		this.setMass(calculateMass(World.getFoodDensity()));
 	}
 	
-	//TODO
-	public void growFoodConsumption(Worm location) {
-		if (this.getLocation() == location) {
-			grow(getRadius());
-			isTerminated(Food location);
-		}
-		return;
-	}
 }
