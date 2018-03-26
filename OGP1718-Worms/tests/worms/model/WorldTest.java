@@ -27,10 +27,25 @@ public class WorldTest {
 			{ true, true, true, true }, //
 			{ false, false, false, false } };
 
+	private boolean[][] passableMapAdjacent = new boolean[][] { //
+			{ true, true, true, true }, //
+			{ true, true, true, true }, //
+			{ true, true, true, true }, //
+			{ false, false, false, false } };
+
 	@Before
 	public void setUp() throws Exception {
 	}
 
+	@Test
+	public void testAdjacent() {
+		World w = new World(passableMapAdjacent);
+		assertFalse(w.isAdjacantToImpassableTerrain(Location.ORIGIN, new Radius(1)));
+		assertTrue(w.isAdjacantToImpassableTerrain(new Location(2, 1), new Radius(2d)));
+		assertTrue(w.isAdjacantToImpassableTerrain(new Location(0, 1), new Radius(2d)));
+		assertFalse(w.isAdjacantToImpassableTerrain(new Location(3, 3), new Radius(2d)));
+	}
+	
 	@Test
 	public void testGOID() {
 		World w = new World(4, 4, passableMap);
@@ -102,7 +117,7 @@ public class WorldTest {
 
 		boolean[][] passableMapTest3 = new boolean[][] { //
 				{ true, true, true, true }, //
-				{ true, true, true, true }};
+				{ true, true, true, true } };
 
 		Rectangle r = new Rectangle(new Location(0, 0), new Location(2, 2));
 
@@ -115,13 +130,13 @@ public class WorldTest {
 		r = new Rectangle(new Location(-2, -2), new Location(6, 6));
 
 		assertTrue(Arrays.deepEquals(r.getArraySetFromSizeAndPassableMap(passableMap), passableMapTest1));
-		
+
 		r = new Rectangle(new Location(0, 1), new Location(4, 2));
 
 		assertTrue(Arrays.deepEquals(r.getArraySetFromSizeAndPassableMap(passableMap), passableMapTest3));
-		
+
 		r = new Rectangle(new Location(-5, -5), new Location(4, 2));
-		
+
 		assertTrue(Arrays.deepEquals(r.getArraySetFromSizeAndPassableMap(passableMap), new double[0][]));
 	}
 }

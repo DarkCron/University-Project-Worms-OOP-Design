@@ -110,10 +110,10 @@ public class Rectangle extends Shape {
 		boolean bLeftOK = this.getCenter().getX()  >= 0;
 		boolean bRightOK = this.getCenter().getX() + this.getSize().getX() <= map[0].length;
 		
-		int actualHeight = (int)this.getSize().getY();
-		int actualWidth = (int)this.getSize().getX();
-		int topLeftX = (int)(this.getCenter().getX());
-		int topLeftY = (int)(this.getCenter().getY());
+		double actualHeight = this.getSize().getY();
+		double actualWidth = this.getSize().getX();
+		double topLeftX = (this.getCenter().getX());
+		double topLeftY = (this.getCenter().getY());
 		
 		if(!bLeftOK) {
 			double difference = topLeftX ;
@@ -121,7 +121,7 @@ public class Rectangle extends Shape {
 			actualWidth += difference;
 		}
 		if(!bRightOK) {
-			double difference = map[0].length - (this.getCenter().getX() + this.getSize().getX());
+			double difference = (double)map[0].length - (this.getCenter().getX() + this.getSize().getX());
 			actualWidth += difference;
 		}
 		if(!bTopOK) {
@@ -130,10 +130,22 @@ public class Rectangle extends Shape {
 			actualHeight += difference;
 		}
 		if(!bBottomOK) {
-			double difference =  map.length - (this.getCenter().getY() + this.getSize().getY());
+			double difference =  (double)map.length - (this.getCenter().getY() + this.getSize().getY());
 			actualHeight += difference;
 		}
 		
-		return new Rectangle(new Location(topLeftX, topLeftY), new Location(actualWidth, actualHeight));
+		return new Rectangle(new Location(Math.floor(topLeftX), Math.floor(topLeftY)), new Location(Math.ceil(actualWidth), Math.ceil(actualHeight)));
+	}
+	
+	//TODO
+	public Location getInsideMapLocation() {
+		Location newPoint = new Location(this.getCenter().getX(),this.getCenter().getY());
+		if(this.getCenter().getX() < 0) {
+			newPoint = new Location(0, this.getCenter().getY());
+		}
+		if(this.getCenter().getY() < 0) {
+			newPoint = new Location(newPoint.getX(), 0);
+		}
+		return newPoint;
 	}
 }

@@ -2,12 +2,16 @@ package worms.model;
 
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
+import java.util.LinkedList;
 
 import be.kuleuven.cs.som.annotate.*;
+import worms.model.ShapeHelp.Circle;
 import worms.model.values.GameObjectTypeID;
+import worms.model.values.Location;
+import worms.model.values.Radius;
 
 /**
  * 
@@ -78,9 +82,8 @@ public class World {
 		if(isValidPassableMap(passableMap)) {
 			throw new IllegalArgumentException("Invalid passableMap upon world creation.");
 		}
-
-		this.worldWidth = passableMap.length;
-		this.worldHeight = passableMap[0].length;	
+		this.worldWidth = passableMap[0].length;
+		this.worldHeight = passableMap.length;	
 		this.passableMap = passableMap;
 	}
 	
@@ -166,9 +169,16 @@ public class World {
 	 * @throws IllegalArgumentException
 	 * 		| gameObject == null
 	 * 
+	 * @throws IllegalStateException
+	 * 		| this.getIsGameActive()
+	 * 
 	 * @post | worldObjects.get(gameObject.getTypeID()).contains(gameObject)
 	 */
-	public void addGameObject(GameObject gameObject) throws IllegalArgumentException{
+	public void addGameObject(GameObject gameObject) throws IllegalArgumentException, IllegalStateException{
+		if(this.getIsGameActive()) {
+			throw new IllegalStateException("Game is active, objects can't be added.");
+		}
+		
 		if(gameObject == null) {
 			throw new IllegalArgumentException("The given gameObject was equal to null.");
 		}
@@ -274,7 +284,9 @@ public class World {
 			throw new IllegalArgumentException("The given gameObject was not a part of the world.");
 		}
 		
+		//TODO setWorld null here or terminate
 		worldObjects.get(gameObject.getTypeID()).remove(gameObject);
+		gameObject.terminate();
 	}
 	
 	/**
@@ -323,10 +335,136 @@ public class World {
 		return objectTypeList;
 	}
 	
-	public boolean isAdjacantToImpassableTerrain() {
+	//TODO
+	public Collection<Object>  getAllGameObjects(){
+		ArrayList<Object> allObjects = new ArrayList<Object>();
 		
-		return false;
+		for(GameObjectTypeID key : worldObjects.keySet()) {
+			for(GameObject w : worldObjects.get(key)) {
+				allObjects.add(w);
+			}
+		}
+		
+		return allObjects;
 	}
+	
+	public boolean isAdjacantToImpassableTerrain(Location location, Radius radius) {
+		
+		Circle passableSurface = new Circle(location, radius);
+		Circle extendedSurface = new Circle(location, new Radius(radius.getRadius() * 1.1d));
+		boolean[][] mapToInspect1 = extendedSurface.getBoundingRectangle().getArraySetFromSizeAndPassableMap(this.getPassableMap());
+		boolean[][] mapToInspect2 = passableSurface.getBoundingRectangle().getArraySetFromSizeAndPassableMap(this.getPassableMap());
+
+
+		for(int i = 0; i < mapToInspect2.length; i++) {
+			for (int j = 0; j < mapToInspect2[i].length; j++) {
+				Location toCheck = new Location(j, i);
+				if(passableSurface.contains(toCheck)) {
+					if(mapToInspect2[i][j] == false) {
+						return false;
+					}
+				}
+			}
+		}
+		
+		//TODO commentary
+		boolean bNearAtLeast1ImpassableTerrain = false;
+		for(int i = 0; i < mapToInspect1.length; i++) {
+			for (int j = 0; j < mapToInspect1[i].length; j++) {
+				if(mapToInspect1[i][j] == false) {
+					bNearAtLeast1ImpassableTerrain = true;
+					break;
+				}
+			}
+		}
+		
+		return bNearAtLeast1ImpassableTerrain;
+	}
+	
+
+	public boolean isPassable(Location location) {
+		return this.getPassableMap()[(int) Math.round(location.getY())][(int) Math.round(location.getX())];
+	}
+	
+
+	public boolean isPassable(Location location, Radius radius) {
+		Circle passableSurface = new Circle(location, radius);
+
+		boolean[][] mapToInspect = passableSurface.getBoundingRectangle().getArraySetFromSizeAndPassableMap(this.getPassableMap());
+
+
+		for(int i = 0; i < mapToInspect.length; i++) {
+			for (int j = 0; j < mapToInspect[i].length; j++) {
+				if(mapToInspect[i][j] == false) {
+					return false;
+				}
+			}
+		}
+		
+		return true;
+	}
+	
+	//TODO getter
+	private LinkedList<Worm> wormTurnCycle = new LinkedList<Worm>();
+	
+	public void startGame() {
+		this.createTurnCycle();
+		setGameActive(true);
+	}
+	
+	public void endGame() {
+		wormTurnCycle.clear();
+	}
+	
+	//TODO this or setter
+	public void createTurnCycle() {
+		wormTurnCycle.clear();
+		ArrayList<Worm> gameWorms = this.getAllObjectsOfType(Worm.class);
+		for(Worm worm : gameWorms) {
+			wormTurnCycle.add(worm);
+		}
+	}
+	
+	public Worm getFirstPlayerWorm() {
+		
+		return wormTurnCycle.getFirst();
+	}
+	
+	public void endFirstPlayerWormTurn() {
+		wormTurnCycle.add(wormTurnCycle.getFirst());
+		wormTurnCycle.remove(0);
+	}
+	
+	private boolean gameIsActive = false;
+	
+	public void setGameActive(boolean active) {
+		this.gameIsActive = active;
+	}
+	
+	public boolean getIsGameActive() {
+		return this.gameIsActive;
+	}
+	
+	private boolean isTerminated = false;
+	
+	public void terminate() {
+		this.isTerminated = true;
+		
+		for(Object o : this.getAllGameObjects()) {
+			if(o instanceof GameObject) {
+				((GameObject) o).terminate();
+			}
+		}
+		
+		wormTurnCycle.clear();
+		wormTurnCycle = null;
+	}
+
+	public boolean isTerminated() {
+		return this.isTerminated;
+	}
+	
+	
 	
 	/**
 	 * A constant, representing a fictitious in game simulation of real life gravity. To
@@ -366,5 +504,7 @@ public class World {
 	public static double getJumpTimeDelta() {
 		return JUMP_TIME_DELTA;
 	}
+
+
 
 }

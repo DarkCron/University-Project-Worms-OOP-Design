@@ -3,6 +3,7 @@ package worms.model;
 import be.kuleuven.cs.som.annotate.*;
 import worms.exceptions.InvalidLocationException;
 import worms.exceptions.InvalidRadiusException;
+import worms.model.ShapeHelp.Circle;
 import worms.model.values.*;
 
 /**
@@ -172,12 +173,11 @@ public abstract class GameObject{
 	}
 	
 	//TODO
-	public void grow(Radius radius) {
+	public void grow() {
 		if(!isValidRadius(radius)) {
 			throw new InvalidRadiusException(radius);
 		}
-		int newRadius = (int)radius * 2;
-		setRadius(radius*2);
+		setRadius(new Radius(this.getRadius().getRadius()*1.1d));
 	}
 	
 	/**
@@ -281,7 +281,7 @@ public abstract class GameObject{
 	public void terminate() {
 		isTerminated = true;
 		this.fromWorld = null;
-		this.getWorld().removeGameObject(this);
+		//this.getWorld().removeGameObject(this);
 	}
 	
 	/**
@@ -293,4 +293,17 @@ public abstract class GameObject{
 	}
 	
 	private boolean isTerminated = false;
+	
+	//TODO
+	public boolean overlapsWith(GameObject other) {
+		Circle thisSurface = new Circle(this);
+		Circle otherSurface = new Circle(other);
+		
+		return thisSurface.overlaps(otherSurface);
+	}
+	
+	//TODO
+	public static boolean isAdjacentToTerrain(Location location, Radius radius, World world) {
+		return world.isAdjacantToImpassableTerrain(location, radius);
+	}
 }

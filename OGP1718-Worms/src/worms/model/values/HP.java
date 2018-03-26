@@ -1,5 +1,7 @@
 package worms.model.values;
 
+import java.math.BigInteger;
+
 import be.kuleuven.cs.som.annotate.*;
 /**
  * @invar 
@@ -24,12 +26,12 @@ public class HP {
 	 * 		| 		then new.getHp() == maxHp
 	 * 		| 	else new.getHp() == tempHp
 	 */
-	public HP(int minHp, int maxHp){
-		int tempHp = calculateHp(minHp, maxHp);
-		if (tempHp < minHp) {
+	public HP(BigInteger minHp, BigInteger maxHp){
+		BigInteger tempHp = calculateHp(minHp, maxHp);
+		if (tempHp.compareTo(minHp) < 0) {
 			hitpoints = minHp;
 		}
-		else if(tempHp > maxHp){
+		else if(tempHp.compareTo(maxHp) > 0){
 			hitpoints = maxHp;
 		}
 		else {
@@ -42,7 +44,7 @@ public class HP {
 	 * Returns this HP's hitpoints value.
 	 */
 	@Basic @Raw @Immutable
-	public int getHp() {
+	public BigInteger getHp() {
 		return this.hitpoints;
 	}
 	/**
@@ -53,11 +55,11 @@ public class HP {
 	 * 			|result == 
 	 * 			|		(int)(Math.random()*(maxHp-minHp) + minHp)
 	 */
-	public int calculateHp(int minHp, int maxHp){
-		return (int)(Math.random()*(maxHp-minHp) + minHp);
+	public BigInteger calculateHp(BigInteger minHp, BigInteger maxHp){
+		return new BigInteger(((Integer)((Double)(Math.random()*(maxHp.longValue()-minHp.longValue()) + minHp.longValue())).intValue()).toString());
 	}
 	
-	private final int hitpoints;
+	private final BigInteger hitpoints;
 	
 	/**
 	 * Check whether this HP is equal to the given object.
@@ -88,7 +90,7 @@ public class HP {
 	 */
 	@Override
 	public int hashCode() {
-		return ((Integer)getHp()).hashCode();
+		return ((BigInteger)getHp()).hashCode();
 		}
 	
 	/**
@@ -98,6 +100,6 @@ public class HP {
 	 */
 	@Override
 	public String toString() {
-		return "HP:" + ((Integer)getHp()).toString();
+		return "HP:" + ((BigInteger)getHp()).toString();
 	}
 }

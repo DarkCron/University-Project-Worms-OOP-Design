@@ -145,100 +145,91 @@ public class Facade implements IFacade {
 
 	@Override
 	public World createWorld(double width, double height, boolean[][] passableMap) throws ModelException {
-		// TODO Auto-generated method stub
-		return null;
+		World w;
+		try {
+			w = new World(width, height, passableMap);
+		} catch (Exception e) {
+			throw new ModelException("Error in creating world");
+		}
+		return w;
 	}
 
 	@Override
 	public void terminate(World world) throws ModelException {
-		// TODO Auto-generated method stub
-		
+		world.terminate();
 	}
 
 	@Override
 	public boolean isTerminated(World world) throws ModelException {
-		// TODO Auto-generated method stub
-		return false;
+		return world.isTerminated();
 	}
 
 	@Override
 	public double getWorldWidth(World world) throws ModelException {
-		// TODO Auto-generated method stub
-		return 0;
+		return world.getWorldWidth();
 	}
 
 	@Override
 	public double getWorldHeight(World world) throws ModelException {
-		// TODO Auto-generated method stub
-		return 0;
+		return world.getWorldHeight();
 	}
 
 	@Override
 	public boolean isPassable(World world, double[] location) throws ModelException {
-		// TODO Auto-generated method stub
-		return false;
+		return world.isPassable(new Location(location));
 	}
 
 	@Override
 	public boolean isPassable(World world, double[] center, double radius) {
-		// TODO Auto-generated method stub
-		return false;
+		return world.isPassable(new Location(center), new Radius(radius));
 	}
 
 	@Override
 	public boolean isAdjacent(World world, double[] center, double radius) {
-		// TODO Auto-generated method stub
-		return false;
+		return world.isAdjacantToImpassableTerrain(new Location(center), new Radius(radius));
 	}
 
 	@Override
 	public boolean hasAsWorm(World world, Worm worm) throws ModelException {
-		// TODO Auto-generated method stub
-		return false;
+		return world.hasGameObject(worm);
 	}
 
 	@Override
 	public void addWorm(World world, Worm worm) throws ModelException {
-		// TODO Auto-generated method stub
-		
+		world.addGameObject(worm);
 	}
 
 	@Override
 	public void removeWorm(World world, Worm worm) throws ModelException {
-		// TODO Auto-generated method stub
-		
+		world.removeGameObject(worm);
 	}
 
 	@Override
 	public List<Worm> getAllWorms(World world) throws ModelException {
-		//TODO
 		return world.getAllObjectsOfType(Worm.class);
 	}
 
+
 	@Override
 	public boolean hasAsFood(World world, Food food) throws ModelException {
-		// TODO Auto-generated method stub
-		return false;
+		return world.hasGameObject(food);
 	}
 	
 
 	
 	@Override
 	public void addFood(World world, Food food) throws ModelException {
-		// TODO Auto-generated method stub
-		
+		world.addGameObject(food);
 	}
 
 	@Override
 	public void removeFood(World world, Food food) throws ModelException {
-		// TODO Auto-generated method stub
-		
+		world.removeGameObject(food);
 	}
 
 	@Override
 	public Collection<Object> getAllItems(World world) throws ModelException {
-		// TODO Auto-generated method stub
-		return null;
+		return world.getAllGameObjects();
 	}
 
 	@Override
@@ -249,32 +240,27 @@ public class Facade implements IFacade {
 
 	@Override
 	public boolean hasActiveGame(World world) throws ModelException {
-		// TODO Auto-generated method stub
-		return false;
+		return world.getIsGameActive();
 	}
 
 	@Override
 	public Worm getActiveWorm(World world) throws ModelException {
-		// TODO Auto-generated method stub
-		return null;
+		return world.getFirstPlayerWorm();
 	}
 
 	@Override
 	public void startGame(World world) throws ModelException {
-		// TODO Auto-generated method stub
-		
+		world.startGame();
 	}
 
 	@Override
 	public void finishGame(World world) throws ModelException {
-		// TODO Auto-generated method stub
-		
+		world.endGame();
 	}
 
 	@Override
 	public void activateNextWorm(World world) throws ModelException {
-		// TODO Auto-generated method stub
-		
+		world.endFirstPlayerWormTurn();
 	}
 
 	@Override
@@ -293,20 +279,17 @@ public class Facade implements IFacade {
 
 	@Override
 	public void terminate(Worm worm) throws ModelException {
-		// TODO Auto-generated method stub
-		
+		worm.terminate();
 	}
 
 	@Override
 	public boolean isTerminated(Worm worm) throws ModelException {
-		// TODO Auto-generated method stub
-		return false;
+		return worm.isTerminated();
 	}
 
 	@Override
 	public double[] getLocation(Worm worm) throws ModelException {
-		// TODO Auto-generated method stub
-		return null;
+		return worm.getLocation().getLocation();
 	}
 
 	@Override
@@ -323,8 +306,7 @@ public class Facade implements IFacade {
 
 	@Override
 	public World getWorld(Worm worm) throws ModelException {
-		// TODO Auto-generated method stub
-		return null;
+		return worm.getWorld();
 	}
 
 	@Override
@@ -366,38 +348,32 @@ public class Facade implements IFacade {
 
 	@Override
 	public void terminate(Food food) throws ModelException {
-		// TODO Auto-generated method stub
-		
+		food.terminate();
 	}
 
 	@Override
 	public boolean isTerminated(Food food) throws ModelException {
-		// TODO Auto-generated method stub
-		return false;
+		return food.isTerminated();
 	}
 
 	@Override
 	public double[] getLocation(Food food) throws ModelException {
-		// TODO Auto-generated method stub
-		return null;
+		return food.getLocation().getLocation();
 	}
 
 	@Override
 	public double getRadius(Food food) throws ModelException {
-		// TODO Auto-generated method stub
-		return 0;
+		return food.getRadius().getRadius();
 	}
 
 	@Override
 	public double getMass(Food food) throws ModelException {
-		// TODO Auto-generated method stub
-		return 0;
+		return food.getMass();
 	}
 
 	@Override
 	public World getWorld(Food food) throws ModelException {
-		// TODO Auto-generated method stub
-		return null;
+		return food.getWorld();
 	}
 
 	@Override

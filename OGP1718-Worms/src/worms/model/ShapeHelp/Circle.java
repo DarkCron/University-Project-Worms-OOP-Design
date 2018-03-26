@@ -2,6 +2,7 @@ package worms.model.ShapeHelp;
 
 import be.kuleuven.cs.som.annotate.Basic;
 import worms.exceptions.InvalidRadiusException;
+import worms.model.GameObject;
 import worms.model.values.*;
 
 /**
@@ -29,7 +30,27 @@ public class Circle extends Shape {
 	 */
 	public Circle(Location center, Radius radius) throws IllegalArgumentException,InvalidRadiusException {
 		super(center);
-		setRadius(radius);
+		this.setRadius(radius);
+	}
+	
+	/**
+	 * Creates a new circle based on a given gameObject.
+	 * 
+	 * @param center
+	 * @param radius
+	 * 
+	 * @post | new.getRadius() == gameObject.getRadius()
+	 * 
+	 * @post | new.getCenter() == gameObject.getLocation()
+	 * 
+	 * @throws IllegalArgumentException
+	 * 		| center == null
+	 * 
+	 * @see super
+	 */
+	public Circle(GameObject gameObject) {
+		super(gameObject.getLocation());
+		this.setRadius(gameObject.getRadius());
 	}
 	
 	/**
