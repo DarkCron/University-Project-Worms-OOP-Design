@@ -207,7 +207,7 @@ public class PlayGameScreenPainter extends AbstractPainter<PlayGameScreen> {
 
 		double hitPoints = sprite.getHitPoints().doubleValue();
 		double maxHitPoints = 2000;
-		hitPoints = Math.max(hitPoints, maxHitPoints);
+		hitPoints = Math.min(hitPoints, maxHitPoints);
 
 		RoundRectangle2D hitpointsBarFill = new RoundRectangle2D.Double(x
 				- ACTION_BAR_WIDTH / 2, y + spriteHeight / 2
