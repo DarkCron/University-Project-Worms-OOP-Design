@@ -171,6 +171,14 @@ public abstract class GameObject{
 		return (radius != null) && (radius.isValid());
 	}
 	
+	//TODO
+	public void grow(Radius radius) {
+		if(!isValidRadius(radius)) {
+			throw new InvalidRadiusException(radius);
+		}
+		int newRadius = (int)radius * 2;
+		setRadius(radius*2);
+	}
 	
 	/**
 	 * The radius of a gameObject contained in a value object Radius.
