@@ -358,6 +358,22 @@ public class Worm extends GameObject{
 	public static boolean isValidName(Name name) {
 		return (name!=null) && (name.isValid());
 	}
+	
+	//TODO
+	public boolean hasTheSameNameAs(Worm other) {
+		return this.getName().equals(other.getName());
+	}
+	
+	public boolean hadCorrectTeamMass(Worm other) {
+		if (other.getMass() > 2*this.getMass()) {
+			return false;
+		}
+		if(other.getMass() < this.getMass()/2) {
+			return false;
+		}
+		return true;
+	}
+	
 	/**
 	 * returns the given name of the worm.
 	 */

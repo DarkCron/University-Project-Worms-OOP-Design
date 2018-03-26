@@ -45,8 +45,16 @@ public class Team {
 	private World fromWorld;
 	private final Name teamName;
 	
-	public void addWorm(Worm worm) {
-		
+	//TODO
+	public void addWorm(Worm worm) throws IllegalArgumentException {
+		for (Worm o : teamRoster) {
+			if(o.hasTheSameNameAs(worm)) {
+				throw new IllegalArgumentException("Worm has the same name as another worm whithin this team.");
+			}
+			if(o.hadCorrectTeamMass(worm)) {
+				throw new IllegalArgumentException("This worm does not have a valid mass for this team.");
+			}
+		}
 	}
 	
 	public void removeWorm() {
