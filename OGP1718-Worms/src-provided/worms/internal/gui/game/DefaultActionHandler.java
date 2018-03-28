@@ -9,6 +9,7 @@ import worms.internal.gui.game.commands.AddNewFood;
 import worms.internal.gui.game.commands.AddNewTeam;
 import worms.internal.gui.game.commands.AddNewWorm;
 import worms.internal.gui.game.commands.Command;
+import worms.internal.gui.game.commands.Eat;
 import worms.internal.gui.game.commands.Jump;
 import worms.internal.gui.game.commands.Move;
 import worms.internal.gui.game.commands.Rename;
@@ -85,6 +86,10 @@ class DefaultActionHandler implements IActionHandler {
 
 	public void changeName(Worm worm, String newName) {
 		executeCommand(new Rename(getFacade(), worm, newName, getScreen()));
+	}
+	
+	public void eat(Worm worm) {
+		executeCommand(new Eat(getFacade(), worm, getScreen()));
 	}
 
 	public void selectNextWorm() {
