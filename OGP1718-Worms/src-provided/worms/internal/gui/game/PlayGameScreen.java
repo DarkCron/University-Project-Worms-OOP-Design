@@ -216,6 +216,14 @@ public class PlayGameScreen extends Screen {
 		}
 
 	}
+	
+	public void eat() {
+		Worm worm = getSelectedWorm();
+		if (worm != null) {
+			userActionHandler.eat(worm);
+		}
+
+	}
 
 	public void turn(double angle) {
 		Worm worm = getSelectedWorm();

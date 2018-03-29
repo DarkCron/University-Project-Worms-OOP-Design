@@ -427,6 +427,10 @@ public interface IFacade {
 	World getWorld(Food food) throws ModelException;	
 
 
+	/**
+	 * Make the given worm eat a portion of food.
+	 */
+	public void eat(Worm worm);
 	
 	/********
 	 * TEAM
@@ -519,5 +523,4 @@ public interface IFacade {
 		throw new MustNotImplementException();
 	}
 
-	
 }
