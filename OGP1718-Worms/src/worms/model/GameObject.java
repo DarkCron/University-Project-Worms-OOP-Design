@@ -281,7 +281,7 @@ public abstract class GameObject{
 	public void terminate() {
 		isTerminated = true;
 		this.fromWorld = null;
-		//this.getWorld().removeGameObject(this);
+		this.getWorld().removeGameObject(this);
 	}
 	
 	/**

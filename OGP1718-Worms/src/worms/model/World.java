@@ -465,8 +465,6 @@ public class World {
 		return this.isTerminated;
 	}
 	
-	
-	
 	/**
 	 * A constant, representing a fictitious in game simulation of real life gravity. To
 	 * ensure worms fall back to the ground.
@@ -477,8 +475,8 @@ public class World {
 	 */
 	private final static double JUMP_TIME_DELTA = 0.5;
 	
-	private final static  double WORM_MINIMUM_RADIUS = 0.25;
-	private final static  double FOOD_DEFAULT_RADIUS = 0.20;
+	private final static double WORM_MINIMUM_RADIUS = 0.25;
+	private final static double FOOD_DEFAULT_RADIUS = 0.20;
 	private final static double WORM_DENSITY = 1062;
 	private final static double FOOD_DENSITY = 150;
 	
