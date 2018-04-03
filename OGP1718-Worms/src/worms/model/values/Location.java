@@ -75,6 +75,17 @@ public class Location {
 	public double getY() {
 		return this.y;
 	}
+	
+	/**
+	 * Returns the distance between this and a given pointlocation.
+	 * 
+	 * @param point
+	 * @return | result == Math.sqrt(Math.pow(this.getX()-point.getX(),2) + Math.pow(this.getY() - point.getY(), 2))
+	 */
+	public double getDistanceFrom(Location point) {
+		return Math.sqrt(Math.pow(this.getX()-point.getX(),2) + Math.pow(this.getY() - point.getY(), 2));
+	}
+	
 	/**
 	 * Checks whether a given location exists and only contains valid coordinates.
 	 * 

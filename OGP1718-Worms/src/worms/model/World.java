@@ -1,27 +1,30 @@
 package worms.model;
 
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Set;
 
 import be.kuleuven.cs.som.annotate.*;
 import worms.model.ShapeHelp.Circle;
 import worms.model.values.GameObjectTypeID;
 import worms.model.values.Location;
+import worms.model.values.Name;
 import worms.model.values.Radius;
 
 /**
  * 
  * A class for representing and keeping track of game worlds.
  * 
- * @Invar | isValdiPassableMap(getPassableMap())
+ * @Invar | hasValidPassableMap()
  * 
- * @Invar | isValidWorldSize(getWorldHeight(),getPassableMap().length)
+ * @Invar | isValidWorldSize(getWorldHeight())
  * 
- * @Invar | isValidWorldSize(getWorldWidth(), getPassableMap()[0].length)
+ * @Invar | isValidWorldSize(getWorldWidth())
  * 
  * @author bernd
  *
@@ -43,23 +46,36 @@ public class World {
 	 * 
 	 * @post |new.getWorldObjects() != null
 	 * 
+	 * @post |new.getTeams() != null
+	 * 
 	 * @note we worked out width and height in a total manner since no specific
 	 * 	manner was defined.
 	 */
 	public World(double width, double height, boolean[][] passableMap) {
-		if(isValidPassableMap(passableMap)) {
+		if(!isValidPassableMap(passableMap)) {
 			throw new IllegalArgumentException("Invalid passableMap upon world creation.");
 		}
 		
-		if(!isValidWorldSize(width,passableMap[0].length)) {
+		if(!isValidWorldSize(width)) {
 			width = 0;
 		}
-		if(!isValidWorldSize(height,passableMap.length)) {
+		if(!isValidWorldSize(height)) {
 			height = 0;
 		}
 		this.worldWidth = width;
 		this.worldHeight = height;	
-		this.passableMap = passableMap;
+		this.passableMap = new boolean[(int)Math.ceil(height*2)][(int)Math.ceil(width*2)];
+		
+		for (int i = 0; i < height; i++) {
+			for (int j = 0; j < width; j++) {
+				double heightRatio = ( (double)(height) / (double)passableMap.length);
+				double widthRatio = ( (double)(width) / (double)passableMap[0].length);
+				this.passableMap[i][j] = passableMap[(int)(((((double)i - height) +1d)*(-1d)) / heightRatio)][(int)(((double)j) / widthRatio)];
+			}
+			
+		}
+		
+		this.worldTeams = new HashSet<Team>();
 	}
 	
 	/**
@@ -75,16 +91,19 @@ public class World {
 	 * 
 	 * @post |new.getWorldObjects() != null
 	 * 
+	 * @post |new.getTeams() != null
+	 * 
 	 * @note we worked out width and height in a total manner since no specific
 	 * 	manner was defined.
 	 */
 	public World(boolean[][] passableMap) {
-		if(isValidPassableMap(passableMap)) {
+		if(!isValidPassableMap(passableMap)) {
 			throw new IllegalArgumentException("Invalid passableMap upon world creation.");
 		}
 		this.worldWidth = passableMap[0].length;
 		this.worldHeight = passableMap.length;	
 		this.passableMap = passableMap;
+		this.worldTeams = new HashSet<Team>();
 	}
 	
 	/**
@@ -93,12 +112,20 @@ public class World {
 	 * @param passableMap
 	 * 
 	 * @return | result == !(passableMap==null || (passableMap.length == 0 || passableMap[0].length == 0))
+	 *  
 	 */
 	public static boolean isValidPassableMap(boolean[][] passableMap) {
 		if(passableMap==null || (passableMap.length == 0 || passableMap[0].length == 0)) {
 			return false;
 		}
-		return false;
+		return true;
+	}
+	
+	public boolean hasValidPassableMap() {
+		if(isValidPassableMap(this.getPassableMap())) {
+			return false;
+		}
+		return passableMap.length == this.getWorldHeight() && passableMap[0].length == this.getWorldWidth();
 	}
 
 	/**
@@ -130,18 +157,13 @@ public class World {
 	 * Checks whether a given world's dimension is valid based on a given required length, representing either width or height.
 	 * 
 	 * @param size
-	 * @param requiredLength
 	 * 
-	 * @return | result == !(size == Double.NaN) && size >= 0 && size == requiredLength
+	 * @return | result == !(size == Double.NaN) && size >= 0 
 	 */
-	public static boolean isValidWorldSize(double size, double requiredLength) {
+	public static boolean isValidWorldSize(double size) {
 		if(size == Double.NaN) {
 			return false;
 		}else if((size < 0 || size == Double.MAX_VALUE)) {
-			return false;
-		}
-		
-		if(size!=requiredLength) {
 			return false;
 		}
 		
@@ -312,11 +334,11 @@ public class World {
 	 * 			|			clone.removeAll(result) == null
 	 * 
 	 * @throws IllegalArgumentException
-	 * 		| classID == null
+	 * 		| !isValidObjectGameObjectClass(classID)
 	 */
 	@SuppressWarnings("unchecked")
 	public <T extends GameObject> ArrayList<T> getAllObjectsOfType(Class<? extends GameObject> classID) throws IllegalArgumentException{
-		if(classID == null) {
+		if(!isValidObjectGameObjectClass(classID)) {
 			throw new IllegalArgumentException("Invalid ID given.");
 		}
 	
@@ -335,6 +357,16 @@ public class World {
 		return objectTypeList;
 	}
 	
+	/**
+	 * Checks whether a given object class is valid as a gameObject class.
+	 * 
+	 * @param classID
+	 * @return | result == (classID != null)
+	 */
+	public static boolean isValidObjectGameObjectClass(Class<? extends GameObject> classID) {
+		return classID != null;
+	}
+	
 	//TODO
 	public Collection<Object>  getAllGameObjects(){
 		ArrayList<Object> allObjects = new ArrayList<Object>();
@@ -349,7 +381,7 @@ public class World {
 	}
 	
 	public boolean isAdjacantToImpassableTerrain(Location location, Radius radius) {
-		
+
 		Circle passableSurface = new Circle(location, radius);
 		Circle extendedSurface = new Circle(location, new Radius(radius.getRadius() * 1.1d));
 		boolean[][] mapToInspect1 = extendedSurface.getBoundingRectangle().getArraySetFromSizeAndPassableMap(this.getPassableMap());
@@ -383,11 +415,13 @@ public class World {
 	
 
 	public boolean isPassable(Location location) {
+
 		return this.getPassableMap()[(int) Math.round(location.getY())][(int) Math.round(location.getX())];
 	}
 	
 
 	public boolean isPassable(Location location, Radius radius) {
+		
 		Circle passableSurface = new Circle(location, radius);
 
 		boolean[][] mapToInspect = passableSurface.getBoundingRectangle().getArraySetFromSizeAndPassableMap(this.getPassableMap());
@@ -402,6 +436,10 @@ public class World {
 		}
 		
 		return true;
+	}
+	
+	public boolean isPassable(GameObject gameObject) {
+		return this.isPassable(gameObject.getLocation(),gameObject.getRadius());
 	}
 	
 	//TODO getter
@@ -426,7 +464,9 @@ public class World {
 	}
 	
 	public Worm getFirstPlayerWorm() {
-		
+		if(wormTurnCycle.isEmpty()) {
+			return null;
+		}
 		return wormTurnCycle.getFirst();
 	}
 	
@@ -445,6 +485,46 @@ public class World {
 	public boolean getIsGameActive() {
 		return this.gameIsActive;
 	}
+	
+	/**
+	 * Returns this world's teams.
+	 * 
+	 */
+	@Basic
+	public Set<Team> getTeams(){
+		return this.worldTeams;
+	}
+	
+	public void createTeam(Name name) {
+		Team team = new Team(this, name);
+		this.addTeam(team);
+	}
+
+	public void addTeam(Team team) throws IllegalArgumentException{
+		if(team == null) {
+			throw new IllegalArgumentException();
+		}
+		if(this.getTeams().contains(team)) {
+			throw new IllegalArgumentException();
+		}
+		if(team.isTerminated()) {
+			throw new IllegalArgumentException();
+		}
+		worldTeams.add(team);
+	}
+	
+	public Team getTeam(Name name) {
+		for (Team team : this.getTeams()) {
+			if(team.getName().equals(name.getName())) {
+				return team;
+			}
+		}
+		return null;
+	}
+	
+	private final Set<Team> worldTeams;
+	
+	
 	
 	private boolean isTerminated = false;
 	
@@ -465,7 +545,10 @@ public class World {
 		return this.isTerminated;
 	}
 	
-	
+
+	public String getWinner() {
+		return null;
+	}
 	
 	/**
 	 * A constant, representing a fictitious in game simulation of real life gravity. To
@@ -477,10 +560,20 @@ public class World {
 	 */
 	private final static double JUMP_TIME_DELTA = 0.5;
 	
-	private final static  double WORM_MINIMUM_RADIUS = 0.25;
-	private final static  double FOOD_DEFAULT_RADIUS = 0.20;
+	private final static double WORM_MINIMUM_RADIUS = 0.25;
+	private final static double FOOD_DEFAULT_RADIUS = 0.20;
 	private final static double WORM_DENSITY = 1062;
 	private final static double FOOD_DENSITY = 150;
+	private final static BigInteger WORM_MIN_HP = new BigInteger("1000");
+	private final static BigInteger WORM_MAX_HP = new BigInteger("2000");
+	
+	public static BigInteger getWormMinHP() {
+		return WORM_MIN_HP;
+	}
+	
+	public static BigInteger getWormMaxHP() {
+		return WORM_MAX_HP;
+	}
 	
 	public static double getWormDensity() {
 		return WORM_DENSITY;
@@ -505,6 +598,9 @@ public class World {
 	public static double getJumpTimeDelta() {
 		return JUMP_TIME_DELTA;
 	}
+
+
+
 
 
 

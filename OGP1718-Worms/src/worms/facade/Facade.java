@@ -149,7 +149,7 @@ public class Facade implements IFacade {
 		try {
 			w = new World(width, height, passableMap);
 		} catch (Exception e) {
-			throw new ModelException("Error in creating world");
+			throw new ModelException(e);
 		}
 		return w;
 	}
@@ -234,8 +234,7 @@ public class Facade implements IFacade {
 
 	@Override
 	public Set<Team> getAllTeams(World world) throws ModelException {
-		// TODO Auto-generated method stub
-		return null;
+		return world.getTeams();
 	}
 
 	@Override
@@ -263,18 +262,25 @@ public class Facade implements IFacade {
 		world.endFirstPlayerWormTurn();
 	}
 
-	@Override
+	@Override //TODO
 	public String getWinner(World world) {
-		// TODO Auto-generated method stub
-		return null;
+		try {
+			return world.getWinner();
+		} catch (Exception e) {
+			throw new ModelException(e);
+		}
 	}
 
 	@Override
 	public Worm createWorm(World world, double[] location, double direction, double radius, String name, Team team)
 			throws ModelException {
-		// TODO Auto-generated method stub
-		Worm w = new Worm(new Location(location), new Direction(direction),world, new Radius(radius, World.getWormMinimumRadius()), new Name(name));
-		return null;
+		try {
+			Worm w = new Worm(new Location(location), new Direction(direction),world, new Radius(radius, World.getWormMinimumRadius()), new Name(name),team);
+			this.addWorm(world, w);
+			return w;
+		} catch (Exception e) {
+			throw new ModelException(e);
+		}
 	}
 
 	@Override
@@ -312,13 +318,21 @@ public class Facade implements IFacade {
 	public double[] getFurthestLocationInDirection(Worm worm, double direction, double maxDistance)
 			throws ModelException {
 		// TODO Auto-generated method stub
-		return null;
+		try {
+			return worm.getFurthestLocationInDirection(new Direction(direction), maxDistance).getLocation();
+		} catch (Exception e) {
+			throw new ModelException(e);
+		}
+
 	}
 
 	@Override
 	public void move(Worm worm) throws ModelException {
-		// TODO Auto-generated method stub
-		
+		try {
+			worm.move();
+		} catch (Exception e) {
+			throw new ModelException(e);
+		}
 	}
 
 	@Override
@@ -335,19 +349,22 @@ public class Facade implements IFacade {
 
 	@Override
 	public Food createFood(World world, double[] location) throws ModelException {
-		Food f;
 		try {
-			f = new Food(new Location(location), new Radius(World.getFoodRadius(),World.getFoodRadius()),world);
+			Food f = new Food(new Location(location), new Radius(World.getFoodRadius(),World.getFoodRadius()),world);
+			this.addFood(world, f);
+			return f;
 		} catch (Exception e) {
 			throw new ModelException(e);
 		}
-
-		return f;
 	}
 
 	@Override
 	public void terminate(Food food) throws ModelException {
-		food.terminate();
+		try {
+			food.terminate();
+		} catch (Exception e) {
+			throw new ModelException(e);
+		}
 	}
 
 	@Override
@@ -377,62 +394,91 @@ public class Facade implements IFacade {
 
 	@Override
 	public Team createTeam(World world, String name) throws ModelException, MustNotImplementException {
-		// TODO Auto-generated method stub
-		return IFacade.super.createTeam(world, name);
+		try {
+			world.createTeam(new Name(name));
+			return world.getTeam(new Name(name));
+		} catch (Exception e) {
+			throw new ModelException(e);
+		}
 	}
 	
 	@Override
 	public void terminate(Team team) throws ModelException, MustNotImplementException {
-		// TODO Auto-generated method stub
-		IFacade.super.terminate(team);
+		try {
+			team.terminate();
+		} catch (Exception e) {
+			new ModelException(e);
+		}
 	}
 	
 	@Override
 	public boolean isTerminated(Team team) throws ModelException, MustNotImplementException {
-		// TODO Auto-generated method stub
-		return IFacade.super.isTerminated(team);
+		return team.isTerminated();
 	}
 	
 	@Override
 	public String getName(Team team) throws ModelException, MustNotImplementException {
-		// TODO Auto-generated method stub
-		return IFacade.super.getName(team);
+		try {
+			return team.getName();
+		} catch (Exception e) {
+			throw new ModelException(e);
+		}
 	}
 	
 	@Override
 	public Team getTeam(Worm worm) throws ModelException {
-		// TODO Auto-generated method stub
-		return IFacade.super.getTeam(worm);
+		return worm.getTeam();
 	}
 	
 	@Override
 	public int getNbWormsOfTeam(Team team) throws ModelException, MustNotImplementException {
-		// TODO Auto-generated method stub
-		return IFacade.super.getNbWormsOfTeam(team);
+		return team.getAlphabeticalListTeamRoster().size();
 	}
 	
 	@Override
 	public List<Worm> getAllWormsOfTeam(Team team) throws ModelException, MustNotImplementException {
-		// TODO Auto-generated method stub
-		return IFacade.super.getAllWormsOfTeam(team);
+		return team.getAlphabeticalListTeamRoster();
 	}
 	
 	@Override
 	public void addWormsToTeam(Team team, Worm... worms) throws ModelException, MustNotImplementException {
 		// TODO Auto-generated method stub
-		IFacade.super.addWormsToTeam(team, worms);
+		try {
+			for (Worm worm : worms) {
+				team.addWorm(worm);
+			}
+		} catch (Exception e) {
+			throw new ModelException(e);
+		}
 	}
 	
 	@Override
 	public void removeWormsFromTeam(Team team, Worm... worms) throws ModelException, MustNotImplementException {
 		// TODO Auto-generated method stub
-		IFacade.super.removeWormsFromTeam(team, worms);
+		try {
+			for (Worm worm : worms) {
+				team.removeWorm(worm);
+			}
+		} catch (Exception e) {
+			throw new ModelException(e);
+		}
 	}
 	
 	@Override
 	public void mergeTeams(Team recevingTeam, Team supplyingTeam) throws ModelException, MustNotImplementException {
 		// TODO Auto-generated method stub
 		IFacade.super.mergeTeams(recevingTeam, supplyingTeam);
+	}
+
+	@Override
+	public void eat(Worm worm) {
+		try {
+			if(worm!=null) {
+				worm.checkForFood();
+			}
+		} catch (Exception e) {
+			throw new ModelException(e);
+		}
 	}
 	
 }

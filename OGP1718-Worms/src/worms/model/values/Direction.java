@@ -25,7 +25,7 @@ public class Direction {
 	 */
 	@Raw
 	public Direction(double direction){
-		assert isValidDirection(direction);
+		//assert isValidDirection(direction);
 		this.angle = direction;
 	}
 	

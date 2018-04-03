@@ -306,4 +306,8 @@ public abstract class GameObject{
 	public static boolean isAdjacentToTerrain(Location location, Radius radius, World world) {
 		return world.isAdjacantToImpassableTerrain(location, radius);
 	}
+	
+	public static boolean isAdjacentToTerrain(GameObject gameObject) {
+		return isAdjacentToTerrain(gameObject.getLocation(), gameObject.getRadius(), gameObject.getWorld());
+	}
 }
