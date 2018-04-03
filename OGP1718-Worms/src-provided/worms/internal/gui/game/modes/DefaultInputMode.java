@@ -51,6 +51,10 @@ public class DefaultInputMode extends InputMode<PlayGameScreen> {
 		case 'N':
 			getScreen().renameWorm();
 			break;
+		case 'e':
+		case 'E':
+			getScreen().eat();
+			break;
 		}
 	}
 

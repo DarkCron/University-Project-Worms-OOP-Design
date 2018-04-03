@@ -25,6 +25,8 @@ import worms.exceptions.InvalidRadiusException;
  * 		| isValidName(getName())
  * @Invar worm's jump speed (vector)magnitude 
  * 		| isValidJumpSpeedMagnitude(getJumpSpeedMagnitude())
+ * @Invar this worm has a valid team
+ * 		| isValidTeam(getTeam(),this)
  * 
  * @see super
  */
@@ -51,6 +53,11 @@ public class Worm extends GameObject{
 	 * 		|new.getDirection() == direction
 	 * @post The name of the worm is the same as the given name.
 	 * 		|new.getName() == name
+	 * @post This worm's team is equal to the give team.
+	 * 		|new.getTeam() == team
+	 * @post This worm's health is between or equal to a worm's min and max HP possible
+	 * 		| new.getHitPoints().getHp().compareTo(new BigInteger(World.getWormMinHP().ToString())) >= 0
+	 * 		| && new.getHitPoints().getHp().compareTo(new BigInteger(World.getWormMaxHP().ToString())) <= 0
 	 * 	
 	 * @throws InvalidWormNameException
 	 * 		The given name is not a valid one for the worm, it contains invalid characters.
@@ -66,21 +73,30 @@ public class Worm extends GameObject{
 	 * 
 	 * @note All class invariants are satisfied upon instantiating a new Worm. Therefore we don't need the @Raw tag.
 	 */
-	public Worm(Location location, Direction direction, World world, Radius radius, Name name)
-			throws InvalidWormNameException, InvalidRadiusException, InvalidLocationException {
+	public Worm(Location location, Direction direction, World world, Radius radius, Name name, Team team)
+			throws InvalidWormNameException, InvalidRadiusException, InvalidLocationException, IllegalArgumentException {
 		super(location, radius, world);
 		this.setDirection(direction);
 		this.setName(name);
 		this.resetActionPoints();
+		
+		this.setHitPoints(new HP(World.getWormMinHP(), World.getWormMaxHP()));
+		
+		if(!isValidTeam(team, this)) {
+			throw new IllegalArgumentException("Invalid team");
+		}
+		this.setTeam(team);
 	}
 
 	
 	
+	
+
+
+
 	@Override
 	public void setLocation(Location location) throws InvalidLocationException {
 		super.setLocation(location);
-		checkForFood();
-		
 	}
 
 	public void checkForFood() {
@@ -313,6 +329,10 @@ public class Worm extends GameObject{
 	 */
 	private int maxActionPoints = Math.round((float) this.getMass());
 
+	public void setHitPoints(HP hitPoints) {
+		this.hitpoints = hitPoints;
+	}
+	
 	public BigInteger getHitPoints() {
 		return hitpoints.getHp();
 	}
@@ -359,12 +379,33 @@ public class Worm extends GameObject{
 		return (name!=null) && (name.isValid());
 	}
 	
-	//TODO
-	public boolean hasTheSameNameAs(Worm other) {
+	/**
+	 * Checks whether this worm has the same name as a given worm
+	 * 
+	 * @param other
+	 * 		The other worm to compare names with.
+	 * @return Returns true if and only if the other worm is effective and it's name is exactly equal to
+	 * 		this worm's name.
+	 * 		| result == his.getName().equals(other.getName())
+	 */
+	public boolean hasTheSameNameAs(Worm other) throws IllegalArgumentException{
+		if(other == null) {
+			throw new IllegalArgumentException("Error in worm hasTheSameNameAs other was null");
+		}
+		
 		return this.getName().equals(other.getName());
 	}
 	
-	public boolean hadCorrectTeamMass(Worm other) {
+	/**
+	 * Checks whether a given worm has a correct mass to join a team.
+	 * 
+	 * @param other
+	 * 		The other given worm to check/compares mass with.
+	 * @return Returns True if and only if the other worm is effective and it's weight is between or equal to
+	 * 		this worm's mass times 2 or divided by 2.
+	 * 		| result == (other.getMass() <= 2*this.getMass()) || (other.getMass() >= this.getMass()/2)
+	 */
+	public boolean hasCorrectTeamMass(Worm other) {
 		if (other.getMass() > 2*this.getMass()) {
 			return false;
 		}
@@ -428,8 +469,105 @@ public class Worm extends GameObject{
 		}
 	}
 	
+	public void move() throws InvalidLocationException{
+		Direction bestMoveAngle = this.getOptimalMovementAngle();
+		Location newLocation = this.getFurthestLocationInDirection(bestMoveAngle,this.getRadius().getRadius());
+		
+		if(!isValidWorldLocation(newLocation, this.getWorld())) {
+			throw new InvalidLocationException(newLocation);
+		}
+		
+		this.setLocation(newLocation);
+	}
+	
+	//TODO
+	@Model
+	private Direction getOptimalMovementAngle() {
+		double bestDiv = 0.0d;
+		double bestRatio = 0.0d;
+		for(double div = -0.7875d; div <= 0.7875d; div += 0.0175) {
+			Direction tempDirection = new Direction(this.getDirection().getAngle() + div);
+			Location tempLocation = getFurthestLocationInDirection(tempDirection,this.getRadius().getRadius());
+			double ratio = this.getLocation().getDistanceFrom(tempLocation) / div;
+			if(ratio > bestRatio) {
+				bestDiv = div;
+				bestRatio = ratio;
+			}
+		}
+		
+		double div = 0;
+		Direction tempDirection = new Direction(this.getDirection().getAngle() + div);
+		Location tempLocation = getFurthestLocationInDirection(tempDirection,this.getRadius().getRadius());
+		double ratio = this.getLocation().getDistanceFrom(tempLocation) / div;
+		if(ratio > bestRatio) {
+			bestDiv = div;
+			bestRatio = ratio;
+		}
+		
+		return new Direction(this.getDirection().getAngle() + bestDiv);
+	}
+
+
+
+	/**
+	 * Returns a location based on a given distance traveled and a given direction to travel in.
+	 * 
+	 * @param direction
+	 * 		A given direction to travel in
+	 * @param distance
+	 * 		A given distance this worm is supposed to travel.
+	 *  
+	 * @return Returns the location based on this worm's current location and a given direction and distance.
+	 * 		| result.getX() == Math.cos(direction.getAngle()) * distance + this.getX()
+	 * 		| result.getY() == Math.sin(direction.getAngle()) * distance + this.getY()
+	 */
+	@Model
+	private Location getStepDirection(Direction direction, double distance) {
+		double[] deltaMovement = new double[2];
+		deltaMovement[0] = Math.cos(direction.getAngle()) * distance; 
+	    deltaMovement[1] = Math.sin(direction.getAngle()) * distance;
+	    deltaMovement[0] += this.getX();
+	    deltaMovement[1] += this.getY();
+	    return new Location(deltaMovement);
+	}
+	
+	/**
+	 * Returns the furthest location possible for a worm in a given direction.
+	 * 
+	 * @param direction
+	 * 		A given direction.
+	 * @return Returns a worm location that represents the farthest valid location possible in a given direction.
+	 * 		A location is possible if it's passable for this worm's radius and within the world.
+	 * 		| let Location finish be this.getLocation() in
+	 * 		|	for each step in [0,this.getRadius().getRadius()[ :
+	 * 		|		let Location temp be getStepDirection(direction,step) in
+	 * 		|			if this.getWorld().isPassable(temp,this.getRadius()) && GameObject.isValidWorldLocation(temp, this.getWorld())) 
+	 * 		|				then finish = temp
+	 * 		|			else result == temp
+	 * 		|	if this.getWorld().isPassable(getStepDirection(direction,this.getRadius().getRadius()),this.getRadius()) 
+	 * 		|		then result == getStepDirection(direction,this.getRadius().getRadius())
+	 * 		|	else
+	 * 		|		result == finish
+	 */
 	public Location getFurthestLocationInDirection(Direction direction, double distance) {
-		return Location.ORIGIN;
+		Location finish = this.getLocation();
+		for(float step = 0; step < distance; step+=0.1) {
+			Location temp = getStepDirection(direction,step);
+			if(this.getWorld().isPassable(temp,this.getRadius()) && GameObject.isValidWorldLocation(temp, this.getWorld())) {
+				finish = temp;
+			}else {
+				return temp;
+			}
+		}
+		
+		//This ensures the final step is checked as well, as in radius is 3.4f step 1,2,3 will be checked in
+		//the for loop, this if checks whether 3.4f explicitly is possible.
+		Location furthestLocation = getStepDirection(direction,distance); 
+		if(this.getWorld().isPassable(furthestLocation,this.getRadius())) {
+			return furthestLocation;
+		}
+		
+		return finish;
 	}
 	
 	/**
@@ -683,11 +821,23 @@ public class Worm extends GameObject{
 		return jumpTime;
 	}
 	
+	/**
+	 * Resets this worm's turn.
+	 * 
+	 * @post | new.getCurrentActionPoint() == this.getMaxActionPoints()
+	 * 
+	 * @post | new.getHitPoints().equals(new BigInteger("10").add(this.getHitPoints()))
+	 */
 	public void resetTurn() {
 		this.resetActionPoints();
 		this.increaseHitPoints(10);
 	}
 
+	/**
+	 * Checks whether this worm must end it's turn
+	 * 
+	 * @return | (result == this.getHitPoints().compareTo(new BigInteger ("0"))== 0) || (this.getCurrentActionPoints() == 0)
+	 */
 	public boolean mustEndTurn() {
 		if(this.getHitPoints().compareTo(new BigInteger ("0"))== 0) {
 			return true;
@@ -697,7 +847,12 @@ public class Worm extends GameObject{
 		}
 		return false;
 	}
-	//TODO
+	
+	/**
+	 * Checks whether this worm can move after consuming a piece of food in a valid directions.
+	 * 
+	 * @return
+	 */
 	public boolean canRepositionAfterFoodConsumption() {
 		return true;
 	}
@@ -705,4 +860,37 @@ public class Worm extends GameObject{
 	public void repositionAfterFoodConsumption() {
 		
 	}
+	
+	/**
+	 * Sets the team for this worm
+	 * 
+	 * @post this worm's team shall be equal to the given team.
+	 * 		| new.getTeam() == team
+	 */
+	@Basic @Raw
+	public void setTeam(Team team) {
+		this.team = team;
+	}
+	
+	/**
+	 * Returns this worm's team
+	 */
+	@Basic @Raw
+	public Team getTeam() {
+		return this.team;
+	}
+	
+	/**
+	 * Checks whether the given team is valid for any and all worms
+	 * 
+	 * @param team
+	 * 		A given team the given worm is supposed to be part of.
+	 * @param worm
+	 * 		A given worm.
+	 * @return | result == (team == null) || team.canAddWormToTeam(worm)
+	 */
+	public static boolean isValidTeam(Team team, Worm worm) {
+		return  team == null || team.canHaveWormInTeam(worm);
+	}
+	private Team team;
 }

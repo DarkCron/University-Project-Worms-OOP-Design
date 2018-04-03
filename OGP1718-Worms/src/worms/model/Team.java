@@ -3,8 +3,7 @@ package worms.model;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.naming.InvalidNameException;
-
+import be.kuleuven.cs.som.annotate.*;
 import worms.model.values.Name;
 /*
  * 
@@ -12,12 +11,12 @@ import worms.model.values.Name;
  */
 public class Team {
 	
-	public Team(World world, Name name) throws IllegalArgumentException, InvalidNameException{
+	public Team(World world, Name name) throws IllegalArgumentException, IllegalArgumentException{
 		if(!isValidWorld(world)) {
 			throw new IllegalArgumentException();
 		}
 		if(!isValidTeamName(name)) {
-			throw new InvalidNameException();
+			throw new IllegalArgumentException();
 		}
 		setWorld(world);
 		this.teamName = name;
@@ -43,22 +42,46 @@ public class Team {
 	
 	private ArrayList <Worm> teamRoster = new ArrayList<Worm>();
 	private World fromWorld;
+	
+	/**
+	 * Returns this team's name.
+	 */
+	@Basic @Raw
+	public String getName() {
+		return teamName.getName();
+	}
+	
 	private final Name teamName;
 	
 	//TODO
 	public void addWorm(Worm worm) throws IllegalArgumentException {
+		if(worm==null) {
+			throw new IllegalArgumentException("Given worm was null");
+		}
+		
 		for (Worm o : teamRoster) {
 			if(o.hasTheSameNameAs(worm)) {
 				throw new IllegalArgumentException("Worm has the same name as another worm whithin this team.");
 			}
-			if(o.hadCorrectTeamMass(worm)) {
+			if(o.hasCorrectTeamMass(worm)) {
 				throw new IllegalArgumentException("This worm does not have a valid mass for this team.");
 			}
 		}
+		
+		teamRoster.add(worm);
 	}
 	
-	public void removeWorm() {
+	//TODO
+	public void removeWorm(Worm worm) {
+		if(worm==null) {
+			throw new IllegalArgumentException("Given worm was null");
+		}
 		
+		if(!teamRoster.contains(worm)) {
+			throw new IllegalArgumentException("Given worm was not part of this team");
+		}
+		
+		teamRoster.remove(worm);
 	}
 	
 	public boolean canAddWormToTeam(Worm worm) {
@@ -66,10 +89,32 @@ public class Team {
 		return false;
 	}
 	
+	public boolean canHaveWormInTeam(Worm other) {
+		for (Worm worm : teamRoster) {
+			if(other != worm) {
+				if(!worm.hasCorrectTeamMass(other)) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+	
 	
 	public List<Worm> getAlphabeticalListTeamRoster() {
 		return new ArrayList<Worm>(teamRoster);
 	}
+
+	public void terminate() {
+		this.isTerminated = true;
+	}
+	
+	@Basic
+	public boolean isTerminated() {
+		return this.isTerminated;
+	}
+	
+	private boolean isTerminated = false;
 	
 	
 }
