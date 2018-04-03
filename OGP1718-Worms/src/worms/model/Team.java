@@ -63,7 +63,7 @@ public class Team {
 			if(o.hasTheSameNameAs(worm)) {
 				throw new IllegalArgumentException("Worm has the same name as another worm whithin this team.");
 			}
-			if(o.hasCorrectTeamMass(worm)) {
+			if(!(o.hasCorrectTeamMass(worm))) {
 				throw new IllegalArgumentException("This worm does not have a valid mass for this team.");
 			}
 		}
@@ -100,9 +100,10 @@ public class Team {
 		return true;
 	}
 	
-	
+	//TODO 
 	public List<Worm> getAlphabeticalListTeamRoster() {
 		return new ArrayList<Worm>(teamRoster);
+		//nog implementeren in addWorm
 	}
 
 	public void terminate() {

@@ -545,14 +545,11 @@ public class World {
 		return this.isTerminated;
 	}
 	
-<<<<<<< HEAD
-=======
 
 	public String getWinner() {
 		return null;
 	}
 	
->>>>>>> c848fc98b180027ce4d752ab582800980a227909
 	/**
 	 * A constant, representing a fictitious in game simulation of real life gravity. To
 	 * ensure worms fall back to the ground.

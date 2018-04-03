@@ -536,7 +536,7 @@ public class Worm extends GameObject{
 	 * 
 	 * @param direction
 	 * 		A given direction.
-	 * @return Returns a worm location that represents the farthest valid location possible in a given direction.
+	 * @return Returns a worm location that represents the furthest valid location possible in a given direction.
 	 * 		A location is possible if it's passable for this worm's radius and within the world.
 	 * 		| let Location finish be this.getLocation() in
 	 * 		|	for each step in [0,this.getRadius().getRadius()[ :
