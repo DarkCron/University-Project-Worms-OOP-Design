@@ -483,9 +483,9 @@ public class Worm extends GameObject{
 	//TODO
 	@Model
 	private Direction getOptimalMovementAngle() {
-		double bestDiv = 0.0d;
+		double bestDiv = -0.7875d;
 		double bestRatio = 0.0d;
-		for(double div = -0.7875d; div <= 0.7875d; div += 0.0175) {
+		for(double div = -0.7875d; div <= 0.7875d; div += 0.0175) { //TODO constants
 			Direction tempDirection = new Direction(this.getDirection().getAngle() + div);
 			Location tempLocation = getFurthestLocationInDirection(tempDirection,this.getRadius().getRadius());
 			double ratio = this.getLocation().getDistanceFrom(tempLocation) / div;
@@ -551,12 +551,12 @@ public class Worm extends GameObject{
 	 */
 	public Location getFurthestLocationInDirection(Direction direction, double distance) {
 		Location finish = this.getLocation();
-		for(float step = 0; step < distance; step+=0.1) {
+		for(float step = 0; step < distance; step+=0.3) {
 			Location temp = getStepDirection(direction,step);
 			if(this.getWorld().isPassable(temp,this.getRadius()) && GameObject.isValidWorldLocation(temp, this.getWorld())) {
 				finish = temp;
 			}else {
-				return temp;
+				return finish;
 			}
 		}
 		

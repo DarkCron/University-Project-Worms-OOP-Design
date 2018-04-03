@@ -81,7 +81,7 @@ public class Rectangle extends Shape {
 		try {
 			temp = this.getRectangleAroundMap(map);
 		} catch (Exception e) {
-			return new boolean[0][];
+			return new boolean[0][0];
 		}
 		
 		
@@ -114,6 +114,15 @@ public class Rectangle extends Shape {
 		double actualWidth = this.getSize().getX();
 		double topLeftX = (this.getCenter().getX());
 		double topLeftY = (this.getCenter().getY());
+		
+		if((int)topLeftX != ((int) topLeftX+actualWidth)) {
+			actualWidth+=0.2d;
+		}
+		
+		if((int)topLeftY != ((int) topLeftY+actualHeight)) {
+			actualHeight+=0.2d;
+		}
+		
 		
 		if(!bLeftOK) {
 			double difference = topLeftX ;

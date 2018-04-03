@@ -13,7 +13,6 @@ import worms.model.Team;
 import worms.model.World;
 import worms.model.Worm;
 import worms.model.values.Direction;
-import worms.model.values.GameObjectTypeID;
 import worms.model.values.Location;
 import worms.model.values.Name;
 import worms.model.values.Radius;
