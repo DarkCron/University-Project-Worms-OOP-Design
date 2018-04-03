@@ -102,9 +102,10 @@ public class Team {
 		return true;
 	}
 	
-	
+	//TODO 
 	public List<Worm> getAlphabeticalListTeamRoster() {
 		return new ArrayList<Worm>(teamRoster);
+		//nog implementeren in addWorm
 	}
 
 	public void terminate() {
