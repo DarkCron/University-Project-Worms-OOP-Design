@@ -4,6 +4,7 @@ import be.kuleuven.cs.som.annotate.*;
 import worms.exceptions.InvalidLocationException;
 import worms.exceptions.InvalidRadiusException;
 import worms.model.ShapeHelp.Circle;
+import worms.model.ShapeHelp.Rectangle;
 import worms.model.values.*;
 
 /**
@@ -38,6 +39,8 @@ public abstract class GameObject{
 	 */
 	@Raw
 	public GameObject(Location location, Radius radius, World world) throws InvalidLocationException,InvalidRadiusException {
+		this.setGameObjectTypeID(new GameObjectTypeID(this.getClass()));
+		
 		if(!isValidRadius(radius)) {
 			throw new InvalidRadiusException(radius);
 		}
@@ -55,7 +58,7 @@ public abstract class GameObject{
 		
 
 		
-		this.setGameObjectTypeID(new GameObjectTypeID(this.getClass()));
+		
 	}
 	
 	/**
@@ -81,6 +84,11 @@ public abstract class GameObject{
 		}
 		if(!isValidWorldLocation(location, this.getWorld())) {
 			this.terminate();
+			throw new InvalidLocationException(location);
+		}
+		if(!this.getWorld().fullyContains(new Circle(location, this.getRadius()).getBoundingRectangle())) {
+			this.terminate();
+			throw new InvalidLocationException(location);
 		}
 		this.location = location;
 	}
@@ -172,19 +180,48 @@ public abstract class GameObject{
 		return (radius != null) && (radius.isValid());
 	}
 	
-	//TODO
-	public void grow() {
-		if(!isValidRadius(radius)) {
-			throw new InvalidRadiusException(radius);
+	/**
+	 * Grows this gameobject
+	 * 
+	 * @post | new.getRadius().getRadius() == this.getRadius().getRadius() * GROWTH_MODIFIER
+	 * 
+	 * @throws InvalidRadiusException
+	 * 		| isValidRadius(new.getRadius())
+	 */
+	public void grow() throws InvalidRadiusException{
+		if(!isValidRadius(new Radius(this.getRadius().getRadius()*GROWTH_MODIFIER))) {
+			throw new InvalidRadiusException(new Radius(this.getRadius().getRadius()*GROWTH_MODIFIER));
 		}
-		setRadius(new Radius(this.getRadius().getRadius()*1.1d));
+		setRadius(new Radius(this.getRadius().getRadius()*GROWTH_MODIFIER));
 	}
+	
+	public Location nearestLocationAfterGrowing() {
+		Circle passableSurface = new Circle(this);
+		Rectangle bound = passableSurface.getBoundingRectangle();
+		for (double i = 0; i < bound.getSize().getX(); i+=0.01) {
+			for (double j = 0; j < bound.getSize().getY(); j+=0.01) {
+				if(passableSurface.contains(new Location(i+bound.getCenter().getX(),j+bound.getCenter().getY()))) {
+					if(this.getWorld().isPassable(new Location((i+bound.getCenter().getX()), (j+bound.getCenter().getY())),this.getRadius())) {
+						if(this.getWorld().isAdjacantToImpassableTerrain(new Location((i+bound.getCenter().getX()), (j+bound.getCenter().getY())),this.getRadius())) {
+							return new Location((i+bound.getCenter().getX()), (j+bound.getCenter().getY()));
+						}
+					}
+				}
+			}
+		}	
+		
+		return null;
+	}
+	
+	protected static double GROWTH_MODIFIER = 1.1d;
 	
 	/**
 	 * The radius of a gameObject contained in a value object Radius.
 	 * Every radius value comes with it's own minimum radius possible.
 	 */
 	private Radius radius;
+	
+
 	
 	/**
 	 * Calculates and returns the resulting mass of a worm with it's properties
@@ -207,22 +244,51 @@ public abstract class GameObject{
 		return this.mass;
 	}
 	
+	/**
+	 * Set this object's mass
+	 * 
+	 * @param mass
+	 * 
+	 * @post | new.getMass() == mass
+	 */
+	@Basic @Raw
 	public void setMass(double mass) {
 		this.mass = mass;
 	}
 
+	/**
+	 * Generates the mass for this object.
+	 * 
+	 * @note: since every object has a different density to calculate mass with
+	 * 		this function is abstract, to be defined in child classes separately.
+	 */
 	public abstract void generateMass();
 
 	private double mass;
 	
+	/**
+	 * Sets this object actual type ID
+	 * 
+	 * @param ID
+	 * 
+	 * @post | new.goID == ID
+	 */
+	@Basic @Raw
 	public void setGameObjectTypeID(GameObjectTypeID ID) {
 		this.goID = ID;
 	}
 	
+	/**
+	 * Returns this object's actual type ID
+	 */
+	@Basic @Raw
 	public GameObjectTypeID getTypeID() {
 		return this.goID;
 	}
 	
+	/**
+	 * A variable that represents this gameObject's actual type
+	 */
 	private GameObjectTypeID goID;
 	
 	/**
@@ -280,8 +346,9 @@ public abstract class GameObject{
 	 */
 	public void terminate() {
 		isTerminated = true;
-		this.fromWorld = null;
-		this.getWorld().removeGameObject(this);
+		if(this.getWorld() != null) {
+			this.getWorld().removeGameObject(this);
+		}
 	}
 	
 	/**
@@ -294,7 +361,12 @@ public abstract class GameObject{
 	
 	private boolean isTerminated = false;
 	
-	//TODO
+	/**
+	 * Checks whether this gameObject overlaps a given other object
+	 * 
+	 * @param other
+	 * @return | result == Circle(this).overlaps(Circle(other))
+	 */
 	public boolean overlapsWith(GameObject other) {
 		Circle thisSurface = new Circle(this);
 		Circle otherSurface = new Circle(other);
@@ -302,11 +374,28 @@ public abstract class GameObject{
 		return thisSurface.overlaps(otherSurface);
 	}
 	
-	//TODO
+	/**
+	 * Checks whether this object is adjacent to impassable terrain
+	 * 
+	 * @param location
+	 * @param radius
+	 * @param world
+	 * 
+	 * @return | result ==  world.isAdjacantToImpassableTerrain(location, radius)
+	 */
 	public static boolean isAdjacentToTerrain(Location location, Radius radius, World world) {
 		return world.isAdjacantToImpassableTerrain(location, radius);
 	}
 	
+	/**
+	 * Checks whether this object is adjacent to impassable terrain
+	 * 
+	 * @param location
+	 * @param radius
+	 * @param world
+	 * 
+	 * @return | result ==  isAdjacentToTerrain(gameObject.getLocation(), gameObject.getRadius(), gameObject.getWorld())
+	 */
 	public static boolean isAdjacentToTerrain(GameObject gameObject) {
 		return isAdjacentToTerrain(gameObject.getLocation(), gameObject.getRadius(), gameObject.getWorld());
 	}

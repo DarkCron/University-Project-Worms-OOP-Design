@@ -10,7 +10,9 @@ import java.util.LinkedList;
 import java.util.Set;
 
 import be.kuleuven.cs.som.annotate.*;
+import worms.model.ShapeHelp.BoundaryRectangle;
 import worms.model.ShapeHelp.Circle;
+import worms.model.ShapeHelp.Rectangle;
 import worms.model.values.GameObjectTypeID;
 import worms.model.values.Location;
 import worms.model.values.Name;
@@ -64,13 +66,14 @@ public class World {
 		}
 		this.worldWidth = width;
 		this.worldHeight = height;	
-		this.passableMap = new boolean[(int)Math.ceil(height*2)][(int)Math.ceil(width*2)];
-		
-		for (int i = 0; i < height; i++) {
-			for (int j = 0; j < width; j++) {
-				double heightRatio = ( (double)(height) / (double)passableMap.length);
-				double widthRatio = ( (double)(width) / (double)passableMap[0].length);
-				this.passableMap[i][j] = passableMap[(int)(((((double)i - height) +1d)*(-1d)) / heightRatio)][(int)(((double)j) / widthRatio)];
+
+		double heightRatio = ( (double)(height) / (double)passableMap.length);
+		double widthRatio = ( (double)(width) / (double)passableMap[0].length);
+		this.passableMap = new BoundaryRectangle[passableMap.length][passableMap[0].length];
+		Location size = new Location(1, 1);
+		for (int i = 0; i < passableMap.length; i++) {
+			for (int j = 0; j < passableMap[0].length; j++) {
+				this.passableMap[passableMap.length - i - 1][j] = new BoundaryRectangle(new Location(j,i), size, passableMap[passableMap.length - i - 1][j]);
 			}
 			
 		}
@@ -102,7 +105,6 @@ public class World {
 		}
 		this.worldWidth = passableMap[0].length;
 		this.worldHeight = passableMap.length;	
-		this.passableMap = passableMap;
 		this.worldTeams = new HashSet<Team>();
 	}
 	
@@ -115,6 +117,21 @@ public class World {
 	 *  
 	 */
 	public static boolean isValidPassableMap(boolean[][] passableMap) {
+		if(passableMap==null || (passableMap.length == 0 || passableMap[0].length == 0)) {
+			return false;
+		}
+		return true;
+	}
+	
+	/**
+	 * Checks whether a given map is valid for any and all worlds.
+	 * 
+	 * @param passableMap
+	 * 
+	 * @return | result == !(passableMap==null || (passableMap.length == 0 || passableMap[0].length == 0))
+	 *  
+	 */
+	public static boolean isValidPassableMap(BoundaryRectangle[][] passableMap) {
 		if(passableMap==null || (passableMap.length == 0 || passableMap[0].length == 0)) {
 			return false;
 		}
@@ -142,6 +159,11 @@ public class World {
 	@Basic @Raw
 	public double getWorldWidth() {
 		return this.worldWidth;
+	}
+	
+	public boolean fullyContains(Rectangle gameObjectBounds) {
+		Rectangle worldBounds = new Rectangle(new Location(0, 0), new Location(this.getWorldWidth(), this.getWorldHeight()));
+		return worldBounds.fullyContains(gameObjectBounds);
 	}
 	
 	/**
@@ -174,14 +196,14 @@ public class World {
 	 * Gets this world's passableMap.
 	 */
 	@Basic @Raw
-	public boolean[][] getPassableMap(){
+	public BoundaryRectangle[][] getPassableMap(){
 		return passableMap.clone();
 	}
 	
 	/**
 	 * Represents this world's passableMap
 	 */
-	private final boolean[][] passableMap;
+	private BoundaryRectangle[][] passableMap;
 	
 	/**
 	 * Adds a new gameObject to this world.
@@ -302,13 +324,18 @@ public class World {
 			throw new IllegalArgumentException("The given gameObject was not from this world.");
 		}
 		
-		if(!worldObjectsMapHasGameObjectTypeKey(gameObject.getTypeID())) {
-			throw new IllegalArgumentException("The given gameObject was not a part of the world.");
+		if(worldObjectsMapHasGameObjectTypeKey(gameObject.getTypeID())) {
+			//throw new IllegalArgumentException("The given gameObject was not a part of the world.");
+			worldObjects.get(gameObject.getTypeID()).remove(gameObject);
 		}
 		
 		//TODO setWorld null here or terminate
-		worldObjects.get(gameObject.getTypeID()).remove(gameObject);
-		gameObject.terminate();
+	
+		
+		if(!gameObject.isTerminated()) {
+			gameObject.terminate();
+		}
+	
 	}
 	
 	/**
@@ -381,60 +408,64 @@ public class World {
 	}
 	
 	public boolean isAdjacantToImpassableTerrain(Location location, Radius radius) {
-
-		Circle passableSurface = new Circle(location, radius);
-		Circle extendedSurface = new Circle(location, new Radius(radius.getRadius() * 1.1d));
-		boolean[][] mapToInspect1 = extendedSurface.getBoundingRectangle().getArraySetFromSizeAndPassableMap(this.getPassableMap());
-		boolean[][] mapToInspect2 = passableSurface.getBoundingRectangle().getArraySetFromSizeAndPassableMap(this.getPassableMap());
-
-
-		for(int i = 0; i < mapToInspect2.length; i++) {
-			for (int j = 0; j < mapToInspect2[i].length; j++) {
-				Location toCheck = new Location(j, i);
-				if(passableSurface.contains(toCheck)) {
-					if(mapToInspect2[i][j] == false) {
-						return false;
-					}
-				}
-			}
-		}
-		
-		//TODO commentary
-		boolean bNearAtLeast1ImpassableTerrain = false;
-		for(int i = 0; i < mapToInspect1.length; i++) {
-			for (int j = 0; j < mapToInspect1[i].length; j++) {
-				if(mapToInspect1[i][j] == false) {
-					bNearAtLeast1ImpassableTerrain = true;
-					break;
-				}
-			}
-		}
-		
-		return bNearAtLeast1ImpassableTerrain;
+		return !this.isPassable(location,  new Radius(radius.getRadius() *1.1d));// && this.isPassable(location, radius);	
 	}
 	
-
-	public boolean isPassable(Location location) {
-
-		return this.getPassableMap()[(int) Math.round(location.getY())][(int) Math.round(location.getX())];
+	public double getWidthRatio() {
+		return ( (double)(this.getWorldWidth()) / (double)passableMap[0].length);
+	}
+	
+	public double getHeightRatio() {
+		return ( (double)(this.getWorldHeight()) / (double)passableMap.length);
+	}
+	
+	
+	public boolean isPassable(Location location) {	
+		Location realWorldLoc = getRealWorldLoc(location);
+		if(realWorldLoc.getX() >= 0 && realWorldLoc.getX() < passableMap[0].length && realWorldLoc.getY() >=0 && realWorldLoc.getY() < passableMap.length) {
+			//System.out.println(realWorldLoc);
+			int heightIndex = passableMap.length - (int)Math.floor(realWorldLoc.getY())-1;
+			if(heightIndex < 0) {
+				heightIndex = 0;
+			}else if(heightIndex >= passableMap.length){
+				heightIndex = passableMap.length-1;
+			}
+			int widthIndex = (int)Math.floor(realWorldLoc.getX());
+			if(widthIndex < 0) {
+				widthIndex = 0;
+			}else if(widthIndex >= passableMap[0].length){
+				widthIndex = passableMap[0].length-1;
+			}
+			if(!passableMap[heightIndex][widthIndex].isPassable() && passableMap[heightIndex][widthIndex].containsPoint(realWorldLoc)) {
+				return false;
+			}	
+		}
+		
+		return true;
+	}
+	
+	/**
+	 * Returns a real world representation of 
+	 * @param location
+	 * @return
+	 */
+	public Location getRealWorldLoc(Location location) {
+		return  new Location((location.getX())/this.getWidthRatio(), (location.getY())/this.getHeightRatio());
 	}
 	
 
 	public boolean isPassable(Location location, Radius radius) {
-		
 		Circle passableSurface = new Circle(location, radius);
-
-		boolean[][] mapToInspect = passableSurface.getBoundingRectangle().getArraySetFromSizeAndPassableMap(this.getPassableMap());
-
-
-		for(int i = 0; i < mapToInspect.length; i++) {
-			for (int j = 0; j < mapToInspect[i].length; j++) {
-				if(mapToInspect[i][j] == false) {
-					return false;
+		Rectangle bound = passableSurface.getBoundingRectangle();
+		for (double i = 0; i < bound.getSize().getX(); i+=0.2) {
+			for (double j = 0; j < bound.getSize().getY(); j+=0.2) {
+				if(passableSurface.contains(new Location(i+bound.getCenter().getX(),j+bound.getCenter().getY()))) {
+					if(!this.isPassable(new Location((i+bound.getCenter().getX()), (j+bound.getCenter().getY())))) {
+						return false;
+					}
 				}
 			}
-		}
-		
+		}	
 		return true;
 	}
 	
@@ -442,77 +473,136 @@ public class World {
 		return this.isPassable(gameObject.getLocation(),gameObject.getRadius());
 	}
 	
-	//TODO getter
+	/**
+	 * The worm turn cycle for this game.
+	 * 
+	 * @note we do not create a getter or setter for this variable since the "outside" world
+	 * 		should never handle this variable directly.
+	 */
 	private LinkedList<Worm> wormTurnCycle = new LinkedList<Worm>();
 	
+	/**
+	 * Starts the game in this world.
+	 * 
+	 * @post | new.getIsGameActive() == true
+	 * 
+	 * @post | for each worm in wormTurnCycle
+	 * 		 |	worm != null
+	 */
 	public void startGame() {
 		this.createTurnCycle();
-		setGameActive(true);
+		this.setGameActive(true);
 	}
 	
 	public void endGame() {
-		wormTurnCycle.clear();
+		this.wormTurnCycle.clear();
 	}
 	
 	//TODO this or setter
 	public void createTurnCycle() {
-		wormTurnCycle.clear();
+		this.wormTurnCycle.clear();
 		ArrayList<Worm> gameWorms = this.getAllObjectsOfType(Worm.class);
 		for(Worm worm : gameWorms) {
-			wormTurnCycle.add(worm);
+			this.wormTurnCycle.add(worm);
 		}
 	}
 	
 	public Worm getFirstPlayerWorm() {
-		if(wormTurnCycle.isEmpty()) {
+		if(this.wormTurnCycle.isEmpty()) {
 			return null;
 		}
-		return wormTurnCycle.getFirst();
+		return this.wormTurnCycle.getFirst();
 	}
 	
 	public void endFirstPlayerWormTurn() {
-		wormTurnCycle.add(wormTurnCycle.getFirst());
-		wormTurnCycle.remove(0);
-		wormTurnCycle.getFirst().resetTurn();
+		this.wormTurnCycle.add(wormTurnCycle.getFirst());
+		this.wormTurnCycle.remove(0);
+		this.wormTurnCycle.getFirst().resetTurn();
 	}
 	
+	/**
+	 * A variable to check whether a game is active in this world.
+	 */
 	private boolean gameIsActive = false;
 	
+	/**
+	 * Sets the activity of the game in this world
+	 */
+	@Basic
 	public void setGameActive(boolean active) {
 		this.gameIsActive = active;
 	}
 	
+	/**
+	 * Checks whether a game is active in this world
+	 */
+	@Basic
 	public boolean getIsGameActive() {
 		return this.gameIsActive;
 	}
 	
 	/**
 	 * Returns this world's teams.
-	 * 
 	 */
-	@Basic
+	@Basic @Raw
 	public Set<Team> getTeams(){
 		return this.worldTeams;
 	}
 	
+	/**
+	 * Creates and adds a team to this world
+	 * 
+	 * @param name
+	 * 
+	 * @post | new.getTeams().contains(team)
+	 * 
+	 * @post | new.getTeam(name) != null
+	 */
 	public void createTeam(Name name) {
 		Team team = new Team(this, name);
 		this.addTeam(team);
 	}
 
-	public void addTeam(Team team) throws IllegalArgumentException{
+	/**
+	 * Try to add a team to this world.
+	 * 
+	 * @param team
+	 * 		| The team
+	 * 
+	 * @throws IllegalArgumentException
+	 * 		| (team == null) || (this.getTeams().contains(team)) || (team.isTerminated())
+	 * @throws IllegalStateException
+	 * 		| worldTeams.size() >= 10
+	 * 
+	 * @post
+	 * 		| new.getTeams().contains(team)
+	 */
+	public void addTeam(Team team) throws IllegalArgumentException,IllegalStateException{
 		if(team == null) {
-			throw new IllegalArgumentException();
+			throw new IllegalArgumentException("Error in World.addTeam, team is not effective");
 		}
 		if(this.getTeams().contains(team)) {
-			throw new IllegalArgumentException();
+			throw new IllegalArgumentException("Error in World.addTeam, team already in world");
 		}
 		if(team.isTerminated()) {
-			throw new IllegalArgumentException();
+			throw new IllegalArgumentException("Error in World.addTeam, team argument terminated");
+		}
+		if(worldTeams.size() >= 10) {
+			throw new IllegalStateException("Error in World.addTeam, a game world may contain up to 10 teams.");
 		}
 		worldTeams.add(team);
 	}
-	
+
+	/**
+	 * Returns this world's team based on a given name.
+	 * 
+	 * @param name
+	 * @return
+	 * 		| for each team in this.getTeams()
+	 * 		|	if team.getName().equals(name.getName())
+	 * 		|		result == team
+	 * 		| result == null
+	 */
 	public Team getTeam(Name name) {
 		for (Team team : this.getTeams()) {
 			if(team.getName().equals(name.getName())) {
@@ -522,12 +612,19 @@ public class World {
 		return null;
 	}
 	
+	/**
+	 * This world's set of teams.
+	 */
 	private final Set<Team> worldTeams;
 	
-	
-	
+	/**
+	 * Variable to keep track whether this world is terminated
+	 */
 	private boolean isTerminated = false;
 	
+	/**
+	 * Terminate this world
+	 */
 	public void terminate() {
 		this.isTerminated = true;
 		
@@ -541,11 +638,16 @@ public class World {
 		wormTurnCycle = null;
 	}
 
+	/**
+	 * Checks whether this world is terminated
+	 * @return
+	 */
+	@Basic
 	public boolean isTerminated() {
 		return this.isTerminated;
 	}
 	
-
+	//TODO
 	public String getWinner() {
 		return null;
 	}

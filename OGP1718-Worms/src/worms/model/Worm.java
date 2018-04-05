@@ -88,17 +88,15 @@ public class Worm extends GameObject{
 		this.setTeam(team);
 	}
 
-	
-	
-	
-
-
-
-	@Override
-	public void setLocation(Location location) throws InvalidLocationException {
-		super.setLocation(location);
-	}
-
+	/**
+	 * Checks whether any piece of food overlaps with this worm
+	 * 
+	 * @post This worm eats the first piece of food in it's world that it overlaps with.
+	 * 		| for each food in this.getWorld().getAllObjectsOfType(Food.class)
+	 * 		| 	if this.overlapsWith(food) then
+	 * 		|		new.getRadius().getRadius() == this.getRadius().getRadius()*GROWTH_MODIFIER
+	 * 		|		food.isTerminated()
+	 */
 	public void checkForFood() {
 		boolean bMustRecheckFoodDeletion = false;
 		for (GameObject o: this.getWorld().getAllObjectsOfType(Food.class)) {
@@ -115,10 +113,109 @@ public class Worm extends GameObject{
 		}
 	}
 	
+	/**
+	 * Consumes a piece of food that the worm sits on.
+	 * 
+	 * @param o
+	 * 		The piece of food that this worm sits on.
+	 * 
+	 * @post | !new.getWorld().hasGameObject(o)
+	 * 
+	 * @post | o.isTerminated()
+	 * 
+	 * @post | new.getRadius().getRadius() == this.getRadius().getRadius() * GROWTH_MODIFIER
+	 */
 	private void consumesFood(Food o) {
 		this.getWorld().removeGameObject(o);
 		o.terminate();
-		this.setRadius(new Radius(this.getRadius().getRadius()*1.1d));
+		this.grow();
+		Location afterGrowth = this.nearestLocationAfterGrowing();
+		if(afterGrowth==null) {
+			this.terminate();
+		}else {
+			this.setLocation(afterGrowth);
+		}
+	}
+	
+	private final static double FALL_DAMAGE_MOD  = 3;
+	
+	/**
+	 * This function makes this worm fall
+	 * 
+	 * @post This worm either falls or doesn't
+	 * 			| this.getLocation().getY() > new.getLocation().getY()
+	 * @post This worm ends up in adjacent to impassable terrain or ends up out of this world
+	 * 			| isAdjacentToTerrain(new.getLocation(),this.getRadius(),this.getWorld()) || !isValidWorldLocation(this.getLocation(), this.getWorld())
+	 * @post This worm's has it's HP substracted by the fall distance * 3
+	 * 			| let fallDistance be in
+	 * 			| new.getHitPoint() == new BigInteger(((Integer)((int)(fallDistance*FALL_DAMAGE_MOD*-1))).toString())).add(this.getHitPoints())
+	 */
+	public void fall() throws InvalidLocationException{
+		double fallDistance = 0.0;
+		double fallDistanceDelta = 0.01;
+		Location wormLoc = this.getLocation();
+		while(!isAdjacentToTerrain(wormLoc,this.getRadius(),this.getWorld()) && this.getWorld().isPassable(wormLoc, getRadius())) {
+			fallDistance+=fallDistanceDelta;
+			wormLoc = (new Location(wormLoc.getX(), wormLoc.getY()-fallDistanceDelta));
+			if(!isValidWorldLocation(wormLoc, this.getWorld())) {		
+				break;
+			}
+		}
+		wormLoc = (new Location(wormLoc.getX(), wormLoc.getY()+fallDistanceDelta));
+		this.setLocation(wormLoc);
+
+		this.increaseHitPoints(new BigInteger(((Integer)((int)(fallDistance*FALL_DAMAGE_MOD*-1))).toString()));
+		
+		if(fallDistance>=1) {
+			//System.out.println("You fell: "+fallDistance+"m");
+			//System.out.println("HP before: "+this.getHitPoints());
+			
+			if(this.overlapsAnyOtherWorm()) {
+				this.fallOnOtherWorms();
+			}
+			//System.out.println("HP after: "+this.getHitPoints());
+		}
+		
+	}
+	
+	/**
+	 * Every worm that this worm hits on hitting the ground has half it's HP substracted and added to this worm.
+	 * 
+	 * @post | let BigInteger sum in
+	 * 		 | for each worm in this.getWorld().getAllObjectsOfType(Worm.class)
+	 * 		 |		if 	this.overlapsWith(worm) then
+	 * 		 |			 sum.add(((Worm) worm).getHitPoints().add(this.getHitPoints()))
+	 * 		 |	new.getHitPoints().equals(sun.add(this.getHitPoints()))
+	 */
+	private void fallOnOtherWorms() {
+		for(GameObject worm: this.getWorld().getAllObjectsOfType(Worm.class)) {
+			if(worm instanceof Worm) {
+				if(this.overlapsWith(worm)) {
+					((Worm) worm).setHitPoints(new HP(((Worm) worm).getHitPoints().divide(BigInteger.valueOf(2))));
+					this.setHitPoints(new HP(((Worm) worm).getHitPoints().add(this.getHitPoints())));
+				}
+			}
+		}
+	}
+
+	/**
+	 * Checks whether this worm falls on any other worm different than this one.
+	 * 
+	 * @return True if and only if there is another worm in this worm's world that overlaps or contains this worm.
+	 * 		| for each worm in this.getWorld().getAllObjectsOfType(Worm.class)
+	 * 		|	if this.overlapsWith(worm) then
+	 * 		|		result == true
+	 * 		| result == true
+	 */
+	private boolean overlapsAnyOtherWorm() {
+		for(GameObject worm: this.getWorld().getAllObjectsOfType(Worm.class)) {
+			if(worm instanceof Worm) {
+				if(this.overlapsWith(worm)) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -329,17 +426,62 @@ public class Worm extends GameObject{
 	 */
 	private int maxActionPoints = Math.round((float) this.getMass());
 
+	/**
+	 * Sets this worm's hitpoints
+	 * 
+	 * @param hitPoints
+	 * 		A given amount of HP
+	 * 
+	 * @post This worm's hitpoints will be equal to the given amount of hitPoints
+	 * 		| new.getHitPoints() == hitPoints
+	 */
+	@Basic @Raw
 	public void setHitPoints(HP hitPoints) {
 		this.hitpoints = hitPoints;
+		
+		if(!this.isAlive()) {
+			this.terminate();
+		}
 	}
 	
+	/**
+	 * Returns this worm's HP
+	 */
+	@Basic
 	public BigInteger getHitPoints() {
 		return hitpoints.getHp();
 	}
 	
-	//TODO
+	/**
+	 * Checks whether this worm is alive, meaning if it's HP is greater than 0.
+	 * 
+	 * @return returns true if and only if this worm's HP is greater than 0
+	 * 		| result == hitpoints.getHp().compareTo(new BigInteger("0")) > 0
+	 */
+	public boolean isAlive() {
+		return hitpoints.getHp().compareTo(new BigInteger("0")) > 0;
+	}
+	
+	/**
+	 * Adds the give amount to the worm's current HP
+	 * @param amount
+	 * 		A given long amount
+	 * 
+	 * @post | new.getHitPoints() ==  HP(hitpoints.getHp().add(BigInteger.valueOf(amount)))
+	 */
 	public void increaseHitPoints(long amount) {
-		hitpoints = new HP (hitpoints.getHp().add(BigInteger.valueOf(amount)));
+		this.setHitPoints( new HP (hitpoints.getHp().add(BigInteger.valueOf(amount))));
+	}
+	
+	/**
+	 * Adds the give amount to the worm's current HP
+	 * @param amount
+	 * 		A given BigInteger amount
+	 * 
+	 * @post | new.getHitPoints() ==  HP(hitpoints.getHp().add((amount)))
+	 */
+	public void increaseHitPoints(BigInteger amount) {
+		this.setHitPoints( new HP (hitpoints.getHp().add((amount))));
 	}
 	
 	private HP hitpoints;
@@ -440,35 +582,7 @@ public class Worm extends GameObject{
 	 * @note Currently moving altough AP == 0 is still possible but can easily be implemented.
 	 * 	The assignment didn't explicitly mention this should be a feature in the current implementation.
 	 * 
-	 */
-	public void move(int nbSteps) throws InvalidLocationException,RuntimeException {
-		double[] deltaMovement = new double[2];
-		deltaMovement[0] = Math.cos(this.getDirection().getAngle()) * this.getRadius().getRadius(); 
-	    deltaMovement[1] = Math.sin(this.getDirection().getAngle()) * this.getRadius().getRadius();
-
-	    double[] tmpLocation = new double[2];
-	    tmpLocation[0] = deltaMovement[0] + this.getX();
-	    tmpLocation[1] = deltaMovement[1] + this.getY();
-
-		
-		if(!isActionCostPossible(this.getMovementCost())) {
-			throw new RuntimeException(); //TODO
-		}
-		
-	    
-	    try {
-			this.setLocation(new Location(tmpLocation));
-		} catch (InvalidLocationException e) {
-			throw e;
-		}
-	    
-		this.setActionPoints(this.getCurrentActionPoints() - this.getMovementCost());
-		
-		if(nbSteps>1) {
-			this.move(nbSteps-1);
-		}
-	}
-	
+	 */	
 	public void move() throws InvalidLocationException{
 		Direction bestMoveAngle = this.getOptimalMovementAngle();
 		Location newLocation = this.getFurthestLocationInDirection(bestMoveAngle,this.getRadius().getRadius());
@@ -477,15 +591,88 @@ public class Worm extends GameObject{
 			throw new InvalidLocationException(newLocation);
 		}
 		
+		Location totalMovement = new Location(Math.abs(newLocation.getX() - this.getLocation().getX()),Math.abs(newLocation.getY() - this.getLocation().getY()));
 		this.setLocation(newLocation);
+		this.setActionPoints(this.getCurrentActionPoints() - this.getMovementCost(totalMovement));
+		
+		if(this.overlapsAnyOtherWorm()) {
+			this.handleWormMoveCollision();
+		}
 	}
 	
-	//TODO
-	@Model
+	/**
+	 * Check and Handle all collisions in moving 2 worms on top of each other.
+	 * 
+	 * 
+	 * @post this worm's HP will be subtracted by a random number N divided by the division of the 
+	 * 		radius of the largest worm and the sum of both radiuses together. For any worm this worm overlaps with.
+	 * 		| for each worm in this.getWorld().getAllObjectsOfType(Worm.class)
+	 * 		| 	if this.overlapsWith(worm)
+	 * 		| 		let N = (Math.random()*9) +1 in
+	 * 		| 		if this.getRadius().getRadius() > other.getRadius().getRadius() then
+	 * 		|			let N1 = N/(this.getRadius().getRadius()/(this.getRadius().getRadius() + other.getRadius().getRadius())) in
+	 * 		|			new.getHitPoints() == this.getHitPoints().subtract(BigInteger.valueOf((int)Math.round(N-N1)))
+	 * 		| 		    other.getHitPoints() == other.getHitPoints().subtract(BigInteger.valueOf((int)Math.round(N1)))
+	 * 		| 		else
+	 * 		|			let N1 = N/(other.getRadius().getRadius()/(me.getRadius().getRadius() + other.getRadius().getRadius())) in
+	 * 		|			other.getHitPoints() == other.getHitPoints().subtract(BigInteger.valueOf((int)Math.round(N-N1)))
+	 * 		| 			new.getHitPoints() == this.getHitPoints().subtract(BigInteger.valueOf((int)Math.round(N1)))
+	 */
+	private void handleWormMoveCollision() {
+		for(GameObject worm: this.getWorld().getAllObjectsOfType(Worm.class)) {
+			if(worm instanceof Worm) {
+				if(this.overlapsWith(worm)) {
+					this.handleMoveCollisionHPCost(this,(Worm)worm);
+				}
+			}
+		}
+	}
+	
+	/**
+	 * Handle a collision in moving 2 worms on top of each other.
+	 * 
+	 * @param me
+	 * 		supposed to represent this worm
+	 * @param other
+	 * 		supposed to represent the other worm
+	 * 
+	 * @post this worm's HP will be subtracted by a random number N divided by the division of the 
+	 * 		radius of the largest worm and the sum of both radiuses together.
+	 * 		| let N = (Math.random()*9) +1 in
+	 * 		| if me.getRadius().getRadius() > other.getRadius().getRadius() then
+	 * 		|	let N1 = N/(me.getRadius().getRadius()/(me.getRadius().getRadius() + other.getRadius().getRadius())) in
+	 * 		|	me.getHitPoints() == me.getHitPoints().subtract(BigInteger.valueOf((int)Math.round(N-N1)))
+	 * 		|   other.getHitPoints() == other.getHitPoints().subtract(BigInteger.valueOf((int)Math.round(N1)))
+	 * 		| else
+	 * 		|	let N1 = N/(other.getRadius().getRadius()/(me.getRadius().getRadius() + other.getRadius().getRadius())) in
+	 * 		|	other.getHitPoints() == other.getHitPoints().subtract(BigInteger.valueOf((int)Math.round(N-N1)))
+	 * 		|   me.getHitPoints() == me.getHitPoints().subtract(BigInteger.valueOf((int)Math.round(N1)))
+	 */
+	private void handleMoveCollisionHPCost(Worm me, Worm other) {
+		double N = (Math.random()*9) +1;
+		double N1 = N;
+		
+		if(me.getRadius().getRadius() > other.getRadius().getRadius()) {
+			N1 = N/(me.getRadius().getRadius()/(me.getRadius().getRadius() + other.getRadius().getRadius()));
+			me.setHitPoints(new HP(me.getHitPoints().subtract(BigInteger.valueOf((int)Math.round(N-N1)))));
+			other.setHitPoints(new HP(other.getHitPoints().subtract(BigInteger.valueOf((int)Math.round(N1)))));
+		}else {
+			N1 = N/(other.getRadius().getRadius()/(me.getRadius().getRadius() + other.getRadius().getRadius()));
+			other.setHitPoints(new HP(other.getHitPoints().subtract(BigInteger.valueOf((int)Math.round(N-N1)))));
+			me.setHitPoints(new HP(me.getHitPoints().subtract(BigInteger.valueOf((int)Math.round(N1)))));
+		}
+	}
+
+	/**
+	 * Scan for the best direction to move in. Meaning the best ratio between divergence in direction angle and
+	 * distance travelled.
+	 * 
+	 * @return
+	 */
 	private Direction getOptimalMovementAngle() {
 		double bestDiv = -0.7875d;
 		double bestRatio = 0.0d;
-		for(double div = -0.7875d; div <= 0.7875d; div += 0.0175) { //TODO constants
+		for(double div = -0.7875d; div < 0.7875d; div += 0.0175) { //TODO constants
 			Direction tempDirection = new Direction(this.getDirection().getAngle() + div);
 			Location tempLocation = getFurthestLocationInDirection(tempDirection,this.getRadius().getRadius());
 			double ratio = this.getLocation().getDistanceFrom(tempLocation) / div;
@@ -495,15 +682,15 @@ public class Worm extends GameObject{
 			}
 		}
 		
-		double div = 0;
-		Direction tempDirection = new Direction(this.getDirection().getAngle() + div);
-		Location tempLocation = getFurthestLocationInDirection(tempDirection,this.getRadius().getRadius());
-		double ratio = this.getLocation().getDistanceFrom(tempLocation) / div;
-		if(ratio > bestRatio) {
-			bestDiv = div;
-			bestRatio = ratio;
-		}
-		
+//		double div = 0;
+//		Direction tempDirection = new Direction(this.getDirection().getAngle() + div);
+//		Location tempLocation = getFurthestLocationInDirection(tempDirection,this.getRadius().getRadius());
+//		double ratio = this.getLocation().getDistanceFrom(tempLocation) / div;
+//		if(ratio > bestRatio) {
+//			bestDiv = div;
+//			bestRatio = ratio;
+//		}
+//		
 		return new Direction(this.getDirection().getAngle() + bestDiv);
 	}
 
@@ -551,7 +738,7 @@ public class Worm extends GameObject{
 	 */
 	public Location getFurthestLocationInDirection(Direction direction, double distance) {
 		Location finish = this.getLocation();
-		for(float step = 0; step < distance; step+=0.3) {
+		for(double step = 0; step < distance; step+=0.1) {
 			Location temp = getStepDirection(direction,step);
 			if(this.getWorld().isPassable(temp,this.getRadius()) && GameObject.isValidWorldLocation(temp, this.getWorld())) {
 				finish = temp;
@@ -574,13 +761,16 @@ public class Worm extends GameObject{
 	 * Returns the cost in AP of a worm based on it's current direction for moving.
 	 * An AP cost is always handled as an integer. The cost is therefore rounded up.
 	 * 
+	 * @parameter movement
+	 * 		Actual movement in meters being done
+	 * 
 	 * @return returns the movement cost for a single step for a worm. As an integer.
 	 * 		| result ==
-	 * 		|	(int) Math.ceil(Math.abs(Math.cos(this.getDirection())) + Math.abs(4*Math.sin(this.getDirection())))
+	 * 		|	(int) Math.ceil(Math.abs(Math.cos(this.getDirection()))*movement.getX() + Math.abs(4*Math.sin(this.getDirection())*movement.getY()))
 	 */
-	public int getMovementCost() {
+	public int getMovementCost(Location movement) {
 		int cost = 0;
-		cost = (int) Math.ceil(Math.abs(Math.cos(this.getDirection().getAngle())) + Math.abs(4*Math.sin(this.getDirection().getAngle())));
+		cost = (int) Math.ceil(Math.abs(Math.cos(this.getDirection().getAngle()))*movement.getX() + Math.abs(4*Math.sin(this.getDirection().getAngle())*movement.getY()));
 		
 		return cost;
 	}

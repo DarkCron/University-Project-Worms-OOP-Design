@@ -316,7 +316,6 @@ public class Facade implements IFacade {
 	@Override
 	public double[] getFurthestLocationInDirection(Worm worm, double direction, double maxDistance)
 			throws ModelException {
-		// TODO Auto-generated method stub
 		try {
 			return worm.getFurthestLocationInDirection(new Direction(direction), maxDistance).getLocation();
 		} catch (Exception e) {
@@ -441,7 +440,6 @@ public class Facade implements IFacade {
 	
 	@Override
 	public void addWormsToTeam(Team team, Worm... worms) throws ModelException, MustNotImplementException {
-		// TODO Auto-generated method stub
 		try {
 			for (Worm worm : worms) {
 				team.addWorm(worm);
@@ -453,7 +451,6 @@ public class Facade implements IFacade {
 	
 	@Override
 	public void removeWormsFromTeam(Team team, Worm... worms) throws ModelException, MustNotImplementException {
-		// TODO Auto-generated method stub
 		try {
 			for (Worm worm : worms) {
 				team.removeWorm(worm);
@@ -480,4 +477,17 @@ public class Facade implements IFacade {
 		}
 	}
 	
+	@Override
+	public boolean canFall(Worm worm) throws MustNotImplementException {
+		return !Worm.isAdjacentToTerrain(worm);
+	}
+
+	@Override
+	public void fall(Worm worm) throws ModelException, MustNotImplementException {
+		try {
+			worm.fall();	
+		} catch (Exception e) {
+			//throw new ModelException(e);
+		}
+	}
 }
