@@ -6,6 +6,8 @@ import java.util.Iterator;
 import be.kuleuven.cs.som.annotate.*;
 import worms.exceptions.InvalidLocationException;
 import worms.exceptions.InvalidWormNameException;
+import worms.model.ShapeHelp.Circle;
+import worms.model.ShapeHelp.Rectangle;
 import worms.model.values.*;
 import worms.exceptions.InvalidRadiusException;
 
@@ -672,7 +674,23 @@ public class Worm extends GameObject{
 	private Direction getOptimalMovementAngle() {
 		double bestDiv = -0.7875d;
 		double bestRatio = 0.0d;
-		for(double div = -0.7875d; div < 0.7875d; div += 0.0175) { //TODO constants
+		boolean foundAdjacent = false;
+		for(double div = -0.7875d; div <= 0.7875d; div += 0.0175) { //TODO constants
+			Direction tempDirection = new Direction(this.getDirection().getAngle() + div);
+			Location tempLocation = getFurthestAdjacentLocationInDirection(tempDirection,this.getRadius().getRadius());
+			if(tempLocation!=null && !tempLocation.equals(this.getLocation())) {
+				foundAdjacent = true;
+				double sampleDiv = this.getDirection().getAngle() >= tempDirection.getAngle() ? this.getDirection().getAngle() - tempDirection.getAngle() : tempDirection.getAngle() - this.getDirection().getAngle();
+				double ratio = this.getLocation().getDistanceFrom(tempLocation) / sampleDiv;
+				if(ratio > bestRatio) {
+					bestDiv = div;
+					bestRatio = ratio;
+				}
+			}
+		}
+		
+		if(!foundAdjacent) {
+			double div = 0;
 			Direction tempDirection = new Direction(this.getDirection().getAngle() + div);
 			Location tempLocation = getFurthestLocationInDirection(tempDirection,this.getRadius().getRadius());
 			double ratio = this.getLocation().getDistanceFrom(tempLocation) / div;
@@ -681,15 +699,7 @@ public class Worm extends GameObject{
 				bestRatio = ratio;
 			}
 		}
-		
-//		double div = 0;
-//		Direction tempDirection = new Direction(this.getDirection().getAngle() + div);
-//		Location tempLocation = getFurthestLocationInDirection(tempDirection,this.getRadius().getRadius());
-//		double ratio = this.getLocation().getDistanceFrom(tempLocation) / div;
-//		if(ratio > bestRatio) {
-//			bestDiv = div;
-//			bestRatio = ratio;
-//		}
+
 //		
 		return new Direction(this.getDirection().getAngle() + bestDiv);
 	}
@@ -738,7 +748,7 @@ public class Worm extends GameObject{
 	 */
 	public Location getFurthestLocationInDirection(Direction direction, double distance) {
 		Location finish = this.getLocation();
-		for(double step = 0; step < distance; step+=0.1) {
+		for(double step = 0; step <= distance; step+=0.1) {
 			Location temp = getStepDirection(direction,step);
 			if(this.getWorld().isPassable(temp,this.getRadius()) && GameObject.isValidWorldLocation(temp, this.getWorld())) {
 				finish = temp;
@@ -755,6 +765,37 @@ public class Worm extends GameObject{
 		}
 		
 		return finish;
+	}
+	
+	/**
+	 * Returns the furthest location possible for a worm in a given direction.
+	 * 
+	 * @param direction
+	 * 		A given direction.
+	 * @return Returns a worm location that represents the furthest valid location possible in a given direction.
+	 * 		A location is possible if it's passable for this worm's radius and within the world.
+	 * 		| let Location finish be this.getLocation() in
+	 * 		|	for each step in [0,this.getRadius().getRadius()[ :
+	 * 		|		let Location temp be getStepDirection(direction,step) in
+	 * 		|			if this.getWorld().isPassable(temp,this.getRadius()) && GameObject.isValidWorldLocation(temp, this.getWorld())) 
+	 * 		|				then finish = temp
+	 * 		|			else result == temp
+	 * 		|	if this.getWorld().isPassable(getStepDirection(direction,this.getRadius().getRadius()),this.getRadius()) 
+	 * 		|		then result == getStepDirection(direction,this.getRadius().getRadius())
+	 * 		|	else
+	 * 		|		result == finish
+	 */
+	public Location getFurthestAdjacentLocationInDirection(Direction direction, double distance) {
+		Location finish = this.getLocation();
+		for(double step = 0.1; step <= distance; step+=0.1) { //TODO minimum
+			Location temp = getStepDirection(direction,step);
+			if(this.getWorld().isPassable(temp,this.getRadius())&& isAdjacentToTerrain(temp, this.getRadius(), this.getWorld()) && GameObject.isValidWorldLocation(temp, this.getWorld())) {
+				finish = temp;
+			}else {
+				return finish;
+			}
+		}		
+		return null;
 	}
 	
 	/**

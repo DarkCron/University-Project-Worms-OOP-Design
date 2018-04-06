@@ -10,6 +10,7 @@ import java.util.LinkedList;
 import java.util.Set;
 
 import be.kuleuven.cs.som.annotate.*;
+import worms.exceptions.InvalidLocationException;
 import worms.model.ShapeHelp.BoundaryRectangle;
 import worms.model.ShapeHelp.Circle;
 import worms.model.ShapeHelp.Rectangle;
@@ -407,7 +408,14 @@ public class World {
 		return allObjects;
 	}
 	
-	public boolean isAdjacantToImpassableTerrain(Location location, Radius radius) {
+	public boolean isAdjacantToImpassableTerrain(Location location, Radius radius) {		
+		if(!Worm.isValidWorldLocation(location, this)) {
+			return false;
+		}
+		if(!this.fullyContains(new Circle(location,radius).getBoundingRectangle())) {
+			return false;
+		}
+
 		return !this.isPassable(location,  new Radius(radius.getRadius() *1.1d));// && this.isPassable(location, radius);	
 	}
 	
@@ -420,7 +428,7 @@ public class World {
 	}
 	
 	
-	public boolean isPassable(Location location) {	
+	public boolean isPassable(Location location) {			
 		Location realWorldLoc = getRealWorldLoc(location);
 		if(realWorldLoc.getX() >= 0 && realWorldLoc.getX() < passableMap[0].length && realWorldLoc.getY() >=0 && realWorldLoc.getY() < passableMap.length) {
 			//System.out.println(realWorldLoc);
@@ -455,6 +463,10 @@ public class World {
 	
 
 	public boolean isPassable(Location location, Radius radius) {
+		if(!Worm.isValidWorldLocation(location, this)) {
+			return false;
+		}
+		
 		Circle passableSurface = new Circle(location, radius);
 		Rectangle bound = passableSurface.getBoundingRectangle();
 		for (double i = 0; i < bound.getSize().getX(); i+=0.2) {
