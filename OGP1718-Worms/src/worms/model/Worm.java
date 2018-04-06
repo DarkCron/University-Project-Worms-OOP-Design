@@ -675,10 +675,20 @@ public class Worm extends GameObject{
 		double bestDiv = -0.7875d;
 		double bestRatio = 0.0d;
 		boolean foundAdjacent = false;
+		
+		if(true) {
+			Location tempLocation = getFurthestLocationInDirection(this.getDirection(),this.getRadius().getRadius());
+			double distance = Math.sqrt(Math.pow(getX() - tempLocation.getX(),2)+Math.pow(getY() - tempLocation.getY(),2));
+			if(isAdjacentToTerrain(tempLocation, this.getRadius(), this.getWorld()) && distance >= 0.1) {
+				return new Direction(this.getDirection().getAngle() + 0.0);
+			}
+		}
+		
 		for(double div = -0.7875d; div <= 0.7875d; div += 0.0175) { //TODO constants
 			Direction tempDirection = new Direction(this.getDirection().getAngle() + div);
 			Location tempLocation = getFurthestAdjacentLocationInDirection(tempDirection,this.getRadius().getRadius());
-			if(tempLocation!=null && !tempLocation.equals(this.getLocation())) {
+			double distance = Math.sqrt(Math.pow(getX() - tempLocation.getX(),2)+Math.pow(getY() - tempLocation.getY(),2));
+			if(tempLocation!=null && !tempLocation.equals(this.getLocation()) && distance >= 0.1) {
 				foundAdjacent = true;
 				double sampleDiv = this.getDirection().getAngle() >= tempDirection.getAngle() ? this.getDirection().getAngle() - tempDirection.getAngle() : tempDirection.getAngle() - this.getDirection().getAngle();
 				double ratio = this.getLocation().getDistanceFrom(tempLocation) / sampleDiv;
@@ -694,7 +704,8 @@ public class Worm extends GameObject{
 			Direction tempDirection = new Direction(this.getDirection().getAngle() + div);
 			Location tempLocation = getFurthestLocationInDirection(tempDirection,this.getRadius().getRadius());
 			double ratio = this.getLocation().getDistanceFrom(tempLocation) / div;
-			if(ratio > bestRatio) {
+			double distance = Math.sqrt(Math.pow(getX() - tempLocation.getX(),2)+Math.pow(getY() - tempLocation.getY(),2));
+			if(ratio > bestRatio && distance >= 0.1) {
 				bestDiv = div;
 				bestRatio = ratio;
 			}
@@ -795,7 +806,7 @@ public class Worm extends GameObject{
 				return finish;
 			}
 		}		
-		return null;
+		return finish;
 	}
 	
 	/**

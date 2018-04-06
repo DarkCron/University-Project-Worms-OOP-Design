@@ -444,6 +444,7 @@ public class World {
 			}else if(widthIndex >= passableMap[0].length){
 				widthIndex = passableMap[0].length-1;
 			}
+
 			if(!passableMap[heightIndex][widthIndex].isPassable() && passableMap[heightIndex][widthIndex].containsPoint(realWorldLoc)) {
 				return false;
 			}	
@@ -469,8 +470,8 @@ public class World {
 		
 		Circle passableSurface = new Circle(location, radius);
 		Rectangle bound = passableSurface.getBoundingRectangle();
-		for (double i = 0; i < bound.getSize().getX(); i+=0.2) {
-			for (double j = 0; j < bound.getSize().getY(); j+=0.2) {
+		for (double i = 0; i <= bound.getSize().getX(); i+=0.02) {
+			for (double j = 0; j <= bound.getSize().getY(); j+=0.02) {
 				if(passableSurface.contains(new Location(i+bound.getCenter().getX(),j+bound.getCenter().getY()))) {
 					if(!this.isPassable(new Location((i+bound.getCenter().getX()), (j+bound.getCenter().getY())))) {
 						return false;
@@ -478,6 +479,7 @@ public class World {
 				}
 			}
 		}	
+		
 		return true;
 	}
 	
