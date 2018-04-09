@@ -41,17 +41,17 @@ public class WorldTest {
 	public void testAdjacent() {
 		World w = new World(passableMapAdjacent);
 		assertFalse(w.isAdjacantToImpassableTerrain(Location.ORIGIN, new Radius(1)));
-		assertTrue(w.isAdjacantToImpassableTerrain(new Location(2, 1), new Radius(2d)));
-		assertTrue(w.isAdjacantToImpassableTerrain(new Location(0, 1), new Radius(2d)));
+		assertTrue(w.isAdjacantToImpassableTerrain(new Location(2, 2), new Radius(1d)));
+		assertTrue(w.isAdjacantToImpassableTerrain(new Location(1.5, 1.5), new Radius(1.5d)));
 		assertFalse(w.isAdjacantToImpassableTerrain(new Location(3, 3), new Radius(2d)));
 	}
 	
 	@Test
 	public void testGOID() {
 		World w = new World(4, 4, passableMap);
-		Food f = new Food(Location.ORIGIN, Radius.DEFAULT_RADIUS, w);
+		Food f = new Food(new Location(2, 2), new Radius(World.getFoodRadius()), w);
 		assertTrue(GameObjectTypeID.typeExists(f.getClass()));
-		Worm wo = new Worm(Location.ORIGIN, Direction.DEFAULT_DIRECTION, w, Radius.DEFAULT_RADIUS, Name.DEFAULT_NAME,null);
+		Worm wo = new Worm(new Location(2, 2), Direction.DEFAULT_DIRECTION, w, new Radius(World.getWormMinimumRadius()), Name.DEFAULT_NAME,null);
 		assertTrue(GameObjectTypeID.typeExists(wo.getClass()));
 	}
 
@@ -84,18 +84,18 @@ public class WorldTest {
 	@Test
 	public void worldAddGameObjectsTest() {
 		World w = new World(4, 4, passableMap);
-		w.addGameObject(new Food(Location.ORIGIN, Radius.DEFAULT_RADIUS, w));
-		w.addGameObject(new Food(Location.ORIGIN, Radius.DEFAULT_RADIUS, w));
-		w.addGameObject(new Food(Location.ORIGIN, Radius.DEFAULT_RADIUS, w));
+		w.addGameObject(new Food(new Location(2, 2), Radius.DEFAULT_RADIUS, w));
+		w.addGameObject(new Food(new Location(2, 2), Radius.DEFAULT_RADIUS, w));
+		w.addGameObject(new Food(new Location(2, 2), Radius.DEFAULT_RADIUS, w));
 
 		assertEquals(1, w.getWorldObjects().size());
 
 		w.addGameObject(
-				new Worm(Location.ORIGIN, Direction.DEFAULT_DIRECTION, w, Radius.DEFAULT_RADIUS, Name.DEFAULT_NAME,null));
+				new Worm(new Location(2, 2), Direction.DEFAULT_DIRECTION, w, Radius.DEFAULT_RADIUS, Name.DEFAULT_NAME,null));
 		w.addGameObject(
-				new Worm(Location.ORIGIN, Direction.DEFAULT_DIRECTION, w, Radius.DEFAULT_RADIUS, Name.DEFAULT_NAME,null));
+				new Worm(new Location(2, 2), Direction.DEFAULT_DIRECTION, w, Radius.DEFAULT_RADIUS, Name.DEFAULT_NAME,null));
 		w.addGameObject(
-				new Worm(Location.ORIGIN, Direction.DEFAULT_DIRECTION, w, Radius.DEFAULT_RADIUS, Name.DEFAULT_NAME,null));
+				new Worm(new Location(2, 2), Direction.DEFAULT_DIRECTION, w, Radius.DEFAULT_RADIUS, Name.DEFAULT_NAME,null));
 
 		assertEquals(2, w.getWorldObjects().size());
 		assertEquals(3, w.getAllObjectsOfType(Worm.class).size());

@@ -64,7 +64,7 @@ public class Radius {
 	/**
 	 * A default radius that complies to the class invariants.
 	 */
-	public static final Radius DEFAULT_RADIUS = new Radius(0, 0);
+	public static final Radius DEFAULT_RADIUS = new Radius(0.1);
 	
 
 	/**

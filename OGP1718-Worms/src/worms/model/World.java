@@ -128,6 +128,8 @@ public class World {
 		this.worldWidth = passableMap[0].length;
 		this.worldHeight = passableMap.length;	
 		this.worldTeams = new HashSet<Team>();
+		this.passableMap = new BoundaryRectangle[passableMap.length][passableMap[0].length];
+		processMap(passableMap);
 	}
 	
 	/**
@@ -535,6 +537,7 @@ public class World {
 			}else if(widthIndex >= passableMap[0].length){
 				widthIndex = passableMap[0].length-1;
 			}
+			
 
 			if(!passableMap[heightIndex][widthIndex].isPassable() && passableMap[heightIndex][widthIndex].containsPoint(realWorldLoc)) {
 				return false;

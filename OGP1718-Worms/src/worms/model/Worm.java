@@ -154,15 +154,16 @@ public class Worm extends GameObject{
 	 */
 	public void fall() throws InvalidLocationException{
 		double fallDistance = 0.0;
-		double fallDistanceDelta = 0.01;
+		double fallDistanceDelta = 0.001;
 		Location wormLoc = this.getLocation();
-		while(!isAdjacentToTerrain(wormLoc,this.getRadius(),this.getWorld()) && this.getWorld().isPassable(wormLoc, getRadius())) {
+		while(this.getWorld().isPassable(wormLoc, this.getRadius())) {
 			fallDistance+=fallDistanceDelta;
 			wormLoc = (new Location(wormLoc.getX(), wormLoc.getY()-fallDistanceDelta));
-			if(!isValidWorldLocation(wormLoc, this.getWorld())) {		
+			if(!isValidWorldLocation(wormLoc, this.getWorld())||!this.getWorld().isPassable(wormLoc, this.getRadius())) {		
 				break;
 			}
 		}
+		//The last while step caused an impassable location, therefore, add the delta to the location.
 		wormLoc = (new Location(wormLoc.getX(), wormLoc.getY()+fallDistanceDelta));
 		this.setLocation(wormLoc);
 
@@ -486,7 +487,11 @@ public class Worm extends GameObject{
 		this.setHitPoints( new HP (hitpoints.getHp().add((amount))));
 	}
 	
+	/**
+	 * This worm's HP
+	 */
 	private HP hitpoints;
+	
 	/**
 	 * Sets the name of the worm.
 	 * 
@@ -575,11 +580,21 @@ public class Worm extends GameObject{
 	 * @param nbSteps
 	 * 		Amount of steps a worm should take.
 	 * @throws InvalidLocationException
+	 * 		Should the newly generated position for this worm be invalid, than throw an exception
+	 * 		| !isValidWorldLocation(this.getFurthestLocationInDirection(bestMoveAngle,this.getRadius().getRadius()), this.getWorld())
 	 * 
-	 * @effect moving has a certain cost for a worm, currently handled in setActionPoints
-	 * 		| this.setActionPoints(this.getCurrentActionPoints() - this.getMovementCost());
-	 * @effect resets any existing jump preparations
-	 * 		| this.cancelJump()
+	 * @post	A worm attempts to move as far possible in the direction it is facing. If the current direction is not possible
+	 * 			the worm will attempt to find a slope that is passable and adjacent to impassable terrain.
+	 * 			This worm's action points will be adjusted to the movement cost of that movement, if the cost is higher
+	 * 			than the worm's current action points, the worm won't move.
+	 * 
+	 * 			| new.getLocation() == this.getFurthestLocationInDirection(bestMoveAngle,this.getRadius().getRadius())
+	 * 			| let totalMovement = new Location(Math.abs(newLocation.getX() - this.getLocation().getX()),Math.abs(newLocation.getY() - this.getLocation().getY())) in
+	 * 			| new.getCurrentActionPoints() >= 0
+	 * 			| if this.getMovementCost(totalMovement) >= this.getCurrentActionPoints() then
+	 * 			|	new.getCurrentActionPoints() == this.getCurrentActionPoints() - this.getMovementCost(totalMovement)
+	 * 			| else
+	 * 			|	new.getCurrentActionPoints() == this.getCurrentActionPoints()
 	 * 
 	 * @note Currently moving altough AP == 0 is still possible but can easily be implemented.
 	 * 	The assignment didn't explicitly mention this should be a feature in the current implementation.
@@ -593,13 +608,19 @@ public class Worm extends GameObject{
 			throw new InvalidLocationException(newLocation);
 		}
 		
-		Location totalMovement = new Location(Math.abs(newLocation.getX() - this.getLocation().getX()),Math.abs(newLocation.getY() - this.getLocation().getY()));
-		this.setLocation(newLocation);
-		this.setActionPoints(this.getCurrentActionPoints() - this.getMovementCost(totalMovement));
 		
-		if(this.overlapsAnyOtherWorm()) {
-			this.handleWormMoveCollision();
+		Location totalMovement = new Location(Math.abs(newLocation.getX() - this.getLocation().getX()),Math.abs(newLocation.getY() - this.getLocation().getY()));
+		int movementCost = this.getMovementCost(totalMovement);
+	
+		if(movementCost <= this.getCurrentActionPoints()) {
+			this.setLocation(newLocation);
+			this.setActionPoints(this.getCurrentActionPoints() - this.getMovementCost(totalMovement));
+			
+			if(this.overlapsAnyOtherWorm()) {
+				this.handleWormMoveCollision();
+			}
 		}
+
 	}
 	
 	/**
@@ -1099,10 +1120,6 @@ public class Worm extends GameObject{
 		return true;
 	}
 	
-	public void repositionAfterFoodConsumption() {
-		
-	}
-	
 	/**
 	 * Sets the team for this worm
 	 * 
@@ -1134,5 +1151,9 @@ public class Worm extends GameObject{
 	public static boolean isValidTeam(Team team, Worm worm) {
 		return  team == null || team.canHaveWormInTeam(worm);
 	}
+	
+	/**
+	 * The team this worm is part of.
+	 */
 	private Team team;
 }
