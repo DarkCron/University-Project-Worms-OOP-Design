@@ -29,6 +29,9 @@ import worms.model.values.Radius;
  * 
  * @Invar | isValidWorldSize(getWorldWidth())
  * 
+ * @Invar | for each object in getAllGameObjects()
+ * 		  |		isPassable(object)
+ * 
  * @author bernd
  *
  */
@@ -45,11 +48,14 @@ public class World {
 	 * 
 	 * @post |new.getWorldWidth() == width
 	 * 
-	 * @post |new.passableMap() == passableMap
+	 * @post |new.passableMap() != null
 	 * 
 	 * @post |new.getWorldObjects() != null
 	 * 
 	 * @post |new.getTeams() != null
+	 * 
+	 * @throws IllegalArgumentException
+	 * 		| !isValidPassableMap(passableMap)
 	 * 
 	 * @note we worked out width and height in a total manner since no specific
 	 * 	manner was defined.
@@ -68,18 +74,33 @@ public class World {
 		this.worldWidth = width;
 		this.worldHeight = height;	
 
-		double heightRatio = ( (double)(height) / (double)passableMap.length);
-		double widthRatio = ( (double)(width) / (double)passableMap[0].length);
 		this.passableMap = new BoundaryRectangle[passableMap.length][passableMap[0].length];
+		processMap(passableMap);
+		
+		this.worldTeams = new HashSet<Team>();
+	}
+	
+	/**
+	 * Generates a map representing the (im)passable locations of the gameworld.
+	 * 
+	 * @param passableMap
+	 * 
+	 * @post | new.passableMap != null
+	 * 		 | for i in [0..passableMap.length[
+	 * 		 |		new.passableMap[i] != null
+	 * 		 |		for j in [0..passableMap[0].length[
+	 * 		 |			new.passableMap[passableMap.length - i - 1][j].isPassable() == passableMap[passableMap.length - i - 1][j]
+	 * 		 |			new.passableMap[passableMap.length - i - 1][j].getSize().equals( new Location(1, 1))
+	 * 		 |			new.passableMap[passableMap.length - i - 1][j].getCenter() == new Location(j,i)
+	 * 		 |		
+	 */
+	private void processMap(boolean[][] passableMap) {
 		Location size = new Location(1, 1);
 		for (int i = 0; i < passableMap.length; i++) {
 			for (int j = 0; j < passableMap[0].length; j++) {
 				this.passableMap[passableMap.length - i - 1][j] = new BoundaryRectangle(new Location(j,i), size, passableMap[passableMap.length - i - 1][j]);
-			}
-			
+			}		
 		}
-		
-		this.worldTeams = new HashSet<Team>();
 	}
 	
 	/**
@@ -139,6 +160,11 @@ public class World {
 		return true;
 	}
 	
+	/**
+	 * Checks whether this world has a valid passable map.
+	 * 
+	 * @return | result == (!isValidPassableMap(this.getPassableMap())) && passableMap.length == this.getWorldHeight() && passableMap[0].length == this.getWorldWidth()
+	 */
 	public boolean hasValidPassableMap() {
 		if(isValidPassableMap(this.getPassableMap())) {
 			return false;
@@ -162,9 +188,26 @@ public class World {
 		return this.worldWidth;
 	}
 	
+	/**
+	 * Checks whether this world fully contains a given rectangle.
+	 * 
+	 * @param gameObjectBounds
+	 * @return  | let worldBounds = Rectangle(new Location(0, 0), new Location(this.getWorldWidth(), this.getWorldHeight())) in
+	 * 			| result == worldBounds.fullyContains(gameObjectBounds)
+	 */
 	public boolean fullyContains(Rectangle gameObjectBounds) {
 		Rectangle worldBounds = new Rectangle(new Location(0, 0), new Location(this.getWorldWidth(), this.getWorldHeight()));
 		return worldBounds.fullyContains(gameObjectBounds);
+	}
+	
+	/**
+	 * Checks whether this world fully contains a given gameObject.
+	 * 
+	 * @param gameObject
+	 * @return  | result == this.fullyContains(gameObject.getSurface().getBoundingRectangle())
+	 */
+	public boolean fullyContains(GameObject gameObject) {
+		return this.fullyContains(gameObject.getSurface().getBoundingRectangle());
 	}
 	
 	/**
@@ -395,7 +438,14 @@ public class World {
 		return classID != null;
 	}
 	
-	//TODO
+	/**
+	 * Returns a collection of all gameObjects in this world.
+	 * 
+	 * @return  | result != null
+	 * 			| for each type in worldObjects.keySet()
+	 * 			|	for each object in worldObjects.get(type)
+	 * 			|		result.contains(object)
+	 */
 	public Collection<Object>  getAllGameObjects(){
 		ArrayList<Object> allObjects = new ArrayList<Object>();
 		
@@ -408,6 +458,18 @@ public class World {
 		return allObjects;
 	}
 	
+	/**
+	 * Checks whether a given theoretical circular surface with a given location and radius is adjacent
+	 * to impassable terrain. We assume that the given location is passable.
+	 * 
+	 * @param location
+	 * @param radius
+	 * 
+	 * 
+	 * @return  | result == this.isPassable(location,  new Radius(radius.getRadius() *1.1d))
+	 * 			|	&& Worm.isValidWorldLocation(location, this)
+	 * 			|	&& this.fullyContains(new Circle(location,radius).getBoundingRectangle())
+	 */
 	public boolean isAdjacantToImpassableTerrain(Location location, Radius radius) {		
 		if(!Worm.isValidWorldLocation(location, this)) {
 			return false;
@@ -419,15 +481,44 @@ public class World {
 		return !this.isPassable(location,  new Radius(radius.getRadius() *1.1d));// && this.isPassable(location, radius);	
 	}
 	
+	/**
+	 * Passable map represents a fully detailed map, while this world's length and width, refers to relative locations.
+	 * We therefore provide a ratio between our world actual and relative length.
+	 * 
+	 * @return | result == ( (double)(this.getWorldWidth()) / (double)passableMap[0].length)
+	 */
 	public double getWidthRatio() {
 		return ( (double)(this.getWorldWidth()) / (double)passableMap[0].length);
 	}
 	
+	/**
+	 * Passable map represents a fully detailed map, while this world's length and width, refers to relative locations.
+	 * We therefore provide a ratio between our world actual and relative length.
+	 * 
+	 * @return | result == ( (double)(this.getWorldHeight()) / (double)passableMap.length)
+	 */
 	public double getHeightRatio() {
 		return ( (double)(this.getWorldHeight()) / (double)passableMap.length);
 	}
 	
-	
+	/**
+	 * Checks whether a given relative location is passable in this world.
+	 * We first need to convert our given relative location to an actual position in this world.
+	 * 
+	 * @param location
+	 * @return	| let realWorldLoc = getRealWorldLoc(location) in
+	 * 			| let heightIndex = passableMap.length - (int)Math.floor(realWorldLoc.getY())-1 in
+	 * 			| let widthIndex = (int)Math.floor(realWorldLoc.getX()) in
+	 * 			| if heightIndex < 0 then
+	 * 			|	heightIndex = 0
+	 * 			| else
+	 * 			|	heightIndex = passableMap.length-1
+	 * 			| if widthIndex < 0 then
+	 * 			|	widthIndex = 0
+	 * 			| else
+	 * 			|	widthIndex = passableMap[0].length-1
+	 * 			| result == passableMap[heightIndex][widthIndex].isPassable() || !passableMap[heightIndex][widthIndex].containsPoint(realWorldLoc)
+	 */
 	public boolean isPassable(Location location) {			
 		Location realWorldLoc = getRealWorldLoc(location);
 		if(realWorldLoc.getX() >= 0 && realWorldLoc.getX() < passableMap[0].length && realWorldLoc.getY() >=0 && realWorldLoc.getY() < passableMap.length) {
@@ -454,20 +545,34 @@ public class World {
 	}
 	
 	/**
-	 * Returns a real world representation of 
+	 * Returns a real world representation of a relative world position.
 	 * @param location
-	 * @return
+	 * @return | result == Location((location.getX())/this.getWidthRatio(), (location.getY())/this.getHeightRatio())
 	 */
 	public Location getRealWorldLoc(Location location) {
 		return  new Location((location.getX())/this.getWidthRatio(), (location.getY())/this.getHeightRatio());
 	}
 	
-
+	/**
+	 * Checks whether a surface with a given center location and given radius is fully passable for all points of the surface.
+	 * 
+	 * @param location
+	 * @param radius
+	 * @return 	| if !Worm.isValidWorldLocation(location, this) then
+	 * 			| 	result == false
+	 * 			| else
+	 * 			| let passableSurface = Circle(location, radius) in
+	 * 			|	for double i in [0..passableSurface.getBoundingRectangle().getSize().getX()]
+	 * 			|		for double j in [0..passableSurface.getBoundingRectangle().getSize().getY()]
+	 * 			|			//This first if checks whether the point we're checking is within the actual circular surface
+	 * 			|			if passableSurface.contains(new Location(i+bound.getCenter().getX(),j+bound.getCenter().getY())) then
+	 * 			|				//This second if checks whether the point is passable
+	 * 			|				return this.isPassable(new Location((i+bound.getCenter().getX()), (j+bound.getCenter().getY())))
+	 */
 	public boolean isPassable(Location location, Radius radius) {
 		if(!Worm.isValidWorldLocation(location, this)) {
 			return false;
 		}
-		
 		Circle passableSurface = new Circle(location, radius);
 		Rectangle bound = passableSurface.getBoundingRectangle();
 		for (double i = 0; i <= bound.getSize().getX(); i+=0.02) {
@@ -483,12 +588,23 @@ public class World {
 		return true;
 	}
 	
+	/**
+	 * Checks whether a gameObject fully lies within passable terrain.
+	 * 
+	 * @param gameObject
+	 * @return | result == this.isPassable(gameObject.getLocation(),gameObject.getRadius())
+	 */
 	public boolean isPassable(GameObject gameObject) {
 		return this.isPassable(gameObject.getLocation(),gameObject.getRadius());
 	}
 	
 	/**
 	 * The worm turn cycle for this game.
+	 * 
+	 * @post | wormTurnCycle != null
+	 * 
+	 * @post 	| for each worm in wormTurnCycle
+	 * 			|	worm!=null
 	 * 
 	 * @note we do not create a getter or setter for this variable since the "outside" world
 	 * 		should never handle this variable directly.
@@ -508,11 +624,22 @@ public class World {
 		this.setGameActive(true);
 	}
 	
+	/**
+	 * Ends the current game in worms, doesn't do anything if no game is currently running.
+	 * 
+	 * @post | new.wormTurnCycle.size() == 0
+	 * TODO
+	 */
 	public void endGame() {
 		this.wormTurnCycle.clear();
 	}
 	
-	//TODO this or setter
+	/**
+	 * Generates a turn cycle for worms when a game starts in this world
+	 * 
+	 * @post | for each worm in this.getAllObjectsOfType(Worm.class)
+	 * 		 |	new.wormTurnCycle.contains(worm)
+	 */
 	public void createTurnCycle() {
 		this.wormTurnCycle.clear();
 		ArrayList<Worm> gameWorms = this.getAllObjectsOfType(Worm.class);
@@ -521,6 +648,14 @@ public class World {
 		}
 	}
 	
+	/**
+	 * Returns the currently to be controlled worm.
+	 * 
+	 * @return 	| if this.wormTurnCycle.isEmpty() then
+	 * 			|	result == null
+	 * 			| else
+	 * 			|	result == this.wormTurnCycle.getFirst()
+	 */
 	public Worm getFirstPlayerWorm() {
 		if(this.wormTurnCycle.isEmpty()) {
 			return null;
@@ -528,7 +663,20 @@ public class World {
 		return this.wormTurnCycle.getFirst();
 	}
 	
-	public void endFirstPlayerWormTurn() {
+	/**
+	 * Switches and resets the currently controlled worms, only the newly controlled worm is reset.
+	 * 
+	 * @post 	| if this.wormTurnCycle.size() == 1 then
+	 * 			|	new.wormTurnCycle == this.wormTurnCycle.get(0)
+	 * 			| else
+	 * 			| 	new.wormTurnCycle == this.wormTurnCycle.get(1)
+	 * 			|	new.wormTurnCycle.getLast() == this.wormTurnCycle(0)
+	 * 			|	new.wormTurnCycle.getFirst().resetTurn()
+	 */
+	public void endFirstPlayerWormTurn() throws IllegalStateException{
+		if(this.wormTurnCycle.size() == 0) {
+			throw new IllegalStateException("No worms to switch with, in endFirstPlayerWormTurn");
+		}
 		this.wormTurnCycle.add(wormTurnCycle.getFirst());
 		this.wormTurnCycle.remove(0);
 		this.wormTurnCycle.getFirst().resetTurn();
@@ -638,6 +786,12 @@ public class World {
 	
 	/**
 	 * Terminate this world
+	 * TODO
+	 * 
+	 * @post 	| for each object in new.getAllGameObjects()
+	 * 			|	object.isTerminated() == true
+	 * 			| new.wormTurnCycle == null
+	 * 			| new.isTerminated() == true
 	 */
 	public void terminate() {
 		this.isTerminated = true;

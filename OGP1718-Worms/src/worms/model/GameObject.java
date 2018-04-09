@@ -399,4 +399,12 @@ public abstract class GameObject{
 	public static boolean isAdjacentToTerrain(GameObject gameObject) {
 		return isAdjacentToTerrain(gameObject.getLocation(), gameObject.getRadius(), gameObject.getWorld());
 	}
+	
+	/**
+	 * Returns a circle representing this object's surface.
+	 * @return | result == Circle(this)
+	 */
+	public Circle getSurface() {
+		return new Circle(this);
+	}
 }
