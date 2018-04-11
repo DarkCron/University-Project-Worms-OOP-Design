@@ -118,30 +118,35 @@ public class Team {
 			}
 		}
 		
-		teamRoster.add(sortInTeamRoster(worm), worm);
+		
+		if(teamRoster.isEmpty()) {
+			teamRoster.add(worm);
+		}else {
+			int index = sortInTeamRoster(worm);
+			teamRoster.add(index, worm);
+		}
+		
 		
 	}
 	
-	private int sortInTeamRoster(Worm worm) {
+	public int sortInTeamRoster(Worm worm) {
 		int low = 0;
 		int high = teamRoster.size() -1;
+
 		while(low <= high) {
 			int mid = (low+high)/2;
 			if(teamRoster.get(mid).getName().compareTo(worm.getName()) == 0){
 				return mid;
 			}
-			else if(teamRoster.get(mid).getName().compareTo(worm.getName()) > 0){
+			else if(teamRoster.get(mid).getName().compareTo(worm.getName()) < 0){
 				low = mid+1;
 			}
-			else {
-			high = mid -1;
+			else if(teamRoster.get(mid).getName().compareTo(worm.getName()) > 0){
+				high = mid -1;
 			}
-			//voor indx te zoeken, indien hij tussen 2 elemnten zal staan.
-			if(teamRoster.get(mid-1).getName().compareTo(worm.getName()) < 0) && (teamRoster.get(mid+1).getName().compareTo(worm.getName()) > 0){
-				return mid;
-			}
+
 		}
-		return -1;
+		return low;
 	}
 
 	/**
