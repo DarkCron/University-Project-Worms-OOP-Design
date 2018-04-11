@@ -2,7 +2,7 @@ package worms.model;
 
 import java.util.ArrayList;
 import java.util.List;
-
+import java.util.Scanner;
 import be.kuleuven.cs.som.annotate.*;
 import worms.model.values.Name;
 /**
@@ -118,11 +118,32 @@ public class Team {
 			}
 		}
 		
-		teamRoster.add(worm);
+		teamRoster.add(sortInTeamRoster(worm), worm);
 		
-		//Alphabetical
 	}
 	
+	private int sortInTeamRoster(Worm worm) {
+		int low = 0;
+		int high = teamRoster.size() -1;
+		while(low <= high) {
+			int mid = (low+high)/2;
+			if(teamRoster.get(mid).getName().compareTo(worm.getName()) == 0){
+				return mid;
+			}
+			else if(teamRoster.get(mid).getName().compareTo(worm.getName()) > 0){
+				low = mid+1;
+			}
+			else {
+			high = mid -1;
+			}
+			//voor indx te zoeken, indien hij tussen 2 elemnten zal staan.
+			if(teamRoster.get(mid-1).getName().compareTo(worm.getName()) < 0) && (teamRoster.get(mid+1).getName().compareTo(worm.getName()) > 0){
+				return mid;
+			}
+		}
+		return -1;
+	}
+
 	/**
 	 * Remove a given worm from this team
 	 * 
