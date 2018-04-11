@@ -335,14 +335,20 @@ public class Facade implements IFacade {
 
 	@Override
 	public double getJumpTime(Worm worm, double deltaT) throws ModelException {
-		// TODO Auto-generated method stub
-		return 0;
+		try {
+			return worm.getJumpTime(deltaT);
+		} catch (Exception e) {
+			throw new ModelException("Worm can't jumpt like that.");
+		}
 	}
 
 	@Override
 	public void jump(Worm worm, double timeStep) throws ModelException {
-		// TODO Auto-generated method stub
-		
+		try {
+			worm.jump(timeStep);
+		} catch (Exception e) {
+			throw new ModelException(e);
+		}
 	}
 
 	@Override

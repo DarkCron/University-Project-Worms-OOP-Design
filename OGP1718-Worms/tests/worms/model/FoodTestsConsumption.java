@@ -16,14 +16,15 @@ public class FoodTestsConsumption {
 	@Test
 	public void test() {
 		//Changed due eat facade
-//		World world = new World(passableMapAdjacent);
-//		world.addGameObject(new Food(new Location(3,3), new Radius(1), world));
-//		Worm w = new Worm(new Location(0, 0), Direction.DEFAULT_DIRECTION, world, new Radius(1), Name.DEFAULT_NAME);
-//		world.addGameObject(w);
-//		assertTrue(world.getAllGameObjects().size() == 2);
-//		w.setLocation(new Location(2, 3));
-//		assertFalse(world.getAllGameObjects().size() == 2);
-//		assertEquals(1.1d, w.getRadius().getRadius(), EPS);
+		World world = new World(passableMapAdjacent);
+		world.addGameObject(new Food(new Location(3,3), new Radius(1), world));
+		Worm w = new Worm(new Location(1, 1), Direction.DEFAULT_DIRECTION, world, new Radius(1), Name.DEFAULT_NAME,null);
+		world.addGameObject(w);
+		assertTrue(world.getAllGameObjects().size() == 2);
+		w.setLocation(new Location(2, 3));
+		w.checkForFood();
+		assertFalse(world.getAllGameObjects().size() == 2);
+		assertEquals(1.1d, w.getRadius().getRadius(), EPS);
 	}
 
 	private boolean[][] passableMapAdjacent = new boolean[][] { //

@@ -1,6 +1,5 @@
 package worms.model.ShapeHelp;
 
-import worms.model.World;
 import worms.model.values.Location;
 
 /**

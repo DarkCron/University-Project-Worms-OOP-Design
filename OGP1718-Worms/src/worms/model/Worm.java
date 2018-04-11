@@ -1,13 +1,10 @@
 package worms.model;
 
 import java.math.BigInteger;
-import java.util.Iterator;
 
 import be.kuleuven.cs.som.annotate.*;
 import worms.exceptions.InvalidLocationException;
 import worms.exceptions.InvalidWormNameException;
-import worms.model.ShapeHelp.Circle;
-import worms.model.ShapeHelp.Rectangle;
 import worms.model.values.*;
 import worms.exceptions.InvalidRadiusException;
 
@@ -942,22 +939,24 @@ public class Worm extends GameObject{
 	 * 
 	 * @note We currently disabled being able to jump when AP == 0.
 	 */
-	public void jump() throws InvalidLocationException,RuntimeException{
+	public void jump(double timeStep) throws InvalidLocationException,RuntimeException{
+		if(this.currentActionPoints == 0) {
+			throw new RuntimeException("No AP left to jump.");
+		}
+		
 		double jumpSpeedMagnitude = this.getJumpSpeedMagnitude();
 		
 		if(!isValidJumpSpeedMagnitude(jumpSpeedMagnitude)) {
 			throw new RuntimeException(""+jumpSpeedMagnitude);
 		}
 		
-		double jumpTime = this.getJumpTime();
+		double jumpTime = this.getJumpTime(timeStep);
 		
 		if(!isValidJumpTime(jumpTime)) {
 			throw new RuntimeException(""+jumpTime);
 		}
 		
-		double distance = Math.pow(jumpSpeedMagnitude, 2)*Math.sin(this.getDirection().getAngle()*((float)2))/World.getGravity();
-		
-		Location tmp = new Location(this.getX() + distance, this.getY());
+		Location tmp = new Location(this.jumpStep(jumpTime));
 		
 		if(!isValidLocation(tmp,this.getWorld())) {
 			throw new InvalidLocationException(tmp);
@@ -1076,14 +1075,34 @@ public class Worm extends GameObject{
 	}
 
 
-	public double getJumpTime() throws RuntimeException{
+	public double getJumpTime(double deltaT) throws RuntimeException{
+		if(this.currentActionPoints == 0) {
+			return 0;
+		}
+		
 		double jumpTime = this.calculateJumpTime();
 		if(!isValidJumpTime(jumpTime)) {
 			throw new RuntimeException("Invalid jumptime calculated. "+jumpTime);
 		}
-		return jumpTime;
+		return this.getLastPassableJumpStepTime(jumpTime,deltaT);
 	}
 	
+	private double getLastPassableJumpStepTime(double jumpTime, double deltaT) {
+		for (double i = 0; i < jumpTime; i+=deltaT) {
+			Location wormLoc = new Location(this.jumpStep(i));
+			if(!this.getWorld().isPassable(wormLoc, this.getRadius())) {
+				return i-deltaT;
+			}
+		}
+		
+		Location wormLoc = new Location(this.jumpStep(jumpTime));
+		if(!this.getWorld().isPassable(wormLoc, this.getRadius())) {
+			return jumpTime;
+		}
+		
+		return jumpTime-deltaT;
+	}
+
 	/**
 	 * Resets this worm's turn.
 	 * 

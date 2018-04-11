@@ -10,7 +10,6 @@ import java.util.LinkedList;
 import java.util.Set;
 
 import be.kuleuven.cs.som.annotate.*;
-import worms.exceptions.InvalidLocationException;
 import worms.model.ShapeHelp.BoundaryRectangle;
 import worms.model.ShapeHelp.Circle;
 import worms.model.ShapeHelp.Rectangle;

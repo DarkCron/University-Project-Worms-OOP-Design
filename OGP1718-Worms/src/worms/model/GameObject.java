@@ -38,7 +38,7 @@ public abstract class GameObject{
 	 * 		| !isValidLocation(location,getWorld())
 	 */
 	@Raw
-	public GameObject(Location location, Radius radius, World world) throws InvalidLocationException,InvalidRadiusException {
+	protected GameObject(Location location, Radius radius, World world) throws InvalidLocationException,InvalidRadiusException {
 		this.setGameObjectTypeID(new GameObjectTypeID(this.getClass()));
 		
 		if(!isValidRadius(radius)) {
