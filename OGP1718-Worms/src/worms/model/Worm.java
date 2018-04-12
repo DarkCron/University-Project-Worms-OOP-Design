@@ -597,6 +597,7 @@ public class Worm extends GameObject{
 	 * 	The assignment didn't explicitly mention this should be a feature in the current implementation.
 	 * 
 	 */	
+	//TODO WORM CAN ONLY MOVE IN DIR 0-PI
 	public void move() throws InvalidLocationException{
 		Direction bestMoveAngle = this.getOptimalMovementAngle();
 		Location newLocation = this.getFurthestLocationInDirection(bestMoveAngle,this.getRadius().getRadius());
@@ -1175,4 +1176,13 @@ public class Worm extends GameObject{
 	 * The team this worm is part of.
 	 */
 	private Team team;
+	
+	@Override
+	public void terminate() {
+		if(this.getTeam() != null) {
+			this.getTeam().removeWorm(this);
+		}
+		this.getWorld().removeFromTurnCycle(this);	
+		super.terminate();
+	}
 }
