@@ -103,7 +103,7 @@ public class Team {
 	private final Name teamName;
 	
 	/**
-	 * Add the given worm to this team //TODO Liam
+	 * Adds the given worm to this team
 	 * @param worm
 	 * @throws IllegalArgumentException
 	 */
@@ -160,12 +160,15 @@ public class Team {
 		if(worm==null) {
 			throw new IllegalArgumentException("Given worm was null");
 		}
-		
-		if(!teamRoster.contains(worm)) { //TODO replace this with the logarithmic search
+		try
+		{
+			teamRoster.remove(sortInTeamRoster(worm));
+		}
+		catch (Exception e)
+		{
 			throw new IllegalArgumentException("Given worm was not part of this team");
 		}
 		
-		teamRoster.remove(worm);
 	}
 	
 	/**
@@ -218,7 +221,34 @@ public class Team {
 	public List<Worm> getAlphabeticalListTeamRoster() {
 		return new ArrayList<Worm>(teamRoster);
 	}
-
+	/**
+	 * Places all worms from one team to this team.
+	 * @param team The team of which all its worms have to merge with this team.
+	 */
+	public void mergeTeams(Team team) {
+		if (multipleTeamsRunning()) {
+			for (Team obj : fromWorld.getTeams()) {
+				if(obj != null) {
+					for (Worm worm : team.teamRoster) {
+						this.addWorm(worm);
+						team.removeWorm(worm);
+					}
+				}
+			}
+		}
+	}
+	
+	/**
+	 * Checks whether multiple teams are running in the current world.
+	 */
+	@Basic
+	public boolean multipleTeamsRunning() {
+		if(fromWorld.getTeams().size() > 1) {
+			return true;
+		}
+		return false;
+	}
+	
 	/**
 	 * Terminate this team
 	 * 

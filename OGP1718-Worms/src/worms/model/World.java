@@ -623,6 +623,16 @@ public class World {
 	 * @post | for each worm in wormTurnCycle
 	 * 		 |	worm != null
 	 */
+	public void removeFromTurnCycle(Worm worm) {
+		try {
+			wormTurnCycle.remove(worm);
+		}
+		catch (Exception e)
+		{
+			throw new IllegalArgumentException("Worm does not exist in the wormTurnCycle");
+		}
+		
+	}
 	public void startGame() {
 		this.createTurnCycle();
 		this.setGameActive(true);
@@ -872,6 +882,7 @@ public class World {
 	public static double getJumpTimeDelta() {
 		return JUMP_TIME_DELTA;
 	}
+
 
 
 
