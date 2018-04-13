@@ -151,13 +151,18 @@ public class Worm extends GameObject{
 	 */
 	public void fall() throws InvalidLocationException{
 		double fallDistance = 0.0;
-		double fallDistanceDelta = 0.001;
+		double fallDistanceDelta = 0.1d;
 		Location wormLoc = this.getLocation();
 		while(this.getWorld().isPassable(wormLoc, this.getRadius())) {
 			fallDistance+=fallDistanceDelta;
 			wormLoc = (new Location(wormLoc.getX(), wormLoc.getY()-fallDistanceDelta));
 			if(!isValidWorldLocation(wormLoc, this.getWorld())||!this.getWorld().isPassable(wormLoc, this.getRadius())) {		
-				break;
+				if(fallDistanceDelta < 0.1d / 1000d) {
+					break;
+				}else {
+					wormLoc = (new Location(wormLoc.getX(), wormLoc.getY()+fallDistanceDelta));
+					fallDistanceDelta/=10d;
+				}
 			}
 		}
 		//The last while step caused an impassable location, therefore, add the delta to the location.
@@ -593,7 +598,7 @@ public class Worm extends GameObject{
 	 * 			| else
 	 * 			|	new.getCurrentActionPoints() == this.getCurrentActionPoints()
 	 * 
-	 * @note Currently moving altough AP == 0 is still possible but can easily be implemented.
+	 * @note Currently moving although AP == 0 is still possible but can easily be implemented.
 	 * 	The assignment didn't explicitly mention this should be a feature in the current implementation.
 	 * 
 	 */	
@@ -685,21 +690,30 @@ public class Worm extends GameObject{
 
 	/**
 	 * Scan for the best direction to move in. Meaning the best ratio between divergence in direction angle and
-	 * distance travelled.
+	 * distance traveled.
 	 * 
 	 * @return
+	 * 			|	let bestDive = 0
+	 * 			|	let bestRatio = 0
+	 * 			|	for div in [-0.7875d,0.7875d]:
+	 * 			|		let tempDirection = new Direction(this.getDirection().getAngle() + div)
+	 * 			|		let tempLocation = getFurthestAdjacentLocationInDirection(tempDirection,this.getRadius().getRadius())
+	 * 			|		if tempLocation != null && !this.getLocation().equals(tempLocation) then	
+	 * 			|			if Math.sqrt(Math.pow(getX() - tempLocation.getX(),2)+Math.pow(getY() - tempLocation.getY(),2)) >= 0.1 then
+	 * 			|				let sampleDiv = this.getDirection().getAngle() >= tempDirection.getAngle() ? this.getDirection().getAngle() - tempDirection.getAngle() : tempDirection.getAngle() - this.getDirection().getAngle()
+	 * 			|				let ratio = this.getLocation().getDistanceFrom(tempLocation) / sampleDiv
+	 * 			|				if ratio > bestRatio then
+	 * 			|					bestDiv = div
+	 * 			|					bestRatio = ratio
+	 * 			|	result == new Direction(this.getDirection().getAngle() + bestDiv)
 	 */
 	private Direction getOptimalMovementAngle() {
-		double bestDiv = -0.7875d;
+		double bestDiv = 0.0d;
 		double bestRatio = 0.0d;
 		boolean foundAdjacent = false;
 		
-		if(true) {
-			Location tempLocation = getFurthestLocationInDirection(this.getDirection(),this.getRadius().getRadius());
-			double distance = Math.sqrt(Math.pow(getX() - tempLocation.getX(),2)+Math.pow(getY() - tempLocation.getY(),2));
-			if(isAdjacentToTerrain(tempLocation, this.getRadius(), this.getWorld()) && distance >= 0.1) {
-				return new Direction(this.getDirection().getAngle() + 0.0);
-			}
+		if(this.canMoveStraight()) {
+			return new Direction(this.getDirection().getAngle() + 0.0);	
 		}
 		
 		for(double div = -0.7875d; div <= 0.7875d; div += 0.0175) { //TODO constants
@@ -717,23 +731,43 @@ public class Worm extends GameObject{
 			}
 		}
 		
-		if(!foundAdjacent) {
-			double div = 0;
-			Direction tempDirection = new Direction(this.getDirection().getAngle() + div);
-			Location tempLocation = getFurthestLocationInDirection(tempDirection,this.getRadius().getRadius());
-			double ratio = this.getLocation().getDistanceFrom(tempLocation) / div;
-			double distance = Math.sqrt(Math.pow(getX() - tempLocation.getX(),2)+Math.pow(getY() - tempLocation.getY(),2));
-			if(ratio > bestRatio && distance >= 0.1) {
-				bestDiv = div;
-				bestRatio = ratio;
-			}
-		}
-
-//		
+//		if(!foundAdjacent) {
+//			double div = 0;
+//			Direction tempDirection = new Direction(this.getDirection().getAngle() + div);
+//			Location tempLocation = getFurthestLocationInDirection(tempDirection,this.getRadius().getRadius());
+//			double ratio = this.getLocation().getDistanceFrom(tempLocation) / div;
+//			double distance = Math.sqrt(Math.pow(getX() - tempLocation.getX(),2)+Math.pow(getY() - tempLocation.getY(),2));
+//			if(ratio > bestRatio && distance >= 0.1) {
+//				bestDiv = div;
+//				bestRatio = ratio;
+//			}
+//		}
+		
 		return new Direction(this.getDirection().getAngle() + bestDiv);
 	}
 
 
+	/**
+	 * Checks whether this worm can move exactly in the direction it's facing and if this location is adjacent
+	 * to terrain.
+	 * 
+	 * @return Returns true if and only if the furthest location this worm is facing is adjacent to terrain and 
+	 * 			the calculated distance to this location greater than 0.1m .
+	 * 			| result ==	
+	 * 			|	let distance == Math.sqrt(
+	 * 			|		Math.pow(getX() - this.getFurthestLocationInDirection(this.getDirection(),this.getRadius().getRadius()).getX(),2) + 
+	 * 			|		Math.pow(getY() - this.getFurthestLocationInDirection(this.getDirection(),this.getRadius().getRadius()).getY(),2) )
+	 * 			|	in
+	 * 			|		isAdjacentToTerrain(this.getFurthestLocationInDirection(this.getDirection(),this.getRadius().getRadius()), this.getRadius(), this.getWorld()) && distance >= 0.1
+	 */
+	private boolean canMoveStraight() {
+		Location tempLocation = getFurthestLocationInDirection(this.getDirection(),this.getRadius().getRadius());
+		double distance = Math.sqrt(Math.pow(getX() - tempLocation.getX(),2)+Math.pow(getY() - tempLocation.getY(),2));
+		if(isAdjacentToTerrain(tempLocation, this.getRadius(), this.getWorld()) && distance >= 0.1) {
+			return true;
+		}
+		return false;
+	}
 
 	/**
 	 * Returns a location based on a given distance traveled and a given direction to travel in.
@@ -816,7 +850,7 @@ public class Worm extends GameObject{
 	 */
 	public Location getFurthestAdjacentLocationInDirection(Direction direction, double distance) {
 		Location finish = this.getLocation();
-		for(double step = 0.1; step <= distance; step+=0.1) { //TODO minimum
+		for(double step = 0.1; step <= distance; step+=0.1) {
 			Location temp = getStepDirection(direction,step);
 			if(this.getWorld().isPassable(temp,this.getRadius())&& isAdjacentToTerrain(temp, this.getRadius(), this.getWorld()) && GameObject.isValidWorldLocation(temp, this.getWorld())) {
 				finish = temp;
@@ -919,28 +953,29 @@ public class Worm extends GameObject{
 	 * Makes the worm jump if it's got a valid jumpSpeedMagnitude, bigger than 0 and a valid less than infinity
 	 * magnitude.
 	 * 
+	 * @param timeStep
+	 * 		The resolution of the time between the 'steps' of a jump
+	 * 
 	 * @post The worm's new x coordinate will be equal to that of it's original location + the jumpdistance
 	 *		Or the worm's current jumpSpeedMagnitude is zero or invalid.
-	 * 		| new.getLocation()[0] == ((this.getLocation()[0] + Math.pow(this.getJumpSpeedMagnitude(), 2)*Math.sin(this.getDirection()*((float)2))/GRAVITY)
-	 * 		|					|| ((this.getJumpSpeedMagnitude() == 0) || !isValidJumpSpeedMagnitude(this.getJumpSpeedMagnitude()))
-	 * @throws InvalidLocationException
-	 * 		Throws an invalidLocationException if the newly calculated jump destination is invalid.
-	 * 		| double[] newLocation = new double[2]
-	 * 		| newLocation[0] = this.getLocation()[0] + Math.pow(this.getJumpSpeedMagnitude(), 2)*Math.sin(this.getDirection()*((float)2))/GRAVITY
-	 * 		| newLocation[1] = this.getLocation()[1];
-	 * 		| !isValidLocation(newLocation)
+	 * 		| new.getLocation().equals(Location(this.jumpStep(this.getJumpTime(timeStep))))
+	 * @post This worm's AP will be set to 0 after jumping
+	 * 		| new.getCurrentActionPoints() == 0
+	 * @post this worm's HP will be equal or less than before the jump
+	 * 		| new.getHitPoints().compareTo(this.getHitPoints()) <= 0
 	 * 
-	 * @effect If the jump succeeds the worm's AP will be set to 0
-	 * 		| this.setActionPointsAfterJump();
-	 * @effect If the jump succeeds the worm's JumpSpeedMagnitude will be set to 0
-	 * 		| this.setJumpSpeedMagnitude(0);
-	 * @effect If the jump succeeds the worm's jump airtime will be set to 0
-	 * 		| this.setJumpTime(0);
+	 * @throws RuntimeException
+	 * 		|this.getCurrentActionPoints() == 0 ||
+	 * 		|!isValidJumpSpeedMagnitude(this.getJumpSpeedMagnitude()) ||
+	 * 		|!isValidJumpTime(this.getJumpTime(timeStep))
+	 * 
+	 * @throws InvalidLocationException
+	 * 		|!isValidLocation(Location(this.jumpStep(this.getJumpTime(timeStep))),this.getWorld())
 	 * 
 	 * @note We currently disabled being able to jump when AP == 0.
 	 */
 	public void jump(double timeStep) throws InvalidLocationException,RuntimeException{
-		if(this.currentActionPoints == 0) {
+		if(this.getCurrentActionPoints() == 0) {
 			throw new RuntimeException("No AP left to jump.");
 		}
 		
@@ -1013,8 +1048,9 @@ public class Worm extends GameObject{
 	
 	/**
 	 * Returns the worm's current jump velocity magnitude.
+	 * 
+	 * @result |((5D*this.getCurrentActionPoints())+(this.getMass()*World.getGravity())/this.getMass())*World.getJumpTimeDelta()
 	 */
-	@Basic
 	public double getJumpSpeedMagnitude() {
 		double jumpForce = (5D*this.getCurrentActionPoints())+(this.getMass()*World.getGravity());
 		return (jumpForce/this.getMass())*World.getJumpTimeDelta();
@@ -1067,14 +1103,31 @@ public class Worm extends GameObject{
 		return tmpLocation.getLocation();
 	}
 	
-
+	/**
+	 * Calculates and returns this worm's total theoretical air time.
+	 * 
+	 * @return 	| let distance = Math.pow(this.getJumpSpeedMagnitude(), 2)*Math.sin(this.getDirection().getAngle()*2D)/World.getGravity() in
+	 * 			| result == (distance/(this.getJumpSpeedMagnitude()*Math.cos(this.getDirection().getAngle())))
+	 */
 	public double calculateJumpTime() {
 		double distance = Math.pow(this.getJumpSpeedMagnitude(), 2)*Math.sin(this.getDirection().getAngle()*2D)/World.getGravity();
 		double timeInterval = (distance/(this.getJumpSpeedMagnitude()*Math.cos(this.getDirection().getAngle())));
 		return timeInterval;
 	}
 
-
+	/**
+	 * Calculates and returns this worm actual exact air time for a jump based on valid step locations during a jump.
+	 * A time resolution per step in the jump is given as deltaT.
+	 * Any step deltaT within a jump must be valid and within the current world to be valid.
+	 * 
+	 * @param deltaT
+	 * 		Time resolution for a step in a jump.
+	 * @return
+	 * 		| result == this.getLastPassableJumpStepTime(this.calculateJumpTime(),deltaT)
+	 * 
+	 * @throws RuntimeException
+	 * 		| !isValidJumpTime(this.calculateJumpTime())
+	 */
 	public double getJumpTime(double deltaT) throws RuntimeException{
 		if(this.currentActionPoints == 0) {
 			return 0;
@@ -1087,20 +1140,42 @@ public class Worm extends GameObject{
 		return this.getLastPassableJumpStepTime(jumpTime,deltaT);
 	}
 	
+	/**
+	 * Based on a total jumptime and a deltaT step time return the total actual air time of this worm
+	 * based on whether it's jumplocation per step is passable or not.
+	 * 
+	 * @param jumpTime
+	 * 		Total theoretical possible jumptime.
+	 * @param deltaT
+	 * 		Time per step in the jump
+	 * 
+	 * @return Return the exact amount of jumptime of a worm for a valid jump in it's current direction.
+	 * 		A jumpstep is valid if the location on certain time is passable for this worm.
+	 * 			| for i in [0,jumptime[
+	 * 			|	if !this.getWorld().isPassable(Location(this.jumpStep(i)), this.getRadius()) then
+	 * 			|		result == i - deltaT
+	 * 			| if !this.getWorld().isPassable(Location(this.jumpStep(jumpTime)), this.getRadius()) then
+	 * 			|	result == jumpTime-deltaT
+	 * 			| else
+	 * 			|	result == jumpTime
+	 * 			
+	 */
 	private double getLastPassableJumpStepTime(double jumpTime, double deltaT) {
 		for (double i = 0; i < jumpTime; i+=deltaT) {
 			Location wormLoc = new Location(this.jumpStep(i));
 			if(!this.getWorld().isPassable(wormLoc, this.getRadius())) {
+				//This means the latest jumpstep is invalid, therefore the one step before that was.
 				return i-deltaT;
 			}
 		}
 		
+		//This checks the very last moment of the jump, assuming all other steps were valid.
 		Location wormLoc = new Location(this.jumpStep(jumpTime));
 		if(!this.getWorld().isPassable(wormLoc, this.getRadius())) {
-			return jumpTime;
+			return jumpTime-deltaT;
 		}
 		
-		return jumpTime-deltaT;
+		return jumpTime;
 	}
 
 	/**

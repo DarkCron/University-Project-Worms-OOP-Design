@@ -471,7 +471,8 @@ public class World {
 	 * 			|	&& Worm.isValidWorldLocation(location, this)
 	 * 			|	&& this.fullyContains(new Circle(location,radius).getBoundingRectangle())
 	 */
-	public boolean isAdjacantToImpassableTerrain(Location location, Radius radius) {		
+	public boolean isAdjacantToImpassableTerrain(Location location, Radius radius) {	
+	
 		if(!Worm.isValidWorldLocation(location, this)) {
 			return false;
 		}
@@ -481,6 +482,7 @@ public class World {
 
 		return !this.isPassable(location,  new Radius(radius.getRadius() *1.1d));// && this.isPassable(location, radius);	
 	}
+	
 	
 	/**
 	 * Passable map represents a fully detailed map, while this world's length and width, refers to relative locations.

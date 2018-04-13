@@ -493,7 +493,7 @@ public class Facade implements IFacade {
 		try {
 			worm.fall();	
 		} catch (Exception e) {
-			//throw new ModelException(e);
+			throw new ModelException(e);
 		}
 	}
 }
