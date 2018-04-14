@@ -228,12 +228,12 @@ public class Team {
 	public void mergeTeams(Team team) {
 		//TODO check nog of team != null, anders exception (defensief)
 		//TODO check of het argument team, team.equals(this) == false anders exception
-		if (multipleTeamsRunning()) {
-			for (Team obj : fromWorld.getTeams()) {
-				if(obj != null) {
+		if (multipleTeamsRunning()) { //Is dit echt nodig?
+			for (Team obj : fromWorld.getTeams()) { // Niet nodig, nu wordt per team de code hieronder uitgevoerd (overbodig werk)
+				if(obj != null) { //Als we argument team checken of die niet null is, dan is dit in orde
 					for (Worm worm : team.teamRoster) {
 						this.addWorm(worm);
-						team.removeWorm(worm);
+						team.removeWorm(worm); //Goed :D
 					}
 				}
 			}
