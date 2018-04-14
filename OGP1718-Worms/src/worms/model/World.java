@@ -837,14 +837,25 @@ public class World {
 		//De if hieronder is niet 100% correct, teams worden nog niet automatisch verwijdert uit de wereld
 		//dus als de laatste worm van een team sterft is er een lege team (tenzij je dat anders maakt).
 		//Dus er kunnen lege teams zijn waardoor this.getTeams().size() != 1 maar er toch slechts 1 team de winnaar is
-		if(this.getTeams().size() == 1) { //Niet echt correct, al is er maar 1 team, er kunnen nog altijd vijandige wormen zonder team zijn
+		if(this.getTeams().size() >= 1) { //Niet echt correct, al is er maar 1 team, er kunnen nog altijd vijandige wormen zonder team zijn
 			if(!onlyWormsWithoutTeamInWorld()) { //Zie boven, dit checkt of er teamloze worms zijn
 				for(Team o : this.getTeams()) {
-					return o.getName();
+					if(o.getAlphabeticalListTeamRoster().size() > 0) {
+						teamsActive += 1;
+					}
+					if(o.getAlphabeticalListTeamRoster().size() == 0) {
+						o.terminate();
+					}
+				if (teamsActive == 1) {
+					for(Team p : this.getTeams())
+						return p.getName();
+				}
+				else {
+					return null;
 				}
 			}
 		}
-		//Dit is correct :D
+		
 		if (onlyWormsWithoutTeamInWorld()) {
 			if(onlyOneWorm()) {
 				return this.getFirstPlayerWorm().getName();
@@ -854,12 +865,12 @@ public class World {
 			}
 		}
 		return null;
+		}
 	}
+		
+	public int teamsActive;
 	
-	//Hoe cast ik een check voor het ID van worms in World? Ik wil zien of voor elk object in de wereld, er
-	//maar 1 object is van type Worm.
 	public boolean onlyWormsWithoutTeamInWorld() {
-		//If this.getTeams() == null, zal niet werken, dat checkt enkel maar of de lijst van teams in deze wereld == null
 		for(GameObject worm : this.getAllObjectsOfType(Worm.class)) {
 			if(worm instanceof Worm) {
 					//We moeten per worm checken of deze worm zijn team == null
