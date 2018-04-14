@@ -843,16 +843,21 @@ public class World {
 					if(o.getAlphabeticalListTeamRoster().size() > 0) {
 						teamsActive += 1;
 					}
+					
 					if(o.getAlphabeticalListTeamRoster().size() == 0) {
 						o.terminate();
 					}
+				}
+					
 				if (teamsActive == 1) {
-					for(Team p : this.getTeams())
+					for(Team p : this.getTeams()) {
 						return p.getName();
+					}
 				}
-				else {
+				else
+				{
 					return null;
-				}
+				}	
 			}
 		}
 		
@@ -865,7 +870,7 @@ public class World {
 			}
 		}
 		return null;
-		}
+		
 	}
 		
 	public int teamsActive;
