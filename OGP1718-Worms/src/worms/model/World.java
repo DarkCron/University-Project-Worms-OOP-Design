@@ -829,9 +829,38 @@ public class World {
 	
 	//TODO
 	public String getWinner() {
+		if(this.getTeams().size() == 1) {
+			for(Team o : this.getTeams()) {
+				return o.getName();
+			}
+		}
+		if (bWormsNotInTeamOnlyInWorld()) {
+			if(onlyOneWorm()) {
+				return this.getFirstPlayerWorm().getName();
+			}
+			else {
+				return null;
+			}
+		}
 		return null;
 	}
 	
+	//Hoe cast ik een check voor het ID van worms in World? Ik wil zien of voor elk object in de wereld, er
+	//maar 1 object is van type Worm.
+	public boolean bWormsNotInTeamOnlyInWorld() {
+		if ((this.getTeams() == null)) { //&& (this.getAllGameObjects(Worm) == 1))
+			for (Object o : this.getAllGameObjects()) {
+				if (o.getClass() == getTypeId(this.getAllObjectsOfType(Worm.getClass()))) {
+					
+				}
+			}
+		}
+			
+	}
+	
+	public boolean onlyOneWorm() {
+		return (this.getAllGameObjects(Type Worm) == 1);
+	}
 	/**
 	 * A constant, representing a fictitious in game simulation of real life gravity. To
 	 * ensure worms fall back to the ground.
