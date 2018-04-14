@@ -6,8 +6,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Set;
+
+import org.hamcrest.core.IsInstanceOf;
 
 import be.kuleuven.cs.som.annotate.*;
 import worms.model.ShapeHelp.BoundaryRectangle;
@@ -831,12 +834,18 @@ public class World {
 	
 	//TODO
 	public String getWinner() {
-		if(this.getTeams().size() == 1) {
-			for(Team o : this.getTeams()) {
-				return o.getName();
+		//De if hieronder is niet 100% correct, teams worden nog niet automatisch verwijdert uit de wereld
+		//dus als de laatste worm van een team sterft is er een lege team (tenzij je dat anders maakt).
+		//Dus er kunnen lege teams zijn waardoor this.getTeams().size() != 1 maar er toch slechts 1 team de winnaar is
+		if(this.getTeams().size() == 1) { //Niet echt correct, al is er maar 1 team, er kunnen nog altijd vijandige wormen zonder team zijn
+			if(!onlyWormsWithoutTeamInWorld()) { //Zie boven, dit checkt of er teamloze worms zijn
+				for(Team o : this.getTeams()) {
+					return o.getName();
+				}
 			}
 		}
-		if (bWormsNotInTeamOnlyInWorld()) {
+		//Dit is correct :D
+		if (onlyWormsWithoutTeamInWorld()) {
 			if(onlyOneWorm()) {
 				return this.getFirstPlayerWorm().getName();
 			}
@@ -849,19 +858,24 @@ public class World {
 	
 	//Hoe cast ik een check voor het ID van worms in World? Ik wil zien of voor elk object in de wereld, er
 	//maar 1 object is van type Worm.
-	public boolean bWormsNotInTeamOnlyInWorld() {
-		if ((this.getTeams() == null)) { //&& (this.getAllGameObjects(Worm) == 1))
-			for (Object o : this.getAllGameObjects()) {
-				if (o.getClass() == getTypeId(this.getAllObjectsOfType(Worm.getClass()))) {
-					
+	public boolean onlyWormsWithoutTeamInWorld() {
+		//If this.getTeams() == null, zal niet werken, dat checkt enkel maar of de lijst van teams in deze wereld == null
+		for(GameObject worm : this.getAllObjectsOfType(Worm.class)) {
+			if(worm instanceof Worm) {
+					//We moeten per worm checken of deze worm zijn team == null
+					//Als er een worm is met team != null weten we dus dat er minstens 1 geldig team is en moet
+					//deze functie false teruggeven
+				if(((Worm) worm).getTeam() != null) {
+					return false;
 				}
 			}
 		}
-			
+		return true;
 	}
 	
+	//TODO
 	public boolean onlyOneWorm() {
-		return (this.getAllGameObjects(Type Worm) == 1);
+		return (this.getAllObjectsOfType(Worm.class).size() == 1);
 	}
 	/**
 	 * A constant, representing a fictitious in game simulation of real life gravity. To
@@ -910,6 +924,11 @@ public class World {
 	
 	public static double getJumpTimeDelta() {
 		return JUMP_TIME_DELTA;
+	}
+
+	
+	public void removeTeam(Team team) {
+		this.worldTeams.remove(team);
 	}
 
 

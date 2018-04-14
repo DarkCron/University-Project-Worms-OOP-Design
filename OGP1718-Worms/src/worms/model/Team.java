@@ -226,6 +226,8 @@ public class Team {
 	 * @param team The team of which all its worms have to merge with this team.
 	 */
 	public void mergeTeams(Team team) {
+		//TODO check nog of team != null, anders exception (defensief)
+		//TODO check of het argument team, team.equals(this) == false anders exception
 		if (multipleTeamsRunning()) {
 			for (Team obj : fromWorld.getTeams()) {
 				if(obj != null) {
@@ -253,9 +255,15 @@ public class Team {
 	 * Terminate this team
 	 * 
 	 * @post | new.isTerminated() == true
+	 * TODO
 	 */
 	public void terminate() {
 		this.isTerminated = true;
+		this.fromWorld.removeTeam(this);
+		
+		for (Worm worm : getAlphabeticalListTeamRoster()) {
+			worm.setTeam(null);
+		}
 	}
 	
 	/**
