@@ -851,7 +851,9 @@ public class World {
 					
 				if (teamsActive == 1) {
 					for(Team p : this.getTeams()) {
-						return p.getName();
+						if(p.getAlphabeticalListTeamRoster().size() > 0) {
+							return p.getName();
+						}
 					}
 				}
 				else

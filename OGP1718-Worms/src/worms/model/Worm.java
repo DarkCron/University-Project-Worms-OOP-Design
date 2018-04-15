@@ -992,6 +992,7 @@ public class Worm extends GameObject{
 			throw new RuntimeException(""+jumpTime);
 		}
 		
+		Location locationBeforeJump = this.getLocation();
 		Location tmp = new Location(this.jumpStep(jumpTime));
 		
 		if(!isValidLocation(tmp,this.getWorld())) {
@@ -1000,6 +1001,46 @@ public class Worm extends GameObject{
 		
 		this.setLocation(tmp);				
 		this.setActionPointsAfterJump();	
+		
+		if(isAdjacentToTerrain(this) && !locationBeforeJump.equals(this.getLocation())) {
+			this.checkForWormOverlapsAfterJump();
+		}
+	}
+
+	/**
+	 * Checks and fights the worms this overlaps with after a jump.
+	 * 
+	 * @post A collision happens between two worms after a jump if this worm (partially) overlaps any other worm
+	 * 		in this world. If a collision happens, a coin toss (50-50 chance) will determine which worm takes damage
+	 * 		based on the radius of the attacker and defender.
+	 * 		|for each worm in this.getWorld().getAllObjectsOfType(Worm.class)
+	 * 		|	if worm != this && worm.overlapsWith(this) then
+	 * 		|		let attacker = this
+	 * 		|		let defender = (Worm)worm
+	 * 		|		if((int)Math.round(Math.random()) == 1) then
+	 * 		|			attacker = (Worm)worm
+	 * 		|			defender = this
+	 * 		|		defender.getHitPoints().intValue() == 
+	 * 		|			(defender.getHitPoints().intValue() - 10* ((int)Math.floor(attacker.getRadius().getRadius() / defender.getRadius().getRadius())))
+	 * 		|			|| 0
+	 */
+	private void checkForWormOverlapsAfterJump() {
+		for (GameObject worm : this.getWorld().getAllObjectsOfType(Worm.class)) {
+			if(worm instanceof Worm && worm != this) {
+				if(worm.overlapsWith(this)) {
+					int coinValue = (int)Math.round(Math.random());
+					Worm attacker = this;
+					Worm defender = (Worm)worm;
+					if(coinValue == 1) {
+						attacker = (Worm)worm;
+						defender = this;
+					}
+					int damage = 10* ((int)Math.floor(attacker.getRadius().getRadius() / defender.getRadius().getRadius()));
+					defender.increaseHitPoints(damage * -1);
+					
+				}
+			}
+		}
 	}
 
 	/**
