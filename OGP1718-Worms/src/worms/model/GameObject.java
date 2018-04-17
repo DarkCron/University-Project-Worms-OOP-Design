@@ -47,7 +47,7 @@ public abstract class GameObject{
 		this.setRadius(radius);
 		
 		if(!isValidWorld(world)) {
-			throw new IllegalArgumentException("Invalid world.");
+			//throw new IllegalArgumentException("Invalid world.");
 		}
 		this.setWorld(world);
 		
@@ -86,7 +86,7 @@ public abstract class GameObject{
 			this.terminate();
 			throw new InvalidLocationException(location);
 		}
-		if(!this.getWorld().fullyContains(new Circle(location, this.getRadius()).getBoundingRectangle())) {
+		if(this.getWorld()!= null && !this.getWorld().fullyContains(new Circle(location, this.getRadius()).getBoundingRectangle())) { //TODO UPDATE DOC
 			this.terminate();
 			throw new InvalidLocationException(location);
 		}
@@ -332,6 +332,9 @@ public abstract class GameObject{
 	 * 		   | 	(location.getY()>= 0 && location.getY() <= this.getWorld().getWorldHeight())
 	 */
 	public static boolean isValidWorldLocation(Location location, World world) {
+		if(world == null) { //TODO update documentation
+			return isValidLocation(location, world);
+		}
 		if((location.getX()>= 0 && location.getX() <= world.getWorldWidth())
 				&& (location.getY()>= 0 && location.getY() <= world.getWorldHeight())) {
 			return true;
@@ -343,12 +346,15 @@ public abstract class GameObject{
 	
 	/**
 	 * Terminates this gameObject.
+	 * 
+	 * TODO
 	 */
 	public void terminate() {
 		isTerminated = true;
 		if(this.getWorld() != null) {
 			this.getWorld().removeGameObject(this);
 		}
+		this.setWorld(null); 
 	}
 	
 	/**

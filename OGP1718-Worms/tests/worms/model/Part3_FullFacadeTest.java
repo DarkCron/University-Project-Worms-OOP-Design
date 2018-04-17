@@ -13,7 +13,7 @@ import worms.facade.Facade;
 import worms.facade.IFacade;
 import worms.internal.gui.game.IActionHandler;
 import worms.programs.IProgramFactory;
-import worms.programs.ProgramFactory;
+import worms.model.ProgramFactory;
 import worms.programs.ProgramParser;
 import worms.util.*;
 
@@ -98,7 +98,7 @@ public class Part3_FullFacadeTest {
 
 	private static double referenceJumpDistance(int actionPoints, double radius, double theta) {
 		double v0 = referenceJumpV0(actionPoints, radius);
-		double d = v0 * v0 * sin(2 * theta) / Physics.GAME_STANDARD_ACCELERATION;
+		double d = v0 * v0 * sin(2 * theta) / World.getGravity();
 		return d;
 	}
 
@@ -107,7 +107,7 @@ public class Part3_FullFacadeTest {
 		double v0x = v0 * cos(theta);
 		double v0y = v0 * sin(theta);
 		double x = loc[0] + v0x * dt;
-		double y = loc[1] + v0y * dt - Physics.GAME_STANDARD_ACCELERATION * dt * dt / 2;
+		double y = loc[1] + v0y * dt - World.getGravity() * dt * dt / 2;
 		return new double[] { x, y };
 	}
 
@@ -118,7 +118,7 @@ public class Part3_FullFacadeTest {
 	}
 
 	private static double referenceJumpV0(long actionPoints, double radius) {
-		double force = (5 * actionPoints) + (referenceWormMass(radius) * Physics.GAME_STANDARD_ACCELERATION);
+		double force = (5 * actionPoints) + (referenceWormMass(radius) * World.getGravity());
 		double v0 = 0.5 * force / referenceWormMass(radius);
 		return v0;
 	}
@@ -713,7 +713,7 @@ public class Part3_FullFacadeTest {
 		facade.decreaseNbActionPoints(wormB, 20);
 		BigInteger nbHitPointsB = facade.getNbHitPoints(wormB);
 		facade.decreaseNbActionPoints(wormC, 20);
-		BigInteger nbHitPointsC = facade.getNbHitPoints(wormA);
+		BigInteger nbHitPointsC = facade.getNbHitPoints(wormC);
 		facade.startGame(theWorld);
 		Worm activeWorm = facade.getActiveWorm(theWorld);
 		assertTrue(facade.getAllWorms(theWorld).contains(activeWorm));

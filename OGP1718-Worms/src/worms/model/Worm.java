@@ -603,7 +603,7 @@ public class Worm extends GameObject{
 	 * 
 	 */	
 	//TODO WORM CAN ONLY MOVE IN DIR 0-PI
-	public void move() throws InvalidLocationException{
+	public void move() throws InvalidLocationException,IllegalStateException{
 		Direction bestMoveAngle = this.getOptimalMovementAngle();
 		Location newLocation = this.getFurthestLocationInDirection(bestMoveAngle,this.getRadius().getRadius());
 		
@@ -615,6 +615,7 @@ public class Worm extends GameObject{
 		Location totalMovement = new Location(Math.abs(newLocation.getX() - this.getLocation().getX()),Math.abs(newLocation.getY() - this.getLocation().getY()));
 		int movementCost = this.getMovementCost(totalMovement);
 	
+		
 		if(movementCost <= this.getCurrentActionPoints()) {
 			this.setLocation(newLocation);
 			this.setActionPoints(this.getCurrentActionPoints() - this.getMovementCost(totalMovement));
@@ -622,6 +623,8 @@ public class Worm extends GameObject{
 			if(this.overlapsAnyOtherWorm()) {
 				this.handleWormMoveCollision();
 			}
+		}else {
+			throw new IllegalStateException("Not enough AP to move.");
 		}
 
 	}

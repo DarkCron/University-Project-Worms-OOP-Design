@@ -8,7 +8,10 @@ import java.util.Set;
 import worms.exceptions.InvalidLocationException;
 import worms.exceptions.InvalidRadiusException;
 import worms.exceptions.InvalidWormNameException;
+import worms.internal.gui.game.IActionHandler;
 import worms.model.Food;
+import worms.model.Program;
+import worms.model.Projectile;
 import worms.model.Team;
 import worms.model.World;
 import worms.model.Worm;
@@ -16,6 +19,7 @@ import worms.model.values.Direction;
 import worms.model.values.Location;
 import worms.model.values.Name;
 import worms.model.values.Radius;
+import worms.programs.IProgramFactory;
 import worms.util.ModelException;
 import worms.util.MustNotImplementException;
 
@@ -195,7 +199,9 @@ public class Facade implements IFacade {
 
 	@Override
 	public void addWorm(World world, Worm worm) throws ModelException {
-		world.addGameObject(worm);
+		if(world!=null) {
+			world.addGameObject(worm);
+		}
 	}
 
 	@Override
@@ -218,12 +224,19 @@ public class Facade implements IFacade {
 	
 	@Override
 	public void addFood(World world, Food food) throws ModelException {
-		world.addGameObject(food);
+		if(world!=null) {
+			world.addGameObject(food);
+		}
 	}
 
 	@Override
 	public void removeFood(World world, Food food) throws ModelException {
-		world.removeGameObject(food);
+		try {
+			world.removeGameObject(food);			
+		} catch (Exception e) {
+			throw new ModelException(e);
+		}
+		
 	}
 
 	@Override
@@ -276,6 +289,7 @@ public class Facade implements IFacade {
 		try {
 			Worm w = new Worm(new Location(location), new Direction(direction),world, new Radius(radius, World.getWormMinimumRadius()), new Name(name),team);
 			this.addWorm(world, w);
+			this.addWormsToTeam(team, w);
 			return w;
 		} catch (Exception e) {
 			throw new ModelException(e);
@@ -446,6 +460,9 @@ public class Facade implements IFacade {
 	
 	@Override
 	public void addWormsToTeam(Team team, Worm... worms) throws ModelException, MustNotImplementException {
+		if(team == null) {
+			return;
+		}
 		try {
 			for (Worm worm : worms) {
 				team.addWorm(worm);
@@ -495,5 +512,101 @@ public class Facade implements IFacade {
 		} catch (Exception e) {
 			throw new ModelException(e);
 		}
+	}
+
+	@Override
+	public Projectile fire(Worm worm) throws ModelException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean isPoisonous(Food food) throws ModelException {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public void poison(Food food) throws ModelException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public boolean isTerminated(Projectile projectile) throws ModelException {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public double getOrientation(Projectile projectile) throws ModelException {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public double[] getLocation(Projectile projectile) throws ModelException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public double getRadius(Projectile projectile) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public int getNbHitPoints(Projectile projectile) throws ModelException {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public double[] getJumpStep(Projectile projectile, double elapsedTime) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public double getJumpTime(Projectile projectile, double jumpTimeStep) throws ModelException {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public void jump(Projectile projectile, double jumpTimeStep) throws ModelException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public Program getWormProgram(Worm worm) throws ModelException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void loadProgramOnWorm(Worm worm, Program program, IActionHandler actionHandler) throws ModelException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public List<Object> executeProgram(Worm worm) throws ModelException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public IProgramFactory<?, ?, ?, ? extends Program> createProgramFactory() throws ModelException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void castSpell(World world) throws ModelException {
+		// TODO Auto-generated method stub
+		
 	}
 }

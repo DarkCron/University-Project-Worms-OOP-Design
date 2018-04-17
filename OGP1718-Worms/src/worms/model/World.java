@@ -639,6 +639,7 @@ public class World {
 	public void startGame() {
 		this.createTurnCycle();
 		this.setGameActive(true);
+		this.wormTurnCycle.getFirst().resetTurn();
 	}
 	
 	/**
@@ -834,6 +835,10 @@ public class World {
 	
 	//TODO
 	public String getWinner() {
+		if(!this.getIsGameActive()) {
+			return null;
+		}
+		
 		//De if hieronder is niet 100% correct, teams worden nog niet automatisch verwijdert uit de wereld
 		//dus als de laatste worm van een team sterft is er een lege team (tenzij je dat anders maakt).
 		//Dus er kunnen lege teams zijn waardoor this.getTeams().size() != 1 maar er toch slechts 1 team de winnaar is
