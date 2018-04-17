@@ -1,0 +1,35 @@
+// Worm that turns towards nearest worm, fires, and moves; or turns and tries to jump if no worm is in sight.
+
+def updateNearestWorm: {
+  delta := 0;
+  nearestWorm := null;
+  turnToNearest := 0;
+  while delta < 6.28: {
+    obj := searchobj delta;
+    if (obj != null && isworm obj):
+      if !sameteam obj:
+	      if (nearestWorm == null) || (distance obj < distance nearestWorm): {
+	        nearestWorm := obj;
+	        turnToNearest := delta;
+	      }
+    delta := delta + 0.2;
+  }
+}
+
+// main program
+
+while true: {
+  invoke updateNearestWorm;
+  
+  if nearestWorm != null: {
+    print nearestWorm;
+    print distance nearestWorm;
+    turn turnToNearest;
+    fire;
+    move;
+  }
+  else {
+    turn 0.2;
+    jump;
+  }
+}

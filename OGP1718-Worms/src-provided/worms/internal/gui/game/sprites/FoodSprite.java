@@ -1,5 +1,8 @@
 package worms.internal.gui.game.sprites;
 
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+
 import worms.internal.gui.game.ImageSprite;
 import worms.internal.gui.game.PlayGameScreen;
 import worms.model.Food;
@@ -12,10 +15,22 @@ public class FoodSprite extends ImageSprite<Food> {
 	private final Food food;
 	
 	private double radius;
+	
+	private boolean poisonous = false;
+	
+	// original image, at original scale
+	private final BufferedImage originalPoisonousImage;
+
+	// only created when scale != 1.0
+	private BufferedImage scaledPoisonousImage;
 
 	public FoodSprite(PlayGameScreen screen, Food food) {
 		super(screen, "images/burger.png");
 		this.food = food;
+		// constraint: must have same dimensions as original image
+		// constraint: does not respect hflipping 
+		this.originalPoisonousImage = loadImage("images/burger-poisonous.png");
+		this.scaledPoisonousImage = this.originalPoisonousImage;
 		update();
 	}
 
@@ -45,9 +60,52 @@ public class FoodSprite extends ImageSprite<Food> {
 
 		setScale(scaleFactor);
 	}
+
+	@Override
+	public void setScale(double newScale) {
+		double oldScale = getScale();
+		
+		super.setScale(newScale);
+		
+		if (newScale == oldScale) {
+			return;
+		}
+
+		if (newScale != 1.0) {
+			this.scaledPoisonousImage = toBufferedImage(originalPoisonousImage.getScaledInstance(
+					(int) (newScale * originalPoisonousImage.getWidth()),
+					(int) (newScale * originalPoisonousImage.getHeight()),
+					Image.SCALE_SMOOTH));
+		} else {
+			this.scaledPoisonousImage = originalPoisonousImage;
+		}
+	}
+
+	
+	@Override
+	protected Image getImageToDraw() {
+		if (isPoisonous()) {
+			return scaledPoisonousImage;
+		} else {
+			return super.getImageToDraw();
+		}
+	}
+
+	public synchronized double getRadius() {
+		return radius;
+	}
+	
+	public synchronized boolean isPoisonous() {
+		return poisonous;
+	}
+	
+	public void setPoisonous(boolean poisonous) {
+		this.poisonous = poisonous;
+	}
 	
 	@Override
 	public synchronized void update() {
+		setPoisonous(getFacade().isPoisonous(getFood()));
 		setRadius(getFacade().getRadius(getFood()));
 		double[] xy = getFacade().getLocation(getFood());
 		setCenterLocation(getScreen().getScreenX(xy[0]), getScreen().getScreenY(xy[1]));
@@ -67,8 +125,5 @@ public class FoodSprite extends ImageSprite<Food> {
 		return !getFacade().isTerminated(food);
 	}
 
-	public synchronized double getRadius() {
-		return radius;
-	}
 
 }

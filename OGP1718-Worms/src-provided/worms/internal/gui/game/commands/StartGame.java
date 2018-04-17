@@ -24,6 +24,7 @@ public class StartGame extends InstantaneousCommand {
 	protected void afterExecutionCancelled(Throwable e) {
 		if (e != null) {
 			getScreen().addMessage("Cannot start the game: " + e.getMessage(), MessageType.ERROR);
+			e.printStackTrace();
 		} else {
 			getScreen().addMessage("Cannot start the game without worms", MessageType.ERROR);
 		}

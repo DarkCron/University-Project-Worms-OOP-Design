@@ -14,6 +14,7 @@ import worms.model.Worm;
  * <li>shows periodic updates on the GUI (such as jump animations)
  * <li>eventually calls the corresponding facade methods, exactly like what
  * happens with a human player
+ * <li>makes sure a worm will fall after moving
  * <li>returns true if the action has been completed successfully; false
  * otherwise
  * </ul>
@@ -29,6 +30,10 @@ public interface IActionHandler {
 	public boolean move(Worm worm);
 
 	public boolean jump(Worm worm);
+	
+	public boolean eat(Worm worm);
+	
+	public boolean fire(Worm worm);
 
 	/**
 	 * Print a message on the screen for a short amount of time.

@@ -24,6 +24,10 @@ public class SetupInputMode extends InputMode<PlayGameScreen> {
 		case 'W':
 			getScreen().addPlayerControlledWorm();
 			break;
+		case 'c':
+		case 'C':
+			getScreen().addComputerControlledWorm();
+			break;
 		case 'f':
 		case 'F':
 			getScreen().addFood();
@@ -49,7 +53,12 @@ public class SetupInputMode extends InputMode<PlayGameScreen> {
 		getScreen()
 				.showInstructions(
 						g,
-						"Press\n'T' to create a new team\n'W' to add a new worm\n'F' to add food\n'S' to start the game");
+						"Press\n"
+						+ "'T' to create a new team\n"
+						+ "'W' to add a new player-controlled worm\n"
+						+ "'C' to add a new computer-controlled worm\n"
+						+ "'F' to add food\n"
+						+ "'S' to start the game");
 	}
 
 }

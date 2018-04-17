@@ -2,7 +2,10 @@ package worms.facade;
 
 import java.math.BigInteger;
 import java.util.*;
+
+import worms.internal.gui.game.IActionHandler;
 import worms.model.*;
+import worms.programs.IProgramFactory;
 import worms.util.ModelException;
 import worms.util.MustNotImplementException;
 
@@ -356,6 +359,7 @@ public interface IFacade {
 	default void fall(Worm worm) throws ModelException, MustNotImplementException  {
 		throw new MustNotImplementException();
 	}
+
 	/**
 	 * Return the time needed by the given worm to jump to the nearest position
 	 * adjacent to impassable terrain.
@@ -380,7 +384,17 @@ public interface IFacade {
 	 */
 	void jump(Worm worm, double timeStep) throws ModelException;
 
+	/**
+	 * Make the given worm eat a portion of food.
+	 */
+	void eat(Worm worm) throws ModelException;
 	
+	/**
+	 * Have the give worm fire a projectile.
+	 *   - The method must return the projectile that has been fired.
+	 */
+	Projectile fire(Worm worm) throws ModelException;
+
 	
 	/************
 	 * FOOD
@@ -426,11 +440,76 @@ public interface IFacade {
 	 */
 	World getWorld(Food food) throws ModelException;	
 
+	/**
+	 * Return whether or not the given portion of food is poisonous.
+	 */
+	boolean isPoisonous(Food food) throws ModelException;
+	
+	/**
+	 * Poison the given portion of food.
+	 */
+	void poison(Food food) throws ModelException;
+
+	
+	
+	/*************
+	 * PROJECTILE
+	 *************/
 
 	/**
-	 * Make the given worm eat a portion of food.
+	 * Check whether the given projectile is terminated.
 	 */
-	public void eat(Worm worm);
+	boolean isTerminated(Projectile projectile) throws ModelException;
+
+	/**
+	 * Return the current orientation of the given projectile (in radians).
+	 */
+	double getOrientation(Projectile projectile) throws ModelException;
+	
+	/**
+	 * Return the current location of the given projectile.
+	 *   - The resulting array contains the the x-coordinate of the given projectile
+	 *     followed by its y-coordinate.
+	 */
+	double[] getLocation(Projectile projectile) throws ModelException;
+
+	/**
+	 * Return the radius of the given projectile.
+	 */
+	double getRadius(Projectile projectile);
+	
+	/**
+	 * Return the number of hit points of the given projectile.
+	 */
+	int getNbHitPoints(Projectile projectile) throws ModelException;
+
+	/**
+	 * Returns the location on the jump trajectory of the given projectile
+	 * after a time t.
+	 *   - The resulting location is an array with two elements,
+	 *     with the first element being the x-coordinate and the
+	 *     second element the y-coordinate.
+	 */
+	double[] getJumpStep(Projectile projectile, double elapsedTime);
+
+	/**
+	 * Return the time needed by the given projectile to jump to the nearest 
+	 * location at which the projectile hits impassable terrain or a worm.
+	 *   - deltaT determines the resolution to be used in successive steps of the jump.
+	 */
+	double getJumpTime(Projectile projectile, double jumpTimeStep) throws ModelException;
+	
+	/**
+	 * Make the given projectile jump using the given time step.
+	 *   - The given time step determines a time interval during which
+	 *     you may assume that the projectile will not hit impassable
+	 *     terrain nor a worm.
+	 */
+	void jump(Projectile projectile, double jumpTimeStep) throws ModelException;
+	
+
+	
+	
 	
 	/********
 	 * TEAM
@@ -522,5 +601,60 @@ public interface IFacade {
 			throws ModelException, MustNotImplementException  {
 		throw new MustNotImplementException();
 	}
+
+
+	
+	
+
+	/**********
+	 * PROGRAMS
+	 **********/
+
+	/**
+	 * Return the program loaded on the given worm.
+	 */
+	Program getWormProgram(Worm worm) throws ModelException;
+
+	/**
+	 * Load the given program on the given worm.
+	 * 
+	 * While executing the program, the worm must invoke the methods corresponding
+	 * to actions through the provided ActionHandler object (e.g., actionHandler.jump(this),
+	 * actionHandler.turn(this, 0.2), etc.) rather than invoking them directly (e.g., this.jump()).
+	 * This executes the action as if a human player has initiated it, so the GUI can update itself.
+	 * The GUI will also invoke the corresponding method on the worm through the facade. 
+	 */
+	public void loadProgramOnWorm(Worm worm, Program program, IActionHandler actionHandler) throws ModelException;
+
+	/**
+	 * Execute the program loaded on the given worm.
+	 * The worm is positioned in some world. Returns null if the program
+	 * is not completely executed. Otherwise, returns the objects that have been
+	 * printed.
+	 * 
+	 * This method is only used in the tests. The GUI never calls this method; 
+	 * you should execute the program when the worm is activated.
+	 */
+	public List<Object> executeProgram(Worm worm) throws ModelException;
+
+	/**
+	 * Creates a new program factory.
+	 */
+	public IProgramFactory<?, ?, ?, ? extends Program> createProgramFactory() throws ModelException;
+
+
+	
+	
+
+	/*********
+	 * WIZARD
+	 *********/
+
+	/**
+	 * Have the wizard cast a spell over two randomly slected game objects in the given
+	 * world.
+	 */
+	void castSpell(World world) throws ModelException;
+
 
 }
