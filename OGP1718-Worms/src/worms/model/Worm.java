@@ -5,6 +5,7 @@ import java.math.BigInteger;
 import be.kuleuven.cs.som.annotate.*;
 import worms.exceptions.InvalidLocationException;
 import worms.exceptions.InvalidWormNameException;
+import worms.model.ShapeHelp.Circle;
 import worms.model.values.*;
 import worms.exceptions.InvalidRadiusException;
 
@@ -75,6 +76,11 @@ public class Worm extends GameObject{
 	public Worm(Location location, Direction direction, World world, Radius radius, Name name, Team team)
 			throws InvalidWormNameException, InvalidRadiusException, InvalidLocationException, IllegalArgumentException {
 		super(location, radius, world);
+		
+		if(world != null && !world.fullyContains(new Circle(location, radius).getBoundingRectangle())) { //TODO DOC
+			throw new IllegalArgumentException("Worm placed out of world");
+		}
+		
 		this.setDirection(direction);
 		this.setName(name);
 		this.resetActionPoints();
@@ -242,7 +248,10 @@ public class Worm extends GameObject{
 	 */
 	@Raw
 	public void setDirection(Direction direction) {
-		assert isValidDirection(direction);
+		//assert isValidDirection(direction);
+		if(!isValidDirection(direction)) { //TODO DOC
+			throw new IllegalArgumentException("Illegal direction");
+		}
 		if(isValidDirection(direction)) {
 			this.direction = direction;
 		}else {

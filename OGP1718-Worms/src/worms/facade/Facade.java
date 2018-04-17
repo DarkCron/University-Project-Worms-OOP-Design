@@ -199,9 +199,14 @@ public class Facade implements IFacade {
 
 	@Override
 	public void addWorm(World world, Worm worm) throws ModelException {
-		if(world!=null) {
-			world.addGameObject(worm);
+		try {
+			if(world!=null) {
+				world.addGameObject(worm);
+			}
+		} catch (Exception e) {
+			throw new ModelException(e);
 		}
+
 	}
 
 	@Override
@@ -413,6 +418,11 @@ public class Facade implements IFacade {
 	@Override
 	public Team createTeam(World world, String name) throws ModelException, MustNotImplementException {
 		try {
+			if(world==null) {
+				Team t = new Team(null, new Name(name));
+				return t;
+			}
+			
 			world.createTeam(new Name(name));
 			return world.getTeam(new Name(name));
 		} catch (Exception e) {

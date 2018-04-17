@@ -70,7 +70,7 @@ public class Team {
 	 * @return | result == !world.isTerminated()
 	 */
 	public static boolean isValidWorld(World world) {
-		if(world.isTerminated()) {
+		if(world != null && world.isTerminated()) { //TODO doc
 			return false;
 		}
 		return true;
@@ -113,7 +113,7 @@ public class Team {
 		}
 		
 		for (Worm o : teamRoster) {
-			if(!canHaveWormInTeam(o)) {
+			if(!canHaveWormInTeam(worm)) {
 				throw new IllegalArgumentException("Worm cannot be added to the team.");
 			}
 		}

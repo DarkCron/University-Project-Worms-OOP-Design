@@ -44,11 +44,9 @@ public abstract class GameObject{
 		if(!isValidRadius(radius)) {
 			throw new InvalidRadiusException(radius);
 		}
+		
 		this.setRadius(radius);
 		
-		if(!isValidWorld(world)) {
-			//throw new IllegalArgumentException("Invalid world.");
-		}
 		this.setWorld(world);
 		
 		if(!isValidLocation(location,this.getWorld())) {
@@ -56,9 +54,9 @@ public abstract class GameObject{
 		}
 		this.setLocation(location);
 		
-
-		
-		
+		if(!isValidWorld(world)) {
+			//throw new IllegalArgumentException("Invalid world.");
+		}		
 	}
 	
 	/**
@@ -88,7 +86,7 @@ public abstract class GameObject{
 		}
 		if(this.getWorld()!= null && !this.getWorld().fullyContains(new Circle(location, this.getRadius()).getBoundingRectangle())) { //TODO UPDATE DOC
 			this.terminate();
-			throw new InvalidLocationException(location);
+			//throw new InvalidLocationException(location);
 		}
 		this.location = location;
 	}
@@ -159,10 +157,16 @@ public abstract class GameObject{
 	 * @throws InvalidRadiusException
 	 *         Whenever the radius is out of bounds or invalid.
 	 *     |!isValidRadius(new.getRadius())
-	 *     
+	 *     TODO DOC
 	 */
 	public void setRadius(Radius radius) throws InvalidRadiusException {
 		if(!isValidRadius(radius)) {
+			throw new InvalidRadiusException(radius);
+		}
+		if(this.getWorld() != null && !this.getWorld().isPassable(this.getLocation(), radius)) {
+			throw new InvalidRadiusException(radius);
+		}
+		if(this.getWorld() != null && !this.getWorld().isAdjacantToImpassableTerrain(this.getLocation(), radius)) {
 			throw new InvalidRadiusException(radius);
 		}
 		this.radius = radius;

@@ -275,6 +275,10 @@ public class World {
 			throw new IllegalArgumentException("The given gameObject was equal to null.");
 		}
 		
+		if(this.hasGameObject(gameObject)) { //TODO DOC
+			throw new IllegalArgumentException("The given gameObject was already in world.");
+		}
+		
 		if(worldObjectsMapHasGameObjectTypeKey(gameObject.getTypeID())) {
 			worldObjects.get(gameObject.getTypeID()).add(gameObject);
 		}else {
@@ -321,7 +325,8 @@ public class World {
 		}
 		
 		if(!worldObjectsMapHasGameObjectTypeKey(gameObject.getTypeID())) {
-			throw new IllegalArgumentException("The given gameObject was not a part of the world.");
+			worldObjects.put(gameObject.getTypeID(), new HashSet<GameObject>());
+			//throw new IllegalArgumentException("The given gameObject was not a part of the world.");
 		}
 		
 		return worldObjects.get(gameObject.getTypeID()).contains(gameObject);
@@ -726,7 +731,7 @@ public class World {
 	 */
 	@Basic @Raw
 	public Set<Team> getTeams(){
-		return this.worldTeams;
+		return new HashSet<Team>(this.worldTeams);
 	}
 	
 	/**
@@ -819,6 +824,8 @@ public class World {
 				((GameObject) o).terminate();
 			}
 		}
+		
+		
 		
 		wormTurnCycle.clear();
 		wormTurnCycle = null;
