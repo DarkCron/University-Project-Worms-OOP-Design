@@ -224,6 +224,14 @@ public class PlayGameScreen extends Screen {
 		}
 
 	}
+	
+	public void fire() {
+		Worm worm = getSelectedWorm();
+		if (worm != null) {
+			userActionHandler.fire(worm);
+		}
+
+	}
 
 	public void turn(double angle) {
 		Worm worm = getSelectedWorm();
@@ -397,7 +405,11 @@ public class PlayGameScreen extends Screen {
 	}
 
 	public void addPlayerControlledWorm() {
-		userActionHandler.addNewWorm();
+		userActionHandler.addNewWorm(false);
+	}
+	
+	public void addComputerControlledWorm() {
+		userActionHandler.addNewWorm(true);
 	}
 
 	public void addFood() {
@@ -443,6 +455,10 @@ public class PlayGameScreen extends Screen {
 
 	public IActionHandler getProgramActionHandler() {
 		return programActionHandler;
+	}
+
+	public void activateWizard() {
+		userActionHandler.activateWizard();
 	}
 
 }

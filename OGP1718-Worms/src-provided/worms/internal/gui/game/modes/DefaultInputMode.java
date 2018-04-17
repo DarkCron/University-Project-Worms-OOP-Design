@@ -55,6 +55,14 @@ public class DefaultInputMode extends InputMode<PlayGameScreen> {
 		case 'E':
 			getScreen().eat();
 			break;
+		case 'f':
+		case 'F':
+			getScreen().fire();
+			break;
+		case 's':
+		case 'S':
+			getScreen().activateWizard();
+			break;
 		}
 	}
 

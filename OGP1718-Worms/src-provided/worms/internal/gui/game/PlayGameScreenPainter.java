@@ -17,6 +17,7 @@ import worms.internal.gui.GUIUtils;
 import worms.internal.gui.GameState;
 import worms.internal.gui.Level;
 import worms.internal.gui.game.sprites.FoodSprite;
+import worms.internal.gui.game.sprites.ProjectileSprite;
 import worms.internal.gui.game.sprites.WormSprite;
 import worms.model.World;
 import worms.util.ModelException;
@@ -102,7 +103,16 @@ public class PlayGameScreenPainter extends AbstractPainter<PlayGameScreen> {
 			paintWorm(sprite);
 		}
 
+		for (ProjectileSprite sprite : getScreen().getSpritesOfType(
+				ProjectileSprite.class)) {
+			paintProjectile(sprite);
+		}
+
 		this.currentGraphics = null;
+	}
+
+	protected void paintProjectile(ProjectileSprite sprite) {
+		sprite.draw(currentGraphics);
 	}
 
 	protected void paintFood(FoodSprite sprite) {

@@ -26,4 +26,11 @@ public class GUIOptions {
 	 */
 	public boolean enableClickToSelect = false;
 	
+	/**
+	 * The program that is executed by computer-controlled worms.
+	 * Default: "programs/program.txt"
+	 * 
+	 * Can also be set from the command line with the -program argument
+	 */
+	public String programFile = "programs/program.txt";
 }

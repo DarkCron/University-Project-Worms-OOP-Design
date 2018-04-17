@@ -1,0 +1,20 @@
+def controlled_move:
+  if getap self > 100.0:
+    { jump; 
+      print getx self;
+      print gety self; }
+  else move;
+  
+max_distance := 10.0;
+while true: {
+  w := searchobj 0.0;
+  if isworm w: {
+    if sameteam w:
+      invoke controlled_move;
+    else if distance w < max_distance:
+      fire;
+    else
+      { turn d;
+        max_distance := max_distance + 0.1; }
+  }
+}
