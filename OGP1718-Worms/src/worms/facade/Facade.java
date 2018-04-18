@@ -11,6 +11,7 @@ import worms.exceptions.InvalidWormNameException;
 import worms.internal.gui.game.IActionHandler;
 import worms.model.Food;
 import worms.model.Program;
+import worms.model.ProgramFactory;
 import worms.model.Projectile;
 import worms.model.Team;
 import worms.model.World;
@@ -611,7 +612,7 @@ public class Facade implements IFacade {
 	@Override
 	public IProgramFactory<?, ?, ?, ? extends Program> createProgramFactory() throws ModelException {
 		// TODO Auto-generated method stub
-		return null;
+		return new ProgramFactory();
 	}
 
 	@Override
