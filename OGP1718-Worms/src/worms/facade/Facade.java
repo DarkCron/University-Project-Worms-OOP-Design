@@ -212,7 +212,12 @@ public class Facade implements IFacade {
 
 	@Override
 	public void removeWorm(World world, Worm worm) throws ModelException {
-		world.removeGameObject(worm);
+		try {
+			world.removeGameObject(worm);
+		} catch (Exception e) {
+			throw new ModelException(e);
+		}
+		
 	}
 
 	@Override
@@ -230,9 +235,14 @@ public class Facade implements IFacade {
 	
 	@Override
 	public void addFood(World world, Food food) throws ModelException {
-		if(world!=null) {
-			world.addGameObject(food);
+		try {
+			if(world!=null) {
+				world.addGameObject(food);
+			}
+		} catch (Exception e) {
+			throw new ModelException(e);
 		}
+
 	}
 
 	@Override
@@ -295,7 +305,7 @@ public class Facade implements IFacade {
 		try {
 			Worm w = new Worm(new Location(location), new Direction(direction),world, new Radius(radius, World.getWormMinimumRadius()), new Name(name),team);
 			this.addWorm(world, w);
-			this.addWormsToTeam(team, w);
+			//this.addWormsToTeam(team, w);
 			return w;
 		} catch (Exception e) {
 			throw new ModelException(e);
@@ -358,7 +368,7 @@ public class Facade implements IFacade {
 		try {
 			return worm.getJumpTime(deltaT);
 		} catch (Exception e) {
-			throw new ModelException("Worm can't jumpt like that.");
+			throw new ModelException("Worm can't jumpt like that.\n" + e.getMessage());
 		}
 	}
 

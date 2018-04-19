@@ -1,5 +1,7 @@
 package worms.model.ShapeHelp;
 
+import java.awt.Point;
+
 import worms.model.values.Location;
 
 /**
@@ -101,5 +103,26 @@ public class Rectangle extends Shape {
 				&& boundingRectangle.getCenter().getY() >= 0
 				&& (this.getCenter().getX()+this.getSize().getX()) >= (boundingRectangle.getCenter().getX() + boundingRectangle.getSize().getX())
 				&& (this.getCenter().getY()+this.getSize().getY()) >= (boundingRectangle.getCenter().getY() + boundingRectangle.getSize().getY());
+	}
+
+	//TODO
+	public boolean isOnUpperEdge(Location p) {
+		return p.getY() == this.getCenter().getY();
+	}
+	
+	public boolean isOnLowerEdge(Location p) {
+		return p.getY() == this.getCenter().getY() + this.getSize().getY();
+	}
+	
+	public boolean isOnLeftEdge(Location p) {
+		return p.getX() == this.getCenter().getX();
+	}
+	
+	public boolean isOnRightEdge(Location p) {
+		return p.getX() == this.getCenter().getX() + this.getSize().getX();
+	}
+	
+	public boolean isOnCornerEdge(Location p) {
+		return (isOnUpperEdge(p)||isOnLowerEdge(p)) && (isOnLeftEdge(p) || isOnRightEdge(p));
 	}
 }

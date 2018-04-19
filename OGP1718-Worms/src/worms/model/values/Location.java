@@ -122,7 +122,7 @@ public class Location {
 	 *         | (x !=Double.NaN && y != Double.NaN)
 	 */
 	public boolean isValidLocation(double x, double y) {
-		if (x == Double.NaN || y == Double.NaN) {
+		if (Double.compare(x, Double.NaN) == 0 || Double.compare(y, Double.NaN) == 0 ) {
 			return false;
 		}
 		return true;

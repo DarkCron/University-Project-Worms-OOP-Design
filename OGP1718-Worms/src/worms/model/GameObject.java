@@ -57,6 +57,15 @@ public abstract class GameObject{
 		if(!isValidWorld(world)) {
 			//throw new IllegalArgumentException("Invalid world.");
 		}		
+		
+		if(this.getWorld() != null) {
+			if(!this.getWorld().isPassable(this)) {
+				throw new IllegalStateException("Worm placed out of world on initialization.");
+			}
+			if(!this.getWorld().isAdjacantToImpassableTerrain(location, radius)) {
+				throw new IllegalStateException("Worm not placed near impassable terrain.");
+			}
+		}
 	}
 	
 	/**

@@ -90,7 +90,9 @@ public class Worm extends GameObject{
 		if(!isValidTeam(team, this)) {
 			throw new IllegalArgumentException("Invalid team");
 		}
-		this.setTeam(team);
+		if(team!=null) {//TODO doc
+			team.addWorm(this);
+		}
 	}
 
 	/**
@@ -1127,7 +1129,7 @@ public class Worm extends GameObject{
 	 * 		| !isValidLocation(tmpLocation)
 	 */
 	public double[] jumpStep(double deltaTime) throws InvalidLocationException,IllegalArgumentException,RuntimeException{
-		
+
 		if(!isValidJumpTime(deltaTime)) {
 			throw new IllegalArgumentException(((Double)deltaTime).toString());
 		}
@@ -1191,7 +1193,13 @@ public class Worm extends GameObject{
 		if(!isValidJumpTime(jumpTime)) {
 			throw new RuntimeException("Invalid jumptime calculated. "+jumpTime);
 		}
-		return this.getLastPassableJumpStepTime(jumpTime,deltaT);
+		
+		double jumptime = this.getLastPassableJumpStepTime(jumpTime,deltaT);
+		if(jumptime == 0) { //TODO DOC
+			throw new IllegalArgumentException("Deltatime and jumpTime too short.");
+		}
+		
+		return jumptime;
 	}
 	
 	/**
@@ -1215,9 +1223,12 @@ public class Worm extends GameObject{
 	 * 			
 	 */
 	private double getLastPassableJumpStepTime(double jumpTime, double deltaT) {
-		for (double i = 0; i < jumpTime; i+=deltaT) {
+		for (double i = deltaT; i < jumpTime; i+=deltaT) {
 			Location wormLoc = new Location(this.jumpStep(i));
-			if(!this.getWorld().isPassable(wormLoc, this.getRadius())) {
+			if(!this.getWorld().isPassable(wormLoc, this.getRadius())) { //TODO Doc
+				if(this.getLocation().getDistanceFrom(wormLoc) < this.getRadius().getRadius()) {
+					return 0; //THIS WILL CAUSE A CONTROLLED EXCEPTION
+				}
 				//This means the latest jumpstep is invalid, therefore the one step before that was.
 				return i-deltaT;
 			}
@@ -1310,7 +1321,11 @@ public class Worm extends GameObject{
 		if(this.getTeam() != null) {
 			this.getTeam().removeWorm(this);
 		}
-		this.getWorld().removeFromTurnCycle(this);	
+		
+		if(this.getWorld() != null) {
+			this.getWorld().removeFromTurnCycle(this);	
+		}
+		
 		super.terminate();
 	}
 }

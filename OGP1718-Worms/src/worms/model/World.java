@@ -62,16 +62,16 @@ public class World {
 	 * @note we worked out width and height in a total manner since no specific
 	 * 	manner was defined.
 	 */
-	public World(double width, double height, boolean[][] passableMap) {
+	public World(double width, double height, boolean[][] passableMap) throws IllegalArgumentException{
 		if(!isValidPassableMap(passableMap)) {
 			throw new IllegalArgumentException("Invalid passableMap upon world creation.");
 		}
 		
 		if(!isValidWorldSize(width)) {
-			width = 0;
+			throw new IllegalArgumentException("IllegalDimension width");
 		}
 		if(!isValidWorldSize(height)) {
-			height = 0;
+			throw new IllegalArgumentException("IllegalDimension height");
 		}
 		this.worldWidth = width;
 		this.worldHeight = height;	
@@ -231,7 +231,7 @@ public class World {
 	 * @return | result == !(size == Double.NaN) && size >= 0 
 	 */
 	public static boolean isValidWorldSize(double size) {
-		if(size == Double.NaN) {
+		if(Double.compare(size, Double.NaN) == 0) {
 			return false;
 		}else if((size < 0 || size == Double.MAX_VALUE)) {
 			return false;
@@ -271,8 +271,21 @@ public class World {
 			throw new IllegalStateException("Game is active, objects can't be added.");
 		}
 		
+		if(this.isTerminated()) { //TODO
+			throw new IllegalArgumentException("This world is terminated.");
+		}
+		
 		if(gameObject == null) {
 			throw new IllegalArgumentException("The given gameObject was equal to null.");
+		}
+		
+		
+		if(gameObject.isTerminated()) { //TODO
+			throw new IllegalArgumentException("The given gameObject was terminated.");
+		}
+		
+		if(gameObject.getWorld() != this && gameObject.getWorld() != null) {
+			throw new IllegalArgumentException("The given gameObject already existed somewhere else.");
 		}
 		
 		if(this.hasGameObject(gameObject)) { //TODO DOC
@@ -285,6 +298,16 @@ public class World {
 			worldObjects.put(gameObject.getTypeID(), new HashSet<GameObject>());
 			worldObjects.get(gameObject.getTypeID()).add(gameObject);
 		}
+		
+		gameObject.setWorld(this);//TODO
+		
+		if(!isPassable(gameObject)) { //TODO
+			throw new IllegalStateException("object placed out of world on initialization.");
+		}
+		if(!isAdjacantToImpassableTerrain(gameObject.getLocation(), gameObject.getRadius())) { //TODO
+			throw new IllegalStateException("object not placed near impassable terrain.");
+		}
+		
 	}
 	
 	/**
@@ -488,7 +511,7 @@ public class World {
 			return false;
 		}
 
-		return !this.isPassable(location,  new Radius(radius.getRadius() *1.1d));// && this.isPassable(location, radius);	
+		return !this.isPassable(location,  new Radius(radius.getRadius() *1.1d)) && this.isPassable(location, radius);	
 	}
 	
 	
@@ -549,13 +572,54 @@ public class World {
 			
 
 			if(!passableMap[heightIndex][widthIndex].isPassable() && passableMap[heightIndex][widthIndex].containsPoint(realWorldLoc)) {
-				return false;
+				if(isOnEdge(passableMap[heightIndex][widthIndex],realWorldLoc)) {
+					return edgeBorderCheck(heightIndex,widthIndex,realWorldLoc);
+				}else {
+					return false;
+				}
+				
 			}	
 		}
 		
 		return true;
 	}
 	
+	//TODO
+	private boolean edgeBorderCheck(int heightIndex, int widthIndex,Location realWorldLoc) {
+		if(passableMap[heightIndex][widthIndex].isOnCornerEdge(realWorldLoc)) {
+			return true;
+		}
+		if(passableMap[heightIndex][widthIndex].isOnUpperEdge(realWorldLoc)) {
+			return heightIndex != passableMap.length &&  passableMap[heightIndex+1][widthIndex].isPassable();
+		}else if(passableMap[heightIndex][widthIndex].isOnLowerEdge(realWorldLoc)) {
+			return heightIndex != 0 &&  passableMap[heightIndex-1][widthIndex].isPassable();
+		}else if(passableMap[heightIndex][widthIndex].isOnLeftEdge(realWorldLoc)) {
+			return widthIndex != 0 &&  passableMap[heightIndex][widthIndex-1].isPassable();
+		}else if(passableMap[heightIndex][widthIndex].isOnRightEdge(realWorldLoc)) {
+			return widthIndex != passableMap[0].length &&  passableMap[heightIndex][widthIndex+1].isPassable();
+		}
+		return false;
+	}
+
+	//TODO
+	private boolean isOnEdge(BoundaryRectangle boundaryRectangle, Location realWorldLoc) {
+		if(realWorldLoc.getX() == boundaryRectangle.getCenter().getX()) {
+			return true;
+		}
+		else if(realWorldLoc.getX() > boundaryRectangle.getCenter().getX() && boundaryRectangle.getCenter().getX() + boundaryRectangle.getSize().getX() > realWorldLoc.getX()) {
+			if(realWorldLoc.getY() == boundaryRectangle.getCenter().getY()) {
+				return true;
+			}else if(realWorldLoc.getY() == boundaryRectangle.getCenter().getY()+ boundaryRectangle.getSize().getY()) {
+				return true;
+			}else {
+				return false;
+			}
+		}else if(boundaryRectangle.getCenter().getX() + boundaryRectangle.getSize().getX() == realWorldLoc.getX()) {
+			return true;
+		}
+		return false;
+	}
+
 	/**
 	 * Returns a real world representation of a relative world position.
 	 * @param location
@@ -582,7 +646,10 @@ public class World {
 	 * 			|				return this.isPassable(new Location((i+bound.getCenter().getX()), (j+bound.getCenter().getY())))
 	 */
 	public boolean isPassable(Location location, Radius radius) {
-		if(!Worm.isValidWorldLocation(location, this)) {
+//		if(!Worm.isValidWorldLocation(location, this)) {
+//			return false;
+//		}
+		if(!furthestPointsPassable(location,radius)) {
 			return false;
 		}
 		Circle passableSurface = new Circle(location, radius);
@@ -600,6 +667,27 @@ public class World {
 		return true;
 	}
 	
+	private boolean furthestPointsPassable(Location location, Radius radius) {
+		Location upperLimit = new Location(location.getX(),location.getY()+radius.getRadius());
+		Location lowerLimit = new Location(location.getX(),location.getY()-radius.getRadius());
+		Location leftLimit = new Location(location.getX()-radius.getRadius(),location.getY());
+		Location rightLimit = new Location(location.getX()+radius.getRadius(),location.getY());
+		
+		if(!isPassable(upperLimit)) {
+			return false;
+		}
+		if(!isPassable(lowerLimit)) {
+			return false;
+		}
+		if(!isPassable(leftLimit)) {
+			return false;
+		}
+		if(!isPassable(rightLimit)) {
+			return false;
+		}
+		return true;
+	}
+
 	/**
 	 * Checks whether a gameObject fully lies within passable terrain.
 	 * 
@@ -641,10 +729,16 @@ public class World {
 		}
 		
 	}
+	
+	//TODO
 	public void startGame() {
 		this.createTurnCycle();
 		this.setGameActive(true);
-		this.wormTurnCycle.getFirst().resetTurn();
+		
+		if(this.wormTurnCycle.size() >= 1) {
+			this.wormTurnCycle.getFirst().resetTurn();
+		}
+
 	}
 	
 	/**
@@ -825,6 +919,7 @@ public class World {
 			}
 		}
 		
+		worldTeams.clear();
 		
 		
 		wormTurnCycle.clear();

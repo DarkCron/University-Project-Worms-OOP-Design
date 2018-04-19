@@ -68,6 +68,12 @@ public class Name {
 		if (c == '\'') {
 			return true;
 		}
+		if (c == '\"') {
+			return true;
+		}
+		if (c == '_') {
+			return true;
+		}
 		return false;
 	}
 

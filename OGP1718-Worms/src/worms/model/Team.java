@@ -108,21 +108,27 @@ public class Team {
 	 * @throws IllegalArgumentException
 	 */
 	public void addWorm(Worm worm) throws IllegalArgumentException {
+		
 		if(worm==null) {
 			throw new IllegalArgumentException("Given worm was null");
 		}
 		
-		for (Worm o : teamRoster) {
-			if(!canHaveWormInTeam(worm)) {
-				throw new IllegalArgumentException("Worm cannot be added to the team.");
-			}
+		if(worm.getTeam() != null) {//TODO DOC
+			throw new IllegalArgumentException("This worm already has a team.");
+		}
+
+		if(!canHaveWormInTeam(worm)) {
+			throw new IllegalArgumentException("Worm cannot be added to the team.");
 		}
 		
 		
+		
 		if(teamRoster.isEmpty()) {
+			worm.setTeam(this);//TODO DOC
 			teamRoster.add(worm);
 		}else {
 			int index = sortInTeamRoster(worm);
+			worm.setTeam(this);//TODO DOC
 			teamRoster.add(index, worm);
 		}
 		
