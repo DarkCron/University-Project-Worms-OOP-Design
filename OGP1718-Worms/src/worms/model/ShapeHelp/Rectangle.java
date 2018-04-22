@@ -1,7 +1,4 @@
 package worms.model.ShapeHelp;
-
-import java.awt.Point;
-
 import worms.model.values.Location;
 
 /**

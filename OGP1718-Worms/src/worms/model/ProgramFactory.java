@@ -2,12 +2,11 @@ package worms.model;
 
 import java.util.List;
 
-import worms.parser.expressions.BaseExpression;
-import worms.parser.expressions.ExpAddition;
-import worms.parser.expressions.ExpAssignment;
-import worms.parser.expressions.ExpDoubleValue;
-import worms.parser.expressions.ExpLogical;
-import worms.parser.expressions.ExpReadVar;
+import worms.parser.expressions.LambdaExpAssignment;
+import worms.parser.expressions.LambdaExpBinary;
+import worms.parser.expressions.LambdaExpLiteral;
+import worms.parser.expressions.LambdaExpUnary;
+import worms.parser.expressions.LambdaExpression;
 import worms.parser.procedures.BaseProcedure;
 import worms.parser.statements.BaseStatement;
 import worms.parser.statements.StateAssignment;
@@ -17,7 +16,8 @@ import worms.programs.IProgramFactory;
 import worms.programs.SourceLocation;
 import worms.util.ModelException;
 
-public class ProgramFactory implements IProgramFactory<BaseExpression, BaseStatement, BaseProcedure, Program> {
+public class ProgramFactory implements IProgramFactory<LambdaExpression, BaseStatement, BaseProcedure, Program> {
+
 
 	@Override
 	public Program createProgram(List<BaseProcedure> procs, BaseStatement main) throws ModelException {
@@ -26,39 +26,31 @@ public class ProgramFactory implements IProgramFactory<BaseExpression, BaseState
 	}
 
 	@Override
-	public BaseProcedure createProcedureDefinition(String procedureName, BaseStatement body, SourceLocation sourceLocation) {
+	public BaseProcedure createProcedureDefinition(String procedureName, BaseStatement body,
+			SourceLocation sourceLocation) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public BaseStatement createAssignmentStatement(String variableName, BaseExpression value, SourceLocation sourceLocation)
+	public BaseStatement createAssignmentStatement(String variableName, LambdaExpression value,
+			SourceLocation sourceLocation) throws ModelException {
+		LambdaExpAssignment assignment = new LambdaExpAssignment();
+		assignment.setExpression((p) -> LambdaExpression.VARIABLE_ASSIGN.set(p,variableName, value));
+		StateAssignment assigner = new StateAssignment(sourceLocation, assignment);
+		return assigner;
+	}
+
+	@Override
+	public BaseStatement createPrintStatement(LambdaExpression value, SourceLocation sourceLocation)
 			throws ModelException {
-		// TODO Auto-generated method stub
-		if(value instanceof ExpAssignment) {
-			return new StateAssignment(sourceLocation,variableName,(ExpAssignment) value);
-		}else if(value instanceof ExpLogical) {
-			return new StateAssignment(sourceLocation,variableName,((ExpLogical)value).asExpAssignment());
-		}else {
-			throw new ModelException("Invalid assign expression to assign in statement. @CreateAssignmentStatement-ProgramFactory");
-		}
-		
+		LambdaExpUnary printer = new LambdaExpUnary();
+		printer.setExpression((p) -> LambdaExpression.PRINTER.set(p,value));
+		return new StatePrint(sourceLocation, printer);
 	}
 
 	@Override
-	public BaseStatement createPrintStatement(BaseExpression value, SourceLocation sourceLocation) throws ModelException {
-		// TODO Auto-generated method stub
-		if(value instanceof ExpReadVar) {
-			return new StatePrint(sourceLocation, (ExpReadVar) value);
-		}else {
-			throw new ModelException("Invalid expression to read variable to print."
-					+ "@CreatePrintStatement - ProgramFactory");
-		}
-		
-	}
-
-	@Override
-	public BaseStatement createTurnStatement(BaseExpression angle, SourceLocation location) throws ModelException {
+	public BaseStatement createTurnStatement(LambdaExpression angle, SourceLocation location) throws ModelException {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -90,108 +82,116 @@ public class ProgramFactory implements IProgramFactory<BaseExpression, BaseState
 	@Override
 	public BaseStatement createSequenceStatement(List<BaseStatement> statements, SourceLocation sourceLocation)
 			throws ModelException {
-		// TODO Auto-generated method stub
 		return new StateSequence(sourceLocation, statements);
 	}
 
 	@Override
-	public BaseStatement createIfStatement(BaseExpression condition, BaseStatement ifBody, BaseStatement elseBody,
+	public BaseStatement createIfStatement(LambdaExpression condition, BaseStatement ifBody, BaseStatement elseBody,
 			SourceLocation sourceLocation) throws ModelException {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public BaseStatement createWhileStatement(BaseExpression condition, BaseStatement body, SourceLocation sourceLocation)
+	public BaseStatement createWhileStatement(LambdaExpression condition, BaseStatement body,
+			SourceLocation sourceLocation) throws ModelException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public LambdaExpression createReadVariableExpression(String variableName, SourceLocation sourceLocation)
+			throws ModelException {
+		LambdaExpUnary reader = new LambdaExpUnary();
+		reader.setExpression((p)->LambdaExpression.VARIABLE_READ.set(p,variableName));
+		return reader;
+	}
+
+	@Override
+	public LambdaExpression createDoubleLiteralExpression(double value, SourceLocation location) throws ModelException {
+		LambdaExpLiteral literal = new LambdaExpLiteral();
+		literal.setExpression((p) -> LambdaExpression.LITERAL_DOUBLE.set(p,value));
+		return literal;
+	}
+
+	@Override
+	public LambdaExpression createBooleanLiteralExpression(boolean value, SourceLocation location)
+			throws ModelException {
+		LambdaExpLiteral literal = new LambdaExpLiteral();
+		literal.setExpression((p) -> LambdaExpression.LITERAL_BOOLEAN.set(p,value));
+		return literal;
+	}
+
+	@Override
+	public LambdaExpression createNullExpression(SourceLocation location) throws ModelException {
+		LambdaExpLiteral literal = new LambdaExpLiteral();
+		literal.setExpression((p) -> LambdaExpression.LITERAL_NULL.set(p,null));
+		return literal;
+	}
+
+	@Override
+	public LambdaExpression createSelfExpression(SourceLocation location) throws ModelException {
+		LambdaExpLiteral literal = new LambdaExpLiteral();
+		literal.setExpression((p) -> LambdaExpression.GET_SELF.set(p,null));
+		return literal;
+	}
+
+	@Override
+	public LambdaExpression createAdditionExpression(LambdaExpression left, LambdaExpression right,
+			SourceLocation location) throws ModelException {
+		LambdaExpBinary addition = new LambdaExpBinary();
+		addition.setExpression((p) -> LambdaExpression.ADDER.set(p,left,right));
+		return addition;
+	}
+
+	@Override
+	public LambdaExpression createAndExpression(LambdaExpression left, LambdaExpression right,
+			SourceLocation sourceLocation) throws ModelException {
+		LambdaExpBinary logicOperation = new LambdaExpBinary();
+		logicOperation.setExpression((p)-> LambdaExpression.LOGIC_AND.set(p, left,right));
+		return logicOperation;
+	}
+
+	@Override
+	public LambdaExpression createNotExpression(LambdaExpression expression, SourceLocation sourceLocation)
+			throws ModelException {
+		LambdaExpUnary logicOperation = new LambdaExpUnary();
+		logicOperation.setExpression((p)-> LambdaExpression.LOGIC_NOT.set(p, expression));
+		return logicOperation;
+	}
+
+	@Override
+	public LambdaExpression createEqualityExpression(LambdaExpression left, LambdaExpression right,
+			SourceLocation location) throws ModelException {
+		LambdaExpBinary logicOperation = new LambdaExpBinary();
+		logicOperation.setExpression((p)-> LambdaExpression.LOGIC_EQUALITY.set(p, left,right));
+		return logicOperation;
+	}
+
+	@Override
+	public LambdaExpression createLessThanExpression(LambdaExpression left, LambdaExpression right,
+			SourceLocation location) {
+		LambdaExpBinary logicOperation = new LambdaExpBinary();
+		logicOperation.setExpression((p)-> LambdaExpression.LOGIC_LESS_THAN.set(p, left,right));
+		return logicOperation;
+	}
+
+	@Override
+	public LambdaExpression createSearchObjectExpression(LambdaExpression angleDelta, SourceLocation sourceLocation)
 			throws ModelException {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public BaseExpression createReadVariableExpression(String variableName, SourceLocation sourceLocation)
-			throws ModelException {
-		// TODO Auto-generated method stub
-		return new ExpReadVar(sourceLocation, variableName);
-	}
-
-	@Override
-	public BaseExpression createDoubleLiteralExpression(double value, SourceLocation location) throws ModelException {
-		// TODO Auto-generated method stub
-		return new ExpDoubleValue(location,value);
-	}
-
-	@Override
-	public BaseExpression createBooleanLiteralExpression(boolean value, SourceLocation location) throws ModelException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public BaseExpression createNullExpression(SourceLocation location) throws ModelException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public BaseExpression createSelfExpression(SourceLocation location) throws ModelException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public BaseExpression createAdditionExpression(BaseExpression left, BaseExpression right, SourceLocation location)
-			throws ModelException {
-		// TODO Auto-generated method stub
-		if(left instanceof ExpAssignment && right instanceof ExpAssignment) {
-			return new ExpAddition(location, (ExpAssignment)left, (ExpAssignment)right);
-		}
-		throw new ModelException("Illegal expressions left and right for logical expressions.");
-	}
-
-	@Override
-	public BaseExpression createAndExpression(BaseExpression left, BaseExpression right, SourceLocation sourceLocation)
+	public LambdaExpression createDistanceExpression(LambdaExpression entity, SourceLocation sourceLocation)
 			throws ModelException {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public BaseExpression createNotExpression(BaseExpression expression, SourceLocation sourceLocation)
-			throws ModelException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public BaseExpression createEqualityExpression(BaseExpression left, BaseExpression right, SourceLocation location)
-			throws ModelException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public BaseExpression createLessThanExpression(BaseExpression left, BaseExpression right, SourceLocation location) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public BaseExpression createSearchObjectExpression(BaseExpression angleDelta, SourceLocation sourceLocation)
-			throws ModelException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public BaseExpression createDistanceExpression(BaseExpression entity, SourceLocation sourceLocation)
-			throws ModelException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public BaseExpression createIsWormExpression(BaseExpression entity, SourceLocation sourceLocation)
+	public LambdaExpression createIsWormExpression(LambdaExpression entity, SourceLocation sourceLocation)
 			throws ModelException {
 		// TODO Auto-generated method stub
 		return null;

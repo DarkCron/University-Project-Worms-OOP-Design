@@ -4,9 +4,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import be.kuleuven.cs.som.annotate.*;
 import worms.parser.procedures.BaseProcedure;
 import worms.parser.statements.BaseStatement;
-import worms.parser.statements.StateAssignment;
 import worms.parser.statements.StateSequence;
 
 public class Program {
@@ -28,6 +28,11 @@ public class Program {
 	
 	private final Map<String, Object> globalVariables;
 	
+	@Basic @Raw @Immutable
+	public Map<String, Object> getGlobals(){
+		return globalVariables;
+	}
+	
 	private int mainSequenceIndex = 0;
 	
 	public void doStartExecution() throws IllegalStateException{
@@ -36,11 +41,11 @@ public class Program {
 		if(mainSequence == null) {
 			throw new IllegalStateException("mainSequence does not exist in program.");
 		}
-		
+
 		execute();
 	}
-	
-	private void execute() throws IllegalStateException{
+
+	private void execute() throws IllegalStateException,IllegalArgumentException{
 		while(this.canContinueExecution()) {
 			BaseStatement currentStatement = mainSequence.getSequence().get(mainSequenceIndex);
 			if(currentStatement == null) {
@@ -51,16 +56,8 @@ public class Program {
 		}
 	}
 
-	private void handleExecution(BaseStatement currentStatement) {
-		if(currentStatement instanceof StateAssignment) {
-			StateAssignment assignment = (StateAssignment)currentStatement;
-			if(assignment.getKeyValue().getKey() == null || assignment.getKeyValue().getValue() == null) {
-				throw new IllegalStateException("Assignment statement error in program.");
-			}
-			globalVariables.put(assignment.getKeyValue().getKey(), assignment.getKeyValue().getValue());
-		}else {
-			currentStatement.execute(globalVariables);
-		}
+	private void handleExecution(BaseStatement currentStatement) throws IllegalStateException, IllegalArgumentException{
+		currentStatement.execute(this);
 	}
 
 	private boolean canContinueExecution() {
@@ -68,5 +65,22 @@ public class Program {
 			return false;
 		}
 		return true;
+	}
+	
+	private Worm programHolder = null;
+	
+	public void assignProgram(Worm w) {
+		this.setProgramHolder(w);
+		if(w != null) {
+			w.assignProgram(this);
+		}
+	}
+	
+	public void setProgramHolder(Worm w) {
+		this.programHolder = w;
+	}
+	
+	public Worm getProgramHolder() {
+		return this.programHolder;
 	}
 }

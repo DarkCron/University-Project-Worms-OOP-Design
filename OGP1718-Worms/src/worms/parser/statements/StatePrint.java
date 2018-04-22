@@ -1,25 +1,18 @@
 package worms.parser.statements;
 
-import java.util.Map;
-
-import worms.parser.expressions.ExpReadVar;
+import worms.model.Program;
+import worms.parser.expressions.LambdaExpUnary;
+import worms.parser.expressions.LambdaExpression;
 import worms.programs.SourceLocation;
 
 public class StatePrint extends BaseStatement {
 
-	public StatePrint(SourceLocation sourceLoc, ExpReadVar expressionReadToPrint) {
-		super(sourceLoc);
-		this.expressionReadToPrint = expressionReadToPrint;
+	public StatePrint(SourceLocation sourceLoc, LambdaExpression expression) {
+		super(sourceLoc,expression);
 	}
 
-	private final ExpReadVar expressionReadToPrint;
-
 	@Override
-	public void execute(Map<String, Object> globalVariables) throws IllegalArgumentException{
-		try {
-			System.out.println(globalVariables.get(expressionReadToPrint.getVariableName()).toString());
-		} catch (Exception e) {
-			throw new IllegalArgumentException(e);
-		}
+	public void execute(Program parent) throws IllegalArgumentException,IllegalStateException{
+		this.getExpression().getExpression().getExpressionResult(parent);
 	}
 }

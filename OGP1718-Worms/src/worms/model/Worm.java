@@ -1328,4 +1328,21 @@ public class Worm extends GameObject{
 		
 		super.terminate();
 	}
+
+	private Program loadedScript = null;
+	
+	public void assignProgram(Program program) {
+		this.setProgram(program);
+		if(program != null && program.getProgramHolder() != this) {
+			program.setProgramHolder(this);
+		}
+	}
+	
+	public void setProgram(Program program) {
+		this.loadedScript = program;
+	}
+	
+	public Program getProgram() {
+		return this.loadedScript;
+	}
 }
