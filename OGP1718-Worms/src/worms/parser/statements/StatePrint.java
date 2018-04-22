@@ -1,7 +1,6 @@
 package worms.parser.statements;
 
 import worms.model.Program;
-import worms.parser.expressions.LambdaExpUnary;
 import worms.parser.expressions.LambdaExpression;
 import worms.programs.SourceLocation;
 

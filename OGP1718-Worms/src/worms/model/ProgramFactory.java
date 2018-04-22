@@ -2,10 +2,6 @@ package worms.model;
 
 import java.util.List;
 
-import worms.parser.expressions.LambdaExpAssignment;
-import worms.parser.expressions.LambdaExpBinary;
-import worms.parser.expressions.LambdaExpLiteral;
-import worms.parser.expressions.LambdaExpUnary;
 import worms.parser.expressions.LambdaExpression;
 import worms.parser.procedures.BaseProcedure;
 import worms.parser.statements.BaseStatement;
@@ -35,8 +31,7 @@ public class ProgramFactory implements IProgramFactory<LambdaExpression, BaseSta
 	@Override
 	public BaseStatement createAssignmentStatement(String variableName, LambdaExpression value,
 			SourceLocation sourceLocation) throws ModelException {
-		LambdaExpAssignment assignment = new LambdaExpAssignment();
-		assignment.setExpression((p) -> LambdaExpression.VARIABLE_ASSIGN.set(p,variableName, value));
+		LambdaExpression assignment = new LambdaExpression((p) -> LambdaExpression.VARIABLE_ASSIGN.set(p,variableName, value));
 		StateAssignment assigner = new StateAssignment(sourceLocation, assignment);
 		return assigner;
 	}
@@ -44,8 +39,7 @@ public class ProgramFactory implements IProgramFactory<LambdaExpression, BaseSta
 	@Override
 	public BaseStatement createPrintStatement(LambdaExpression value, SourceLocation sourceLocation)
 			throws ModelException {
-		LambdaExpUnary printer = new LambdaExpUnary();
-		printer.setExpression((p) -> LambdaExpression.PRINTER.set(p,value));
+		LambdaExpression printer = new LambdaExpression((p) -> LambdaExpression.PRINTER.set(p,value));
 		return new StatePrint(sourceLocation, printer);
 	}
 
@@ -102,78 +96,58 @@ public class ProgramFactory implements IProgramFactory<LambdaExpression, BaseSta
 	@Override
 	public LambdaExpression createReadVariableExpression(String variableName, SourceLocation sourceLocation)
 			throws ModelException {
-		LambdaExpUnary reader = new LambdaExpUnary();
-		reader.setExpression((p)->LambdaExpression.VARIABLE_READ.set(p,variableName));
-		return reader;
+		return new LambdaExpression((p)->LambdaExpression.VARIABLE_READ.set(p,variableName));
 	}
 
 	@Override
 	public LambdaExpression createDoubleLiteralExpression(double value, SourceLocation location) throws ModelException {
-		LambdaExpLiteral literal = new LambdaExpLiteral();
-		literal.setExpression((p) -> LambdaExpression.LITERAL_DOUBLE.set(p,value));
-		return literal;
+		return new LambdaExpression((p) -> LambdaExpression.LITERAL_DOUBLE.set(p,value));
 	}
 
 	@Override
 	public LambdaExpression createBooleanLiteralExpression(boolean value, SourceLocation location)
 			throws ModelException {
-		LambdaExpLiteral literal = new LambdaExpLiteral();
-		literal.setExpression((p) -> LambdaExpression.LITERAL_BOOLEAN.set(p,value));
-		return literal;
+		return new LambdaExpression((p) -> LambdaExpression.LITERAL_BOOLEAN.set(p,value));
 	}
 
 	@Override
 	public LambdaExpression createNullExpression(SourceLocation location) throws ModelException {
-		LambdaExpLiteral literal = new LambdaExpLiteral();
-		literal.setExpression((p) -> LambdaExpression.LITERAL_NULL.set(p,null));
-		return literal;
+		return new LambdaExpression((p) -> LambdaExpression.LITERAL_NULL.set(p,null));
 	}
 
 	@Override
 	public LambdaExpression createSelfExpression(SourceLocation location) throws ModelException {
-		LambdaExpLiteral literal = new LambdaExpLiteral();
-		literal.setExpression((p) -> LambdaExpression.GET_SELF.set(p,null));
-		return literal;
+		return new LambdaExpression((p) -> LambdaExpression.GET_SELF.set(p,null));
 	}
 
 	@Override
 	public LambdaExpression createAdditionExpression(LambdaExpression left, LambdaExpression right,
 			SourceLocation location) throws ModelException {
-		LambdaExpBinary addition = new LambdaExpBinary();
-		addition.setExpression((p) -> LambdaExpression.ADDER.set(p,left,right));
-		return addition;
+		return new LambdaExpression((p) -> LambdaExpression.ADDER.set(p,left,right));
 	}
 
 	@Override
 	public LambdaExpression createAndExpression(LambdaExpression left, LambdaExpression right,
 			SourceLocation sourceLocation) throws ModelException {
-		LambdaExpBinary logicOperation = new LambdaExpBinary();
-		logicOperation.setExpression((p)-> LambdaExpression.LOGIC_AND.set(p, left,right));
-		return logicOperation;
+		return new LambdaExpression((p)-> LambdaExpression.LOGIC_AND.set(p, left,right));
 	}
 
 	@Override
 	public LambdaExpression createNotExpression(LambdaExpression expression, SourceLocation sourceLocation)
 			throws ModelException {
-		LambdaExpUnary logicOperation = new LambdaExpUnary();
-		logicOperation.setExpression((p)-> LambdaExpression.LOGIC_NOT.set(p, expression));
-		return logicOperation;
+		return new LambdaExpression((p)-> LambdaExpression.LOGIC_NOT.set(p, expression));
 	}
 
 	@Override
 	public LambdaExpression createEqualityExpression(LambdaExpression left, LambdaExpression right,
 			SourceLocation location) throws ModelException {
-		LambdaExpBinary logicOperation = new LambdaExpBinary();
-		logicOperation.setExpression((p)-> LambdaExpression.LOGIC_EQUALITY.set(p, left,right));
-		return logicOperation;
+		return new LambdaExpression((p)-> LambdaExpression.LOGIC_EQUALITY.set(p, left,right));
 	}
 
 	@Override
 	public LambdaExpression createLessThanExpression(LambdaExpression left, LambdaExpression right,
 			SourceLocation location) {
-		LambdaExpBinary logicOperation = new LambdaExpBinary();
-		logicOperation.setExpression((p)-> LambdaExpression.LOGIC_LESS_THAN.set(p, left,right));
-		return logicOperation;
+		return new LambdaExpression((p)-> LambdaExpression.LOGIC_LESS_THAN.set(p, left,right));
 	}
 
 	@Override
