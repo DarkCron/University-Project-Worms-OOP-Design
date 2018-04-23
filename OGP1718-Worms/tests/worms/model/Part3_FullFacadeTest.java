@@ -123,6 +123,13 @@ public class Part3_FullFacadeTest {
 		return v0;
 	}
 
+	private static double getDistance(double[] p1, double[] p2) {
+		double dx = p1[0]-p2[0];
+		double dy = p1[1]-p2[1];
+		return Math.sqrt(dx*dx + dy*dy);
+	}
+	
+
 	/**************
 	 * WORLD TESTS
 	 *************/
@@ -1499,8 +1506,10 @@ public class Part3_FullFacadeTest {
 		long oldNbActionPoints = facade.getNbActionPoints(theWorm);
 		facade.move(theWorm);
 		double[] newLocation = facade.getLocation(theWorm);
-		assertEquals(8.0 - 0.5, newLocation[0], EPS);
-		assertEquals(7.5 + 0.5, newLocation[1], EPS);
+		double[] expectedLocation = new double[] {7.5,8.0};
+		assertTrue(facade.isAdjacent(theWorld, newLocation, facade.getRadius(theWorm)));
+		assertEquals(expectedLocation[0]+facade.getRadius(theWorm)*0.1/2.0, newLocation[0], facade.getRadius(theWorm)*0.12/2.0);
+		assertEquals(expectedLocation[1]-facade.getRadius(theWorm)*0.1/2.0, newLocation[1], facade.getRadius(theWorm)*0.12/2.0);
 		// We allow a deviation of +/-1 in calculating the action points.
 		assertTrue((facade.getNbActionPoints(theWorm) >= oldNbActionPoints - 4)
 				&& (facade.getNbActionPoints(theWorm) <= oldNbActionPoints - 2));
@@ -1531,8 +1540,10 @@ public class Part3_FullFacadeTest {
 		double[] newLocation = facade.getLocation(theWorm);
 		// The worm will move in an almost vertical direction, such that he is still
 		// adjacent to the vertical wall.
-		assertEquals(8.0, newLocation[0], 0.1);
-		assertEquals(6.0, newLocation[1], 0.1);
+		double[] expectedLocation = new double[] {8.0,6.0};
+		assertTrue(facade.isAdjacent(theWorld, newLocation, facade.getRadius(theWorm)));
+		assertEquals(expectedLocation[0]-facade.getRadius(theWorm)*0.1/2.0, newLocation[0], facade.getRadius(theWorm)*0.12/2.0);
+		assertEquals(expectedLocation[1]-facade.getRadius(theWorm)*0.1/2.0, newLocation[1], facade.getRadius(theWorm)*0.12/2.0);
 		assertTrue((facade.getNbActionPoints(theWorm) >= oldNbActionPoints - 5)
 				&& (facade.getNbActionPoints(theWorm) <= oldNbActionPoints - 3));
 		score += 15;
@@ -1708,8 +1719,9 @@ public class Part3_FullFacadeTest {
 			BigInteger oldNbHitPoints = facade.getNbHitPoints(theWorm);
 			facade.fall(theWorm);
 			double[] newLocation = facade.getLocation(theWorm);
+			assertTrue(facade.isAdjacent(otherWorld, newLocation, facade.getRadius(theWorm)));
 			assertEquals(4.5, newLocation[0], EPS);
-			assertEquals(3.0, newLocation[1], EPS);
+			assertEquals(3.0+facade.getRadius(theWorm)*0.1/2.0, newLocation[1], facade.getRadius(theWorm)*0.12/2.0);
 			assertEquals(facade.getNbHitPoints(theWorm), oldNbHitPoints.add(BigInteger.valueOf(9)));
 			score += 15;
 		} catch (MustNotImplementException exc) {
@@ -2083,8 +2095,8 @@ public class Part3_FullFacadeTest {
 		facade.eat(theWorm);
 		assertTrue(facade.isTerminated(newFood));
 		assertEquals(1.5 * 1.1, facade.getRadius(theWorm), EPS);
-		assertEquals(4.5, facade.getLocation(theWorm)[0], EPS);
-		assertEquals(9.0 - (1.5 * 1.1), facade.getLocation(theWorm)[1], EPS);
+		assertTrue(facade.isAdjacent(theWorld, facade.getLocation(theWorm), facade.getRadius(theWorm)));
+		assertTrue(getDistance(worm_location,facade.getLocation(theWorm)) < facade.getRadius(theWorm)*0.2);
 		assertEquals(oldNbActionPoints - 8, facade.getNbActionPoints(theWorm));
 		score += 8;
 	}
@@ -2103,8 +2115,8 @@ public class Part3_FullFacadeTest {
 		facade.eat(theWorm);
 		assertTrue(facade.isTerminated(newFood));
 		assertEquals(1.5 * 0.9, facade.getRadius(theWorm), EPS);
-		assertEquals(4.5, facade.getLocation(theWorm)[0], EPS);
-		assertEquals(7.49 + (1.5 * 0.1), facade.getLocation(theWorm)[1], EPS);
+		assertTrue(facade.isAdjacent(theWorld, facade.getLocation(theWorm), facade.getRadius(theWorm)));
+		assertTrue(getDistance(worm_location,facade.getLocation(theWorm)) < facade.getRadius(theWorm)*0.2);
 		long expectedNbActionPoints = Math.min(oldNbActionPoints - 8,
 				referenceMaxActionPoints(facade.getRadius(theWorm)));
 		assertEquals(expectedNbActionPoints, facade.getNbActionPoints(theWorm));
@@ -2125,8 +2137,8 @@ public class Part3_FullFacadeTest {
 		facade.eat(theWorm);
 		assertTrue(facade.isTerminated(newFood));
 		assertEquals(0.25, facade.getRadius(theWorm), EPS);
-		assertEquals(4.5, facade.getLocation(theWorm)[0], EPS);
-		assertEquals(8.735, facade.getLocation(theWorm)[1], 0.15);
+		assertTrue(facade.isAdjacent(theWorld, facade.getLocation(theWorm), facade.getRadius(theWorm)));
+		assertTrue(getDistance(worm_location,facade.getLocation(theWorm)) < facade.getRadius(theWorm)*0.2);
 		long expectedNbActionPoints = Math.min(oldNbActionPoints - 8,
 				referenceMaxActionPoints(facade.getRadius(theWorm)));
 		assertEquals(expectedNbActionPoints, facade.getNbActionPoints(theWorm));
@@ -2147,8 +2159,8 @@ public class Part3_FullFacadeTest {
 		facade.eat(theWorm);
 		assertTrue(facade.isTerminated(newFood1) ^ facade.isTerminated(newFood2) ^ facade.isTerminated(newFood3));
 		assertEquals(1.5 * 1.1, facade.getRadius(theWorm), EPS);
-		assertEquals(4.5, facade.getLocation(theWorm)[0], EPS);
-		assertEquals(9.0 - (1.5 * 1.1), facade.getLocation(theWorm)[1], EPS);
+		assertTrue(facade.isAdjacent(theWorld, facade.getLocation(theWorm), facade.getRadius(theWorm)));
+		assertTrue(getDistance(worm_location,facade.getLocation(theWorm)) < facade.getRadius(theWorm)*0.2);
 		assertEquals(oldNbActionPoints - 8, facade.getNbActionPoints(theWorm));
 		score += 2;
 	}
@@ -2166,8 +2178,8 @@ public class Part3_FullFacadeTest {
 		facade.eat(theWorm);
 		assertTrue(facade.isTerminated(newFood1) ^ facade.isTerminated(newFood2));
 		assertEquals(1.5 * 1.1, facade.getRadius(theWorm), EPS);
-		assertEquals(9.0 - (1.5 * 1.1), facade.getLocation(theWorm)[0], 0.2);
-		assertEquals(9.0 - (1.5 * 1.1), facade.getLocation(theWorm)[1], 0.2);
+		assertTrue(facade.isAdjacent(theWorld, facade.getLocation(theWorm), facade.getRadius(theWorm)));
+		assertTrue(getDistance(worm_location,facade.getLocation(theWorm)) < facade.getRadius(theWorm)*0.2);
 		assertEquals(oldNbActionPoints - 8, facade.getNbActionPoints(theWorm));
 		score += 18;
 	}
