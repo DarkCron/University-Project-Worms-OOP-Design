@@ -25,5 +25,17 @@ public abstract class BaseStatement {
 		return expression;
 	}
 	
-	public abstract void execute(Program parent) throws IllegalArgumentException,IllegalStateException;
+	public void execute(Program parent, BaseStatement caller) throws IllegalArgumentException,IllegalStateException{
+		setParentBlock(caller);
+	}
+	
+	private BaseStatement parentBlock = null;
+	
+	public BaseStatement getParentBlock() {
+		return parentBlock;
+	}
+	
+	public void setParentBlock(BaseStatement statement) {
+		this.parentBlock = statement;
+	}
 }

@@ -11,7 +11,9 @@ public class StatePrint extends BaseStatement {
 	}
 
 	@Override
-	public void execute(Program parent) throws IllegalArgumentException,IllegalStateException{
+	public void execute(Program parent, BaseStatement caller) throws IllegalArgumentException,IllegalStateException{
+		super.execute(parent, caller);
+		
 		this.getExpression().getExpression().getExpressionResult(parent);
 	}
 }

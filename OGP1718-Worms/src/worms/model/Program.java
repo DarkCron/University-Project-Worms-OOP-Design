@@ -1,10 +1,12 @@
 package worms.model;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import be.kuleuven.cs.som.annotate.*;
+import worms.internal.gui.game.IActionHandler;
 import worms.parser.procedures.BaseProcedure;
 import worms.parser.statements.BaseStatement;
 import worms.parser.statements.StateSequence;
@@ -12,8 +14,12 @@ import worms.parser.statements.StateSequence;
 public class Program {
 	
 	public Program(List<BaseProcedure> procs, BaseStatement main) {
-		this.procedures = procs;
+		this.procedures = new HashMap<String, BaseProcedure>();
 		this.globalVariables = new HashMap<String, Object>();
+		
+		for (BaseProcedure baseProcedure : procs) {
+			this.procedures.put(baseProcedure.getProcedureName(), baseProcedure);
+		}
 		
 		if(main instanceof StateSequence) {
 			mainSequence = (StateSequence)main;
@@ -22,7 +28,21 @@ public class Program {
 		}
 	}
 	
-	private final List<BaseProcedure> procedures;
+	private IActionHandler actionHandler;
+	
+	public void setActionHandler(IActionHandler actionHandler) {
+		this.actionHandler = actionHandler;
+	}
+	
+	public IActionHandler getActionHandler() {
+		return this.actionHandler;
+	}
+	
+	private final Map<String, BaseProcedure> procedures;
+	
+	public Map<String, BaseProcedure> getProcedures() {
+		return procedures;
+	}
 	
 	private final StateSequence mainSequence;
 	
@@ -33,46 +53,35 @@ public class Program {
 		return globalVariables;
 	}
 	
-	private int mainSequenceIndex = 0;
+	private final List<Object> printLog = new ArrayList<Object>();
 	
-	public void doStartExecution() throws IllegalStateException{
-		mainSequenceIndex = 0;
+	public void addToPrintLog(Object string){
+		printLog.add(string);
+	}
+	
+	public List<Object> getPrintLog(){
+		return this.printLog;
+	}
+	
+	public List<Object> doStartExecution() throws IllegalStateException{
+		printLog.clear();
 		
 		if(mainSequence == null) {
 			throw new IllegalStateException("mainSequence does not exist in program.");
 		}
 
-		execute();
-	}
+		mainSequence.execute(this,null);
 
-	private void execute() throws IllegalStateException,IllegalArgumentException{
-		while(this.canContinueExecution()) {
-			BaseStatement currentStatement = mainSequence.getSequence().get(mainSequenceIndex);
-			if(currentStatement == null) {
-				throw new IllegalStateException("mainSequence contains illegal statements in program.");
-			}
-			handleExecution(currentStatement);
-			this.mainSequenceIndex++;
-		}
-	}
-
-	private void handleExecution(BaseStatement currentStatement) throws IllegalStateException, IllegalArgumentException{
-		currentStatement.execute(this);
-	}
-
-	private boolean canContinueExecution() {
-		if(this.mainSequenceIndex >= mainSequence.getSequenceLength()) {
-			return false;
-		}
-		return true;
+		return this.getPrintLog();
 	}
 	
 	private Worm programHolder = null;
 	
-	public void assignProgram(Worm w) {
+	public void assignProgram(Worm w, IActionHandler handler) {
 		this.setProgramHolder(w);
 		if(w != null) {
-			w.assignProgram(this);
+			w.assignProgram(this,handler);
+			this.setActionHandler(handler);
 		}
 	}
 	
@@ -83,4 +92,10 @@ public class Program {
 	public Worm getProgramHolder() {
 		return this.programHolder;
 	}
+	
+	public void interruptProgram() {
+		System.out.println("Program should break");
+	}
+
+
 }

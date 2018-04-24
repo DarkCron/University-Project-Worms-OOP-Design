@@ -604,19 +604,19 @@ public class Facade implements IFacade {
 	@Override
 	public Program getWormProgram(Worm worm) throws ModelException {
 		// TODO Auto-generated method stub
-		return null;
+		return worm.getProgram();
 	}
 
 	@Override
 	public void loadProgramOnWorm(Worm worm, Program program, IActionHandler actionHandler) throws ModelException {
 		// TODO Auto-generated method stub
-		
+		worm.assignProgram(program, actionHandler);
 	}
 
 	@Override
 	public List<Object> executeProgram(Worm worm) throws ModelException {
 		// TODO Auto-generated method stub
-		return null;
+		return worm.getProgram().doStartExecution();
 	}
 
 	@Override
