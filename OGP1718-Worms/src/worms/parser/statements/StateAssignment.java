@@ -16,4 +16,16 @@ public class StateAssignment extends BaseStatement {
 		
 		this.getExpression().getExpression().getExpressionResult(parent);
 	}
+
+	@Override
+	public void interrupt() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void invokeBreak() {
+		// TODO Auto-generated method stub
+		
+	}
 }

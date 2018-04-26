@@ -20,7 +20,7 @@ public class StateSequence extends BaseStatement {
 		this.sequence.add(single);
 	}
 	
-	private final ArrayList<BaseStatement> sequence;
+	private ArrayList<BaseStatement> sequence;
 	
 	public int getSequenceLength() {
 		return sequence.size();
@@ -58,7 +58,11 @@ public class StateSequence extends BaseStatement {
 			this.setSequenceIndex(0); //Make sure this block is runnable next time.
 		}else {
 			this.clearInterrupt(); //This block is interrupted, clear the interruption so that next time it can continue.
-			this.setSequenceIndex(0);
+			setSequenceIndex(getSequenceIndex()-1);
+			if(this.getSequenceIndex() < 0) {
+				setSequenceIndex(0);
+			}
+			//this.setSequenceIndex(0);
 		}
 		
 	}
@@ -69,11 +73,33 @@ public class StateSequence extends BaseStatement {
 		return this.isInterrupted;
 	}
 	
+	@Override
 	public void interrupt() {
 		isInterrupted = true;
+		
+		for (BaseStatement baseStatement : sequence) {
+			baseStatement.interrupt();
+		}
 	}
 	
 	private void clearInterrupt() {
 		isInterrupted = false;
+	}
+
+	@Override
+	public void invokeBreak() {
+		interrupt();
+		
+	}
+	
+	@Override
+	public StateSequence clone() throws CloneNotSupportedException {
+		StateSequence clone = (StateSequence)super.clone();
+		clone.sequence = new ArrayList<BaseStatement>();
+		for (BaseStatement baseStatement : sequence) {
+			clone.sequence.add(baseStatement.clone());
+		}
+		clone.setSequenceIndex(0);
+		return clone;
 	}
 }

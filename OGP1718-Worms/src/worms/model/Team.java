@@ -2,7 +2,6 @@ package worms.model;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 import be.kuleuven.cs.som.annotate.*;
 import worms.model.values.Name;
 /**
@@ -260,6 +259,8 @@ public class Team {
 		for (Worm worm : getAlphabeticalListTeamRoster()) {
 			worm.setTeam(null);
 		}
+		
+		teamRoster.clear();
 	}
 	
 	/**

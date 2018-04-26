@@ -15,4 +15,16 @@ public class StateAction extends BaseStatement {
 		super.execute(parent, caller);
 		this.getExpression().getExpression().getExpressionResult(parent);
 	}
+
+	@Override
+	public void interrupt() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void invokeBreak() {
+		// TODO Auto-generated method stub
+		
+	}
 }

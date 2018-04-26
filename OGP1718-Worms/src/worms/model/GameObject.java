@@ -201,21 +201,25 @@ public abstract class GameObject{
 	 * @throws InvalidRadiusException
 	 * 		| isValidRadius(new.getRadius())
 	 */
-	public void grow() throws InvalidRadiusException{
-		if(!isValidRadius(new Radius(this.getRadius().getRadius()*GROWTH_MODIFIER))) {
-			throw new InvalidRadiusException(new Radius(this.getRadius().getRadius()*GROWTH_MODIFIER));
-		}
-		setRadius(new Radius(this.getRadius().getRadius()*GROWTH_MODIFIER));
+	@Raw
+	public void grow(Location location) throws InvalidRadiusException{ //TODO REWORK
+		this.radius = new Radius(this.getRadius().getRadius()*GROWTH_MODIFIER);
+		this.location = location;
+//		if(!isValidRadius(new Radius(this.getRadius().getRadius()*GROWTH_MODIFIER))) {
+//			throw new InvalidRadiusException(new Radius(this.getRadius().getRadius()*GROWTH_MODIFIER));
+//		}
+//		setRadius(new Radius(this.getRadius().getRadius()*GROWTH_MODIFIER));
 	}
 	
-	public Location nearestLocationAfterGrowing() {
-		Circle passableSurface = new Circle(this);
+	public Location nearestLocationAfterGrowing() { //TODO
+		Radius growthRadius = new Radius(this.getRadius().getRadius()*GROWTH_MODIFIER);
+		Circle passableSurface = new Circle(this.getLocation(),growthRadius);
 		Rectangle bound = passableSurface.getBoundingRectangle();
-		for (double i = 0; i < bound.getSize().getX(); i+=0.01) {
-			for (double j = 0; j < bound.getSize().getY(); j+=0.01) {
+		for (double i = 0; i < bound.getSize().getX(); i+=0.1) {
+			for (double j = 0; j < bound.getSize().getY(); j+=0.1) {
 				if(passableSurface.contains(new Location(i+bound.getCenter().getX(),j+bound.getCenter().getY()))) {
-					if(this.getWorld().isPassable(new Location((i+bound.getCenter().getX()), (j+bound.getCenter().getY())),this.getRadius())) {
-						if(this.getWorld().isAdjacantToImpassableTerrain(new Location((i+bound.getCenter().getX()), (j+bound.getCenter().getY())),this.getRadius())) {
+					if(this.getWorld().isPassable(new Location((i+bound.getCenter().getX()), (j+bound.getCenter().getY())),growthRadius)) {
+						if(this.getWorld().isAdjacantToImpassableTerrain(new Location((i+bound.getCenter().getX()), (j+bound.getCenter().getY())),growthRadius)) {
 							return new Location((i+bound.getCenter().getX()), (j+bound.getCenter().getY()));
 						}
 					}

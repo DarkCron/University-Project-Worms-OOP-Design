@@ -10,9 +10,22 @@ public class StateInvoke extends BaseStatement{
 		super(sourceLoc, expression);
 	}
 	
+
 	@Override
 	public void execute(Program parent, BaseStatement caller) throws IllegalArgumentException, IllegalStateException {
 		super.execute(parent, caller);
 		this.getExpression().getExpression().getExpressionResult(parent);
+
+	}
+
+	@Override
+	public void interrupt() {
+		
+	}
+
+	@Override
+	public void invokeBreak() {
+		// TODO Auto-generated method stub
+		
 	}
 }

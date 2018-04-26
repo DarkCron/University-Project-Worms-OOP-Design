@@ -4,12 +4,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Stack;
 
 import be.kuleuven.cs.som.annotate.*;
 import worms.internal.gui.game.IActionHandler;
 import worms.parser.procedures.BaseProcedure;
 import worms.parser.statements.BaseStatement;
 import worms.parser.statements.StateSequence;
+import worms.parser.statements.StateWhile;
 
 public class Program {
 	
@@ -53,9 +55,10 @@ public class Program {
 		return globalVariables;
 	}
 	
-	private final List<Object> printLog = new ArrayList<Object>();
+	private List<Object> printLog = new ArrayList<Object>();
 	
 	public void addToPrintLog(Object string){
+
 		printLog.add(string);
 	}
 	
@@ -64,7 +67,6 @@ public class Program {
 	}
 	
 	public List<Object> doStartExecution() throws IllegalStateException{
-		printLog.clear();
 		
 		if(mainSequence == null) {
 			throw new IllegalStateException("mainSequence does not exist in program.");
@@ -72,7 +74,16 @@ public class Program {
 
 		mainSequence.execute(this,null);
 
-		return this.getPrintLog();
+		if(this.isInterrupted) {
+			this.setInterrupted(false);
+			return null;
+		}
+		List<Object> copy = new ArrayList<Object>(this.getPrintLog());
+		printLog.clear();
+//		if(copy.isEmpty()) {
+//			return null;
+//		}
+		return copy;
 	}
 	
 	private Worm programHolder = null;
@@ -95,7 +106,39 @@ public class Program {
 	
 	public void interruptProgram() {
 		System.out.println("Program should break");
+		mainSequence.interrupt();
+		this.setInterrupted(true);
 	}
 
+	private boolean isInterrupted = false;
+
+	@Basic
+	public boolean isInterrupted() {
+		return isInterrupted;
+	}
+
+	@Basic
+	public void setInterrupted(boolean isInterrupted) {
+		this.isInterrupted = isInterrupted;
+	}
+	
+	@Basic
+	public BaseProcedure popLastCalledProc() {
+		return lastCalledProc.pop();
+	}
+
+	
+	public BaseProcedure getLastCalledProc() {
+		if(lastCalledProc.isEmpty()) {
+			return null;
+		}
+		return lastCalledProc.peek();
+	}
+
+	public void setLastCalledProc(BaseProcedure lastCalledProc) {
+		this.lastCalledProc.push(lastCalledProc);
+	}
+
+	private Stack<BaseProcedure> lastCalledProc = new Stack<BaseProcedure>();
 
 }

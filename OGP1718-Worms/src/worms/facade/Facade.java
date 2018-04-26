@@ -616,7 +616,12 @@ public class Facade implements IFacade {
 	@Override
 	public List<Object> executeProgram(Worm worm) throws ModelException {
 		// TODO Auto-generated method stub
-		return worm.getProgram().doStartExecution();
+		try {
+			return worm.getProgram().doStartExecution();
+		} catch (Exception e) {
+			throw new ModelException(e);
+		}
+		
 	}
 
 	@Override

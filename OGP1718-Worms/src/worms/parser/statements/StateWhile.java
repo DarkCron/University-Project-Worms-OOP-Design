@@ -12,7 +12,7 @@ public class StateWhile extends BaseStatement {
 		this.body = body;
 	}
 	
-	private final BaseStatement body;
+	private BaseStatement body;
 	
 	@Raw @Immutable @Basic
 	public BaseStatement getWhileBody() {
@@ -33,6 +33,8 @@ public class StateWhile extends BaseStatement {
 				this.getWhileBody().execute(parent, this);
 				condition = this.getExpression().getExpression().getExpressionResult(parent);
 			}
+		}else {
+			throw new IllegalStateException();
 		}
 		
 		this.clearInterrupt();
@@ -44,11 +46,24 @@ public class StateWhile extends BaseStatement {
 		return this.isInterrupted;
 	}
 	
+	@Override
 	public void interrupt() {
 		isInterrupted = true;
 	}
 	
 	private void clearInterrupt() {
 		isInterrupted = false;
+	}
+
+	@Override
+	public void invokeBreak() {
+		interrupt();
+	}
+	
+	@Override
+	public StateWhile clone() throws CloneNotSupportedException {
+		StateWhile clone = (StateWhile)super.clone();
+		clone.body = body.clone();
+		return clone;
 	}
 }

@@ -203,25 +203,37 @@ public class LambdaExpression {
 	};
 
 	public final static Binary<Object, String, LambdaExpression> VARIABLE_ASSIGN = (p, name, exp) -> {
+		if(p.getProcedures().containsKey(name)) {
+			throw new IllegalArgumentException();
+		}
 		p.getGlobals().put(name, exp.getExpression().getExpressionResult(p));
 		return null;
 	};
-	public final static Unary<Object, String> VARIABLE_READ = (p, name) -> p.getGlobals().get(name);
+	public final static Unary<Object, String> VARIABLE_READ = (p, name) -> {
+		if(!p.getGlobals().containsKey(name)) {
+			throw new IllegalArgumentException();
+		}
+		return p.getGlobals().get(name);
+	};
 	public final static Assignment<Worm> GET_SELF = (p, v) -> p.getProgramHolder();
 	
 	public final static Unary<Double, LambdaExpression> DISTANCE_FROM = (p, other) -> {
 		Object resultLeft = other.getExpression().getExpressionResult(p);
 		if(resultLeft instanceof GameObject) {
 			double distanceCenters = ((GameObject)resultLeft).getLocation().getDistanceFrom(p.getProgramHolder().getLocation());
-			//distanceCenters-= (((GameObject)resultLeft).getRadius().getRadius() + p.getProgramHolder().getRadius().getRadius());
+			distanceCenters-= (((GameObject)resultLeft).getRadius().getRadius() + p.getProgramHolder().getRadius().getRadius());
 			return distanceCenters;
 		}else {
-			return Double.POSITIVE_INFINITY;//TODO What to do here check or from program
-			//throw new IllegalArgumentException("Tried to compare non GameObjects");		
+			//return Double.POSITIVE_INFINITY;//TODO What to do here check or from program
+			
+			throw new IllegalArgumentException("Tried to compare non GameObjects");		
 		}
 	};
 	public final static Unary<Boolean, LambdaExpression> SAME_TEAM = (p, other) -> {
 		Object resultLeft = other.getExpression().getExpressionResult(p);
+		if(resultLeft == null) {
+			return false;
+		}
 		if(resultLeft instanceof Worm) {
 			if(((Worm)resultLeft).getTeam() == null) {
 				return false; //TODO if both or either teams are null they aren't on the same team I assume.

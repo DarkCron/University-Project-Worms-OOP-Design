@@ -5,7 +5,7 @@ import worms.model.Program;
 import worms.parser.expressions.LambdaExpression;
 import worms.programs.SourceLocation;
 
-public abstract class BaseStatement {
+public abstract class BaseStatement implements Cloneable{
 
 	public BaseStatement(SourceLocation sourceLoc, LambdaExpression expression) {
 		this.sourceLoc = sourceLoc;
@@ -37,5 +37,14 @@ public abstract class BaseStatement {
 	
 	public void setParentBlock(BaseStatement statement) {
 		this.parentBlock = statement;
+	}
+	
+	public abstract void interrupt();
+	
+	public abstract void invokeBreak();
+	
+	@Override
+	public BaseStatement clone() throws CloneNotSupportedException {
+		return (BaseStatement)super.clone();
 	}
 }

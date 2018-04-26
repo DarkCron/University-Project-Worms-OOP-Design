@@ -16,4 +16,17 @@ public class StatePrint extends BaseStatement {
 		
 		this.getExpression().getExpression().getExpressionResult(parent);
 	}
+
+	@Override
+	public void interrupt() {
+
+	}
+
+	@Override
+	public void invokeBreak() {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	
 }

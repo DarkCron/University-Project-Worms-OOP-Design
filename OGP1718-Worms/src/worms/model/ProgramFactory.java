@@ -2,6 +2,7 @@ package worms.model;
 
 import java.util.List;
 
+import worms.exceptions.NotEnoughAPException;
 import worms.parser.expressions.LambdaExpression;
 import worms.parser.procedures.BaseProcedure;
 import worms.parser.statements.BaseStatement;
@@ -46,7 +47,7 @@ public class ProgramFactory implements IProgramFactory<LambdaExpression, BaseSta
 		LambdaExpression.Unary<BaseStatement, String> invokeProcedure = (p,name) -> {
 			return p.getProcedures().get(name).getBody();
 		};
-		return new StateProcedure(sourceLocation, new LambdaExpression((p)->invokeProcedure.set(p, procedureName)));
+		return new StateProcedure(sourceLocation,procedureName, new LambdaExpression((p)->invokeProcedure.set(p, procedureName)));
 	}
 
 	@Override
@@ -75,14 +76,21 @@ public class ProgramFactory implements IProgramFactory<LambdaExpression, BaseSta
 			}
 			Object delta = a.getExpression().getExpressionResult(p);
 			if(delta instanceof Double) {
-				p.getActionHandler().turn(p.getProgramHolder(),(Double)delta);
+				try {
+					p.getActionHandler().turn(p.getProgramHolder(),(Double)delta);
+				} catch (NotEnoughAPException e) {
+					p.interruptProgram();
+				}catch (Exception e) {
+					throw e;
+				}
+				
 			}else {
 				throw new IllegalArgumentException("Type mismatch to double in turn action");
 			}
 			
-			if(p.getProgramHolder().getCurrentActionPoints() == 0) {
-				p.interruptProgram();
-			}
+//			if(p.getProgramHolder().getCurrentActionPoints() == 0) {
+//				p.interruptProgram();
+//			}
 			return null;
 		};
 		return new StateAction(location, new LambdaExpression((p) -> turnExpression.set(p, angle)));
@@ -94,10 +102,15 @@ public class ProgramFactory implements IProgramFactory<LambdaExpression, BaseSta
 			if(p.getProgramHolder() == null) {
 				throw new IllegalStateException();
 			}
-			p.getActionHandler().move(p.getProgramHolder());
-			if(p.getProgramHolder().getCurrentActionPoints() == 0) {
+			try {
+				p.getActionHandler().move(p.getProgramHolder());	
+			} catch (Exception e) {
 				p.interruptProgram();
 			}
+
+//			if(p.getProgramHolder().getCurrentActionPoints() == 0) {
+//				p.interruptProgram();
+//			}
 			return null;
 		};
 		return new StateAction(location, new LambdaExpression((p) -> moveExpression.set(p, null)));
@@ -109,10 +122,17 @@ public class ProgramFactory implements IProgramFactory<LambdaExpression, BaseSta
 			if(p.getProgramHolder() == null) {
 				throw new IllegalStateException();
 			}
-			p.getActionHandler().jump(p.getProgramHolder());
-			if(p.getProgramHolder().getCurrentActionPoints() == 0) {
+			try {
+				p.getActionHandler().jump(p.getProgramHolder());
+			} catch (NotEnoughAPException e) {
 				p.interruptProgram();
+			} catch (Exception e) {
+				throw e;
 			}
+//			
+//			if(p.getProgramHolder().getCurrentActionPoints() == 0) {
+//				p.interruptProgram();
+//			}
 			return null;
 		};
 		return new StateAction(location, new LambdaExpression((p) -> jumpExpression.set(p, null)));
@@ -124,7 +144,14 @@ public class ProgramFactory implements IProgramFactory<LambdaExpression, BaseSta
 			if(p.getProgramHolder() == null) {
 				throw new IllegalStateException();
 			}
-			p.getActionHandler().eat(p.getProgramHolder());
+			try {
+				p.getActionHandler().eat(p.getProgramHolder());
+			} catch (NotEnoughAPException e) {
+				p.interruptProgram();
+			} catch (Exception e) {
+				throw e;
+			}
+
 			return null;
 		};
 		return new StateAction(location, new LambdaExpression((p) -> eatExpression.set(p, null)));

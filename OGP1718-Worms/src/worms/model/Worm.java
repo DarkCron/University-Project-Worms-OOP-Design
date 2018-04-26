@@ -5,6 +5,7 @@ import java.math.BigInteger;
 import be.kuleuven.cs.som.annotate.*;
 import worms.exceptions.InvalidLocationException;
 import worms.exceptions.InvalidWormNameException;
+import worms.exceptions.NotEnoughAPException;
 import worms.internal.gui.game.IActionHandler;
 import worms.model.ShapeHelp.Circle;
 import worms.model.values.*;
@@ -109,7 +110,11 @@ public class Worm extends GameObject{
 	 * 		|		new.getRadius().getRadius() == this.getRadius().getRadius()*GROWTH_MODIFIER
 	 * 		|		food.isTerminated()
 	 */
-	public void checkForFood() {
+	public void checkForFood() throws NotEnoughAPException{
+		if(!(this.currentActionPoints >= 8)) {
+			throw new NotEnoughAPException("Not enough AP to eat.");
+		}
+		
 		boolean bMustRecheckFoodDeletion = false;
 		for (GameObject o: this.getWorld().getAllObjectsOfType(Food.class)) {
 			if(o instanceof Food) {
@@ -137,16 +142,18 @@ public class Worm extends GameObject{
 	 * 
 	 * @post | new.getRadius().getRadius() == this.getRadius().getRadius() * GROWTH_MODIFIER
 	 */
-	private void consumesFood(Food o) {
+	private void consumesFood(Food o) {//TODO REWORK
 		this.getWorld().removeGameObject(o);
 		o.terminate();
-		this.grow();
 		Location afterGrowth = this.nearestLocationAfterGrowing();
 		if(afterGrowth==null) {
 			this.terminate();
 		}else {
-			this.setLocation(afterGrowth);
+			this.grow(afterGrowth);
+			//this.setLocation(afterGrowth);
 		}
+
+
 	}
 	
 	private final static double FALL_DAMAGE_MOD  = 3;
@@ -226,6 +233,9 @@ public class Worm extends GameObject{
 	 * 		| result == true
 	 */
 	private boolean overlapsAnyOtherWorm() {
+		if(this.isTerminated()) {//TODO
+			return false;
+		}
 		for(GameObject worm: this.getWorld().getAllObjectsOfType(Worm.class)) {
 			if(worm instanceof Worm) {
 				if(this.overlapsWith(worm)) {
@@ -935,10 +945,17 @@ public class Worm extends GameObject{
 	 * @note Currently turning altough AP == 0 is still possible but can easily be implemented.
 	 * 	The assignment didn't explicitly mention this should be a feature in the current implementation.
 	 */
-	public void turn(double angle) {
+	public void turn(double angle) throws RuntimeException {
 		assert isValidDirection(this.getDirection());
-		assert isValidDirection(new Direction(this.getDirection().getAngle() + angle));
-		assert this.isActionCostPossible(this.getTurnCost(angle));
+		//assert isValidDirection(new Direction(this.getDirection().getAngle() + angle));
+		if(!isValidDirection(new Direction(this.getDirection().getAngle() + angle))) {
+			throw new RuntimeException();
+		}
+		//assert this.isActionCostPossible(this.getTurnCost(angle));
+		if(!this.isActionCostPossible(this.getTurnCost(angle))) {
+			throw new NotEnoughAPException("Not enough AP to turn");
+		}
+		
 		
 		Direction newDirection = new Direction(this.getDirection().getAngle() + angle);
 		
@@ -995,8 +1012,12 @@ public class Worm extends GameObject{
 	 * @note We currently disabled being able to jump when AP == 0.
 	 */
 	public void jump(double timeStep) throws InvalidLocationException,RuntimeException{
+		if(!(this.getDirection().getAngle() >= 0 && this.getDirection().getAngle() <= Math.PI)) {
+			throw new RuntimeException();
+		}
+		
 		if(this.getCurrentActionPoints() == 0) {
-			throw new RuntimeException("No AP left to jump.");
+			throw new NotEnoughAPException("No AP left to jump.");
 		}
 		
 		double jumpSpeedMagnitude = this.getJumpSpeedMagnitude();

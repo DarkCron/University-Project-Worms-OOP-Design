@@ -13,8 +13,8 @@ public class StateIf extends BaseStatement {
 		this.elseBody = elseBody;
 	}
 	
-	private final BaseStatement ifBody;
-	private final BaseStatement elseBody;
+	private BaseStatement ifBody;
+	private BaseStatement elseBody;
 	
 	@Basic @Raw @Immutable
 	public BaseStatement getIfBody() {
@@ -35,15 +35,74 @@ public class StateIf extends BaseStatement {
 		}
 		
 		Object condition = this.getExpression().getExpression().getExpressionResult(parent);
-		if(condition instanceof Boolean) {
-			if((boolean) condition) {
-				this.getIfBody().execute(parent, this);
-			}else {
-				if(this.getElseBody() != null) {
-					this.getElseBody().execute(parent, this);
+		if(interruptedDoingElse) {
+			this.getElseBody().execute(parent, this);
+			interruptedDoingElse = false;
+		}else if(interruptedDoingIf) {
+			this.getIfBody().execute(parent, this);
+			interruptedDoingIf = false;
+		}else {
+			if(condition instanceof Boolean) {
+				if((boolean) condition) {
+					doingIf = true;
+					this.getIfBody().execute(parent, this);
+				}else {
+					if(this.getElseBody() != null) {
+						doingElse = true;
+						this.getElseBody().execute(parent, this);
+					}
 				}
+			}else {
+				throw new IllegalStateException();
+			}
+		}
+		
+
+		
+		doingIf = false;
+		doingElse = false;
+	}
+
+	@Override
+	public void interrupt() {
+		if(this.ifBody != null) {
+			this.ifBody.interrupt();
+			
+			if(doingIf) {
+				interruptedDoingIf = true;
+			}
+		}
+		if(this.elseBody != null) {
+			this.elseBody.interrupt();
+			
+			if(doingElse) {
+				interruptedDoingElse = true;
 			}
 		}
 	}
+	
+	@Override
+	public void invokeBreak() {
+		this.interrupt();
+	}
 
+	
+	private boolean doingIf = false;
+	
+	private boolean doingElse = false;
+	
+	private boolean interruptedDoingIf = false;
+
+	private boolean interruptedDoingElse = false;
+
+	@Override
+	public StateIf clone() throws CloneNotSupportedException {
+		StateIf clone = (StateIf)super.clone();
+		clone.ifBody = ifBody.clone();
+		if(elseBody!=null) {
+			clone.elseBody = elseBody.clone();
+		}
+		
+		return clone;
+	}
 }
