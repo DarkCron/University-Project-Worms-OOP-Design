@@ -62,8 +62,8 @@ public class LambdaExpression {
 		Object resultLeft = a.getExpression().getExpressionResult(p);
 		Object resultRight = b.getExpression().getExpressionResult(p);
 		if (resultLeft instanceof Double && resultRight instanceof Double) {
-			return (Double) a.getExpression().getExpressionResult(p)
-					+ (Double) b.getExpression().getExpressionResult(p);
+			return (Double) resultLeft
+					+ (Double) resultRight;
 		} else {
 			throw new IllegalArgumentException("Tried to add non Double assignments");
 		}

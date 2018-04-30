@@ -58,7 +58,11 @@ public class Facade implements IFacade {
 
 	@Override
 	public void turn(Worm worm, double angle) throws ModelException {
-		worm.turn(angle);
+		try {
+			worm.turn(angle);
+		} catch (Exception e) {
+			throw new ModelException("");
+		}
 	}
 
 //	@Override
@@ -79,7 +83,7 @@ public class Facade implements IFacade {
 	public double[] getJumpStep(Worm worm, double t) throws ModelException {
 		try {
 			return worm.jumpStep(t);
-		} catch (InvalidLocationException e) {
+		} catch (Exception e) {
 			throw new ModelException(e);
 		}
 	}

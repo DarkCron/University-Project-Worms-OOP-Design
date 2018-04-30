@@ -111,8 +111,13 @@ public class Worm extends GameObject{
 	 * 		|		food.isTerminated()
 	 */
 	public void checkForFood() throws NotEnoughAPException{
-		if(!(this.currentActionPoints >= 8)) {
-			throw new NotEnoughAPException("Not enough AP to eat.");
+		if(!(this.currentActionPoints >= 8)) {//TODO constants
+			return;
+			//throw new NotEnoughAPException("Not enough AP to eat.");
+		}
+		
+		if(this.getWorld() == null) {
+			return;
 		}
 		
 		boolean bMustRecheckFoodDeletion = false;
@@ -120,13 +125,14 @@ public class Worm extends GameObject{
 			if(o instanceof Food) {
 				if(this.overlapsWith(o)) {
 					this.consumesFood((Food)o);
+					this.setActionPoints(getCurrentActionPoints()-8);
 					bMustRecheckFoodDeletion = true;
 					break;
 				}
 			}
 		}
 		if(bMustRecheckFoodDeletion == true) {
-			checkForFood();
+			//checkForFood();
 		}
 	}
 	
@@ -145,7 +151,11 @@ public class Worm extends GameObject{
 	private void consumesFood(Food o) {//TODO REWORK
 		this.getWorld().removeGameObject(o);
 		o.terminate();
+		Location beforeGrowth = this.getLocation();
+		double maxAllowed = this.getRadius().getRadius()*0.2;
 		Location afterGrowth = this.nearestLocationAfterGrowing();
+		double distanceMod = beforeGrowth.getDistanceFrom(afterGrowth);
+		
 		if(afterGrowth==null) {
 			this.terminate();
 		}else {
@@ -1129,7 +1139,7 @@ public class Worm extends GameObject{
 	}
 	
 	/**
-	 * Returns the worm's current jump velocity magnitude.
+	 * Returns the worm's current jump velocity magnitude. as v0
 	 * 
 	 * @result |((5D*this.getCurrentActionPoints())+(this.getMass()*World.getGravity())/this.getMass())*World.getJumpTimeDelta()
 	 */
@@ -1160,7 +1170,7 @@ public class Worm extends GameObject{
 			throw new IllegalArgumentException(((Double)deltaTime).toString());
 		}
 		
-		if(!isValidDirection(this.getDirection())) {
+		if(!(this.getDirection().getAngle() > 0 && this.getDirection().getAngle() < Math.PI)) {
 			throw new RuntimeException("The direction of the worm trying to jump is invalid. Not equal or larger than 0 and less than 2*PI." + this.getDirection().toString());
 		}
 		
@@ -1177,6 +1187,9 @@ public class Worm extends GameObject{
 		double yPosTime = this.getY()+((speedY*deltaTime) - ((1D/2D)*World.getGravity()*Math.pow(deltaTime,2)));
 		
 		Location tmpLocation = new Location(xPosTime,yPosTime);
+//		if(tmpLocation.getY() > this.getY()) {
+//			tmpLocation = new Location(xPosTime,this.getY());
+//		}
 		
 		if(!isValidLocation(tmpLocation,this.getWorld())) {
 			throw new InvalidLocationException(tmpLocation);
@@ -1192,6 +1205,9 @@ public class Worm extends GameObject{
 	 * 			| result == (distance/(this.getJumpSpeedMagnitude()*Math.cos(this.getDirection().getAngle())))
 	 */
 	public double calculateJumpTime() {
+		double speedY = this.getJumpSpeedMagnitude() * Math.sin(this.getDirection().getAngle());
+		double time = speedY/World.getGravity();
+		
 		double distance = Math.pow(this.getJumpSpeedMagnitude(), 2)*Math.sin(this.getDirection().getAngle()*2D)/World.getGravity();
 		double timeInterval = (distance/(this.getJumpSpeedMagnitude()*Math.cos(this.getDirection().getAngle())));
 		return timeInterval;

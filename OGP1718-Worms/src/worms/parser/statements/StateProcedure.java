@@ -18,7 +18,12 @@ public class StateProcedure extends BaseStatement {
 		//Object o = this.getExpression().getExpression().getExpressionResult(parent);
 		BaseProcedure clone = null;
 		try {
-			clone = (BaseProcedure)(parent.getProcedures().get(procName).clone());
+			if(executing==null) {
+				clone = (BaseProcedure)(parent.getProcedures().get(procName).clone());	
+				executing = clone;//TODO
+			}else {
+				clone = executing;
+			} 
 		} catch (Exception e) {
 			throw new IllegalStateException();
 		}
@@ -27,9 +32,15 @@ public class StateProcedure extends BaseStatement {
 //		if(o instanceof BaseStatement) {
 //			((BaseStatement) o).execute(parent, caller);
 //		}
+		if(!interrupted) {
+			executing = null;	
+		}
 		parent.popLastCalledProc();
+		interrupted = false;
 	}
 	
+	private boolean interrupted = false;
+	private BaseProcedure executing = null;
 	private final String procName;
 	
 	public String getProcName() {
@@ -38,8 +49,10 @@ public class StateProcedure extends BaseStatement {
 	
 	@Override
 	public void interrupt() {
-		// TODO Auto-generated method stub
-		
+		interrupted = true;
+		if(executing!=null && executing.getBody()!=null) {
+			executing.getBody().interrupt();
+		}
 	}
 
 	@Override

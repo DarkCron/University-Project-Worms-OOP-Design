@@ -77,6 +77,9 @@ public class ProgramFactory implements IProgramFactory<LambdaExpression, BaseSta
 			Object delta = a.getExpression().getExpressionResult(p);
 			if(delta instanceof Double) {
 				try {
+					if(p.getProgramHolder().getTurnCost((Double)delta)>p.getProgramHolder().getCurrentActionPoints()) {
+						throw new NotEnoughAPException("");
+					}
 					p.getActionHandler().turn(p.getProgramHolder(),(Double)delta);
 				} catch (NotEnoughAPException e) {
 					p.interruptProgram();
@@ -145,6 +148,9 @@ public class ProgramFactory implements IProgramFactory<LambdaExpression, BaseSta
 				throw new IllegalStateException();
 			}
 			try {
+				if(p.getProgramHolder().getCurrentActionPoints() < 8) { //TODO constants
+					throw new NotEnoughAPException("");
+				}
 				p.getActionHandler().eat(p.getProgramHolder());
 			} catch (NotEnoughAPException e) {
 				p.interruptProgram();

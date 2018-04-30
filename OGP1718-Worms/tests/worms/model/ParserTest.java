@@ -389,11 +389,9 @@ public class ParserTest {
 		ProgramFactory myFactory = new ProgramFactory();
 		Program program = ProgramParser.parseProgramFromString(programText, myFactory);
 		theWorm.assignProgram(program,actionHandler);
-		
+		program.doStartExecution();
 		try {
-			program.doStartExecution();
-			program.wait();
-			this.wait();
+			
 		} catch (Exception e) {
 
 		}

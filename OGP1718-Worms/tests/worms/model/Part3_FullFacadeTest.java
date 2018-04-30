@@ -2166,7 +2166,7 @@ public class Part3_FullFacadeTest {
 	}
 
 	@Test
-	public void eat_WormLocatedInCorner() {
+	public void eat_WormLocatedInCorner() { 
 		max_score += 18;
 		double[] worm_location = new double[] { 7.5, 7.5 };
 		double worm_orientation = 3 * PI / 2.0;
@@ -2205,7 +2205,7 @@ public class Part3_FullFacadeTest {
 	}
 
 	@Test
-	public void eat_EnlargedWormNotFullyInWorld() {
+	public void eat_EnlargedWormNotFullyInWorld() {//TODO impossible
 		max_score += 8;
 		double[] worm_location = new double[] { 7.5, 1.505 };
 		double worm_orientation = 3 * PI / 2.0;
@@ -3799,6 +3799,7 @@ public class Part3_FullFacadeTest {
 	public void testInvokeStatement_Interrupted() throws ModelException {
 		max_score += 25;
 		Worm worm1 = facade.createWorm(theWorld, new double[] { 2.0, 7.5 }, 0.0, 1.5, "WormA", theTeam);
+		//Worm worm1 = facade.createWorm(theWorld, new double[] { 2.0, 7.5 }, PI, 1.5, "WormA", theTeam);
 		String code = "def p: { print a; a := a + 5.0; jump; print a; } a := 10.0; invoke p; print a + 1.0;";
 		Program program = ProgramParser.parseProgramFromString(code, programFactory);
 		facade.loadProgramOnWorm(worm1, program, actionHandler);
