@@ -23,6 +23,8 @@ public class Part3_FullFacadeTest {
 	private static int score = 0;
 
 	private static final double EPS = 1e-3;
+	
+	public final static double GAME_STANDARD_ACCELERATION = 5.0;
 
 	private final static IFacade facade = new Facade();
 	private final static IActionHandler actionHandler = new SimpleActionHandler(facade);
@@ -98,7 +100,7 @@ public class Part3_FullFacadeTest {
 
 	private static double referenceJumpDistance(int actionPoints, double radius, double theta) {
 		double v0 = referenceJumpV0(actionPoints, radius);
-		double d = v0 * v0 * sin(2 * theta) / Physics.GAME_STANDARD_ACCELERATION;
+		double d = v0 * v0 * sin(2 * theta) / GAME_STANDARD_ACCELERATION;
 		return d;
 	}
 
@@ -107,7 +109,7 @@ public class Part3_FullFacadeTest {
 		double v0x = v0 * cos(theta);
 		double v0y = v0 * sin(theta);
 		double x = loc[0] + v0x * dt;
-		double y = loc[1] + v0y * dt - Physics.GAME_STANDARD_ACCELERATION * dt * dt / 2;
+		double y = loc[1] + v0y * dt - GAME_STANDARD_ACCELERATION * dt * dt / 2;
 		return new double[] { x, y };
 	}
 
@@ -118,7 +120,7 @@ public class Part3_FullFacadeTest {
 	}
 
 	private static double referenceJumpV0(long actionPoints, double radius) {
-		double force = (5 * actionPoints) + (referenceWormMass(radius) * Physics.GAME_STANDARD_ACCELERATION);
+		double force = (5 * actionPoints) + (referenceWormMass(radius) * GAME_STANDARD_ACCELERATION);
 		double v0 = 0.5 * force / referenceWormMass(radius);
 		return v0;
 	}
@@ -1567,7 +1569,7 @@ public class Part3_FullFacadeTest {
 		long oldNbActionPoints = facade.getNbActionPoints(theWorm);
 		facade.move(theWorm);
 		double[] newLocation = facade.getLocation(theWorm);
-		// The worm will move adjacent to the cell in row 1 and column 4.
+		// The worm will move adjacent to the cell in row 7 and column 4.
 		assertTrue(facade.isAdjacent(otherWorld, newLocation, 2.0));
 		double distanceToEdge = Math.sqrt(Math.pow(newLocation[0] - 5.0, 2.0) + Math.pow(newLocation[1] - 2.0, 2.0));
 		assertEquals(2.1, distanceToEdge, 0.2);
@@ -1594,9 +1596,12 @@ public class Part3_FullFacadeTest {
 		long oldNbActionPoints = facade.getNbActionPoints(theWorm);
 		facade.move(theWorm);
 		double[] newLocation = facade.getLocation(theWorm);
-		// The worm will move adjacent to the cell in row 9 and column 6.
+		// The worm will move adjacent to the cell in row 1 and column 6 or adjacent to
+		// row 9 and column 6.
 		assertTrue(facade.isAdjacent(otherWorld, newLocation, 2.0));
-		double distanceToEdge = Math.sqrt(Math.pow(newLocation[0] - 5.0, 2.0) + Math.pow(newLocation[1] - 2.0, 2.0));
+		double distanceToEdge = Math.min(
+				Math.sqrt(Math.pow(newLocation[0] - 5.0, 2.0) + Math.pow(newLocation[1] - 2.0, 2.0)),
+				Math.sqrt(Math.pow(newLocation[0] - 5.0, 2.0) + Math.pow(newLocation[1] - 8.0, 2.0)) );
 		assertEquals(2.1, distanceToEdge, 0.2);
 		assertTrue((facade.getNbActionPoints(theWorm) >= oldNbActionPoints - 5)
 				&& (facade.getNbActionPoints(theWorm) <= oldNbActionPoints - 3));
@@ -1722,7 +1727,7 @@ public class Part3_FullFacadeTest {
 			assertTrue(facade.isAdjacent(otherWorld, newLocation, facade.getRadius(theWorm)));
 			assertEquals(4.5, newLocation[0], EPS);
 			assertEquals(3.0+facade.getRadius(theWorm)*0.1/2.0, newLocation[1], facade.getRadius(theWorm)*0.12/2.0);
-			assertEquals(facade.getNbHitPoints(theWorm), oldNbHitPoints.add(BigInteger.valueOf(9)));
+			assertEquals(oldNbHitPoints.subtract(BigInteger.valueOf(9)),facade.getNbHitPoints(theWorm) );
 			score += 15;
 		} catch (MustNotImplementException exc) {
 			max_score -= 15;
@@ -1751,8 +1756,8 @@ public class Part3_FullFacadeTest {
 			long oldNbHitPoints_worm1 = facade.getNbHitPoints(worm1).longValue();
 			long oldNbHitPoints_worm2 = facade.getNbHitPoints(worm2).longValue();
 			facade.fall(theWorm);
-			assertEquals(facade.getNbHitPoints(theWorm).longValue(),
-					oldNbHitPoints_TheWorm + 9 + oldNbHitPoints_worm1 / 2 + oldNbHitPoints_worm2 / 2);
+			assertEquals(oldNbHitPoints_TheWorm - 9 + oldNbHitPoints_worm1 / 2 + oldNbHitPoints_worm2 / 2,
+					facade.getNbHitPoints(theWorm).longValue());
 			assertEquals(facade.getNbHitPoints(worm1).longValue(), oldNbHitPoints_worm1 / 2);
 			assertEquals(facade.getNbHitPoints(worm2).longValue(), oldNbHitPoints_worm2 / 2);
 			score += 12;
@@ -2229,12 +2234,12 @@ public class Part3_FullFacadeTest {
 				{ true, true, true, true, false, false, true, true, true, false },
 				{ true, true, true, true, true, true, true, true, true, false },
 				{ true, true, true, true, true, true, true, true, true, false },
-				{ true, true, true, true, true, true, true, true, false, false },
-				{ true, true, true, true, true, true, true, true, true, false },
-				{ true, true, true, true, true, true, true, true, true, false },
-				{ true, true, true, true, true, true, true, true, true, false },
-				{ true, true, true, true, true, true, true, true, true, false },
-				{ false, false, false, false, false, false, false, false, false, false }, };
+				{ true, true, true, true, false, false, false,false, false,false },
+				{ true, true, true, true, false, true, true, true, true, false },
+				{ true, true, true, true, false, true, true, true, true, false },
+				{ true, true, true, true, false, true, true, true, true, false },
+				{ true, true, true, true, false, true, true, true, true, false },
+				{ false,false,false,false,false,false,false,false,false,false }, };
 		World otherWorld = facade.createWorld(10.0, 10.0, map10x10);
 		double[] worm_location = new double[] { 7.0, 3.0 };
 		double worm_orientation = PI / 4.0;
@@ -2392,13 +2397,13 @@ public class Part3_FullFacadeTest {
 		Worm theWorm = facade.createWorm(theWorld, worm_location, worm_orientation, worm_radius, "Worm", null);
 		Projectile projectile = facade.fire(theWorm);
 		double[] stepLocation = facade.getJumpStep(projectile, 0.1);
-		double[] expectedBazookaLocation = new double[] { 2.997, 9.275 };
-		double[] expectedRifleLocation = new double[] { 6.114, 3.875 };
+		double[] expectedRifleLocation = new double[] { 2.997, 9.275 };
+		double[] expectedBazookaLocation = new double[] { 6.114, 3.875 };
 		assertEquals("Result must have exactly 2 coordinates", 2, stepLocation.length);
-		assertTrue((Math.abs(stepLocation[0] - expectedBazookaLocation[0]) < 0.01)
-				|| (Math.abs(stepLocation[0] - expectedRifleLocation[0]) < 0.01));
-		assertTrue((Math.abs(stepLocation[1] - expectedBazookaLocation[1]) < 0.01)
-				|| (Math.abs(stepLocation[1] - expectedRifleLocation[1]) < 0.01));
+		assertTrue((Math.abs(stepLocation[0] - expectedRifleLocation[0]) < 0.01)
+				|| (Math.abs(stepLocation[0] - expectedBazookaLocation[0]) < 0.01));
+		assertTrue((Math.abs(stepLocation[1] - expectedRifleLocation[1]) < 0.01)
+				|| (Math.abs(stepLocation[1] - expectedBazookaLocation[1]) < 0.01));
 		score += 4;
 	}
 
@@ -2748,6 +2753,36 @@ public class Part3_FullFacadeTest {
 	}
 
 	@Test
+	public void addWormsToTeam_WormTooLight() {
+		max_score += 4;
+		Worm wormA = facade.createWorm(theWorld, new double[] { 2.3, 7.0 }, 2.0, 2.0, "WormA", theTeam);
+		Worm wormB = facade.createWorm(otherWorld, new double[] { 2.5, 3.0 }, 2.0, 1.0, "WormB", null);
+		try {
+			facade.addWormsToTeam(theTeam, wormB);
+			fail();
+		} catch (ModelException exc) {
+			score += 4;
+		} catch (MustNotImplementException exc) {
+			max_score -= 4;
+		}
+	}
+
+	@Test
+	public void addWormsToTeam_WormTooHeavy() {
+		max_score += 4;
+		Worm wormA = facade.createWorm(theWorld, new double[] { 2.3, 8.0 }, 2.0, 1.0, "WormA", theTeam);
+		Worm wormB = facade.createWorm(otherWorld, new double[] { 2.5, 2.0 }, 2.0, 2.0, "WormB", null);
+		try {
+			facade.addWormsToTeam(theTeam, wormB);
+			fail();
+		} catch (ModelException exc) {
+			score += 4;
+		} catch (MustNotImplementException exc) {
+			max_score -= 4;
+		}
+	}
+
+	@Test
 	public void addWormsToTeam_WormAlreadyInOtherTeam() {
 		max_score += 2;
 		try {
@@ -2885,7 +2920,7 @@ public class Part3_FullFacadeTest {
 			Worm wormB = facade.createWorm(theWorld, new double[] { 6.8, 7.0 }, 2.0, 2.0, "WormB", theTeam);
 			Team otherTeam = facade.createTeam(otherWorld, "OtherTeam");
 			Worm wormC = facade.createWorm(theWorld, new double[] { 7.0, 2.5 }, 2.0, 2.0, "WormC", otherTeam);
-			Worm wormD = facade.createWorm(otherWorld, new double[] { 2.5, 3.0 }, 2.0, 1.0, "WormD", otherTeam);
+			Worm wormD = facade.createWorm(otherWorld, new double[] { 2.5, 2.0 }, 2.0, 2.0, "WormD", otherTeam);
 			facade.mergeTeams(theTeam, otherTeam);
 			assertEquals(4, facade.getNbWormsOfTeam(theTeam));
 			assertEquals(0, facade.getNbWormsOfTeam(otherTeam));
@@ -2908,7 +2943,7 @@ public class Part3_FullFacadeTest {
 			facade.createWorm(theWorld, new double[] { 6.8, 7.0 }, 2.0, 2.0, "WormB", theTeam);
 			otherTeam = facade.createTeam(otherWorld, "OtherTeam");
 			facade.createWorm(theWorld, new double[] { 7.0, 2.5 }, 2.0, 2.0, "WormA", otherTeam);
-			facade.createWorm(otherWorld, new double[] { 2.5, 3.0 }, 2.0, 1.0, "WormD", otherTeam);
+			facade.createWorm(otherWorld, new double[] { 2.5, 2.0 }, 2.0, 2.0, "WormD", otherTeam);
 			facade.mergeTeams(theTeam, otherTeam);
 			fail();
 		} catch (ModelException exc) {
