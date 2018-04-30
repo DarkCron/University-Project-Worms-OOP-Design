@@ -33,9 +33,9 @@ public class Part3_FullFacadeTest {
 	private static final String FIXTURE_NAME = "Test";
 	private static final double FIXTURE_DIRECTION = 3 * PI / 7;
 	private static final int FIXTURE_MAX_ACTION_POINTS = referenceMaxActionPoints(FIXTURE_RADIUS);
-	private static Worm fixtureWorm;
 	private static Food fixtureFood;
 
+	private static Worm fixtureWorm;
 	private boolean[][] map10x10, map5x5;
 	private static World theWorld, otherWorld;
 	private static Team theTeam = null;
@@ -2886,6 +2886,7 @@ public class Part3_FullFacadeTest {
 			Team otherTeam = facade.createTeam(otherWorld, "OtherTeam");
 			Worm wormC = facade.createWorm(theWorld, new double[] { 7.0, 2.5 }, 2.0, 2.0, "WormC", otherTeam);
 			Worm wormD = facade.createWorm(otherWorld, new double[] { 2.5, 3.0 }, 2.0, 1.0, "WormD", otherTeam);
+			
 			facade.mergeTeams(theTeam, otherTeam);
 			assertEquals(4, facade.getNbWormsOfTeam(theTeam));
 			assertEquals(0, facade.getNbWormsOfTeam(otherTeam));

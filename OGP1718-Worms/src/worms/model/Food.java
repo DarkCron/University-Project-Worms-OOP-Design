@@ -28,6 +28,15 @@ public class Food extends GameObject{
 	@Raw
 	public Food(Location location, Radius radius, World world) throws InvalidLocationException,InvalidRadiusException {
 		super(location, radius, world);
+		
+		if(this.getWorld() != null) { //TODO
+			if(!this.getWorld().isPassable(this)) {
+				throw new IllegalStateException("Worm placed out of world on initialization.");
+			}
+			if(!this.getWorld().isAdjacantToImpassableTerrain(location, radius)) {
+				throw new IllegalStateException("Worm not placed near impassable terrain.");
+			}
+		}
 	}
 
 	@Override

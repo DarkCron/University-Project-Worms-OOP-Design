@@ -99,6 +99,15 @@ public class Worm extends GameObject{
 		if(team!=null) {//TODO doc
 			team.addWorm(this);
 		}
+		
+		if(this.getWorld() != null) { //TODO
+			if(!this.getWorld().isPassable(this)) {
+				throw new IllegalStateException("Worm placed out of world on initialization.");
+			}
+			if(!this.getWorld().isAdjacantToImpassableTerrain(location, radius)) {
+				throw new IllegalStateException("Worm not placed near impassable terrain.");
+			}
+		}
 	}
 
 	/**
@@ -593,10 +602,10 @@ public class Worm extends GameObject{
 	 * 		| result == (other.getMass() <= 2*this.getMass()) || (other.getMass() >= this.getMass()/2)
 	 */
 	public boolean hasCorrectTeamMass(Worm other) {
-		if (other.getMass() > 2*this.getMass()) {
+		if (other.getMass() >= 2*this.getMass()) {
 			return false;
 		}
-		if(other.getMass() < this.getMass()/2) {
+		if(other.getMass() <= this.getMass()/2) {
 			return false;
 		}
 		return true;
@@ -1194,6 +1203,8 @@ public class Worm extends GameObject{
 		if(!isValidLocation(tmpLocation,this.getWorld())) {
 			throw new InvalidLocationException(tmpLocation);
 		}
+		
+
 		
 		return tmpLocation.getLocation();
 	}
