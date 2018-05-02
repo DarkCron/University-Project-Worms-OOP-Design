@@ -79,9 +79,17 @@ public class Radius {
 	 * 		|		(radius >= minRadius)
 	 */
 	public static boolean isValidRadius(double radius,double minRadius) {
+
+		if(Double.compare(Double.NaN, radius) == 0) {
+			return false;
+		}else if(Double.compare(Double.NaN, minRadius) == 0) {
+			return false;
+		}
+		
 		if (minRadius > radius) {
 			return false;
 		}
+		
 
 		return true;
 	}

@@ -7,6 +7,8 @@ import worms.exceptions.InvalidLocationException;
 import worms.exceptions.InvalidWormNameException;
 import worms.exceptions.NotEnoughAPException;
 import worms.internal.gui.game.IActionHandler;
+import worms.model.Projectile.CreateProjectile;
+import worms.model.Projectile.Projectile_Type;
 import worms.model.ShapeHelp.Circle;
 import worms.model.values.*;
 import worms.exceptions.InvalidRadiusException;
@@ -160,10 +162,10 @@ public class Worm extends GameObject{
 	private void consumesFood(Food o) {//TODO REWORK
 		this.getWorld().removeGameObject(o);
 		o.terminate();
-		Location beforeGrowth = this.getLocation();
-		double maxAllowed = this.getRadius().getRadius()*0.2;
+		//Location beforeGrowth = this.getLocation();
+		//double maxAllowed = this.getRadius().getRadius()*0.2;
 		Location afterGrowth = this.nearestLocationAfterGrowing();
-		double distanceMod = beforeGrowth.getDistanceFrom(afterGrowth);
+		//double distanceMod = beforeGrowth.getDistanceFrom(afterGrowth);
 		
 		if(afterGrowth==null) {
 			this.terminate();
@@ -175,7 +177,7 @@ public class Worm extends GameObject{
 
 	}
 	
-	private final static double FALL_DAMAGE_MOD  = 3;
+	private final static double FALL_DAMAGE_MOD  = -3;
 	
 	/**
 	 * This function makes this worm fall
@@ -196,7 +198,7 @@ public class Worm extends GameObject{
 			fallDistance+=fallDistanceDelta;
 			wormLoc = (new Location(wormLoc.getX(), wormLoc.getY()-fallDistanceDelta));
 			if(!isValidWorldLocation(wormLoc, this.getWorld())||!this.getWorld().isPassable(wormLoc, this.getRadius())) {		
-				if(fallDistanceDelta < 0.1d / 1000d) {
+				if(fallDistanceDelta < 0.1d / 100d) {
 					break;
 				}else {
 					wormLoc = (new Location(wormLoc.getX(), wormLoc.getY()+fallDistanceDelta));
@@ -208,7 +210,7 @@ public class Worm extends GameObject{
 		wormLoc = (new Location(wormLoc.getX(), wormLoc.getY()+fallDistanceDelta));
 		this.setLocation(wormLoc);
 
-		this.increaseHitPoints(new BigInteger(((Integer)((int)(fallDistance*FALL_DAMAGE_MOD*-1))).toString()));
+		this.increaseHitPoints(new BigInteger(((Integer)((int)(fallDistance*FALL_DAMAGE_MOD))).toString()));
 		
 		if(fallDistance>=1) {
 			//System.out.println("You fell: "+fallDistance+"m");
@@ -234,8 +236,9 @@ public class Worm extends GameObject{
 	private void fallOnOtherWorms() {
 		for(GameObject worm: this.getWorld().getAllObjectsOfType(Worm.class)) {
 			if(worm instanceof Worm) {
-				if(this.overlapsWith(worm)) {
-					((Worm) worm).setHitPoints(new HP(((Worm) worm).getHitPoints().divide(BigInteger.valueOf(2))));
+				if(worm != this && this.overlapsWith(worm) ) {
+					int prev = (int)(((Worm) worm).getHitPoints().doubleValue() / 2d) ;
+					((Worm) worm).setHitPoints(new HP(BigInteger.valueOf(prev)));
 					this.setHitPoints(new HP(((Worm) worm).getHitPoints().add(this.getHitPoints())));
 				}
 			}
@@ -651,6 +654,8 @@ public class Worm extends GameObject{
 	public void move() throws InvalidLocationException,IllegalStateException{
 		Direction bestMoveAngle = this.getOptimalMovementAngle();
 		Location newLocation = this.getFurthestLocationInDirection(bestMoveAngle,this.getRadius().getRadius());
+		newLocation = new Location(World.roundingHelper(newLocation.getX(),3), World.roundingHelper(newLocation.getY(),3));
+		
 		
 		if(!isValidWorldLocation(newLocation, this.getWorld())) {
 			throw new InvalidLocationException(newLocation);
@@ -668,6 +673,9 @@ public class Worm extends GameObject{
 			if(this.overlapsAnyOtherWorm()) {
 				this.handleWormMoveCollision();
 			}
+			
+//			fall();
+		//	System.out.println("");
 		}else {
 			throw new IllegalStateException("Not enough AP to move.");
 		}
@@ -759,38 +767,48 @@ public class Worm extends GameObject{
 	private Direction getOptimalMovementAngle() {
 		double bestDiv = 0.0d;
 		double bestRatio = 0.0d;
-		boolean foundAdjacent = false;
+		boolean bFoundAdjacent = false;
 		
-		if(this.canMoveStraight()) {
-			return new Direction(this.getDirection().getAngle() + 0.0);	
-		}
+//		if(this.canMoveStraight()) {
+//			return new Direction(this.getDirection().getAngle() + 0.0);	
+//		}
 		
 		for(double div = -0.7875d; div <= 0.7875d; div += 0.0175) { //TODO constants
+			div = World.roundingHelper(div,5);
 			Direction tempDirection = new Direction(this.getDirection().getAngle() + div);
 			Location tempLocation = getFurthestAdjacentLocationInDirection(tempDirection,this.getRadius().getRadius());
 			double distance = Math.sqrt(Math.pow(getX() - tempLocation.getX(),2)+Math.pow(getY() - tempLocation.getY(),2));
-			if(tempLocation!=null && !tempLocation.equals(this.getLocation()) && distance >= 0.1) {
-				foundAdjacent = true;
-				double sampleDiv = this.getDirection().getAngle() >= tempDirection.getAngle() ? this.getDirection().getAngle() - tempDirection.getAngle() : tempDirection.getAngle() - this.getDirection().getAngle();
-				double ratio = this.getLocation().getDistanceFrom(tempLocation) / sampleDiv;
-				if(ratio > bestRatio) {
+			if(tempLocation!=null && !tempLocation.equals(this.getLocation()) && distance >= 0.11) {
+				//double sampleDiv = this.getDirection().getAngle() >= tempDirection.getAngle() ? this.getDirection().getAngle() - tempDirection.getAngle() : tempDirection.getAngle() - this.getDirection().getAngle();
+
+				double s = Math.atan2(tempLocation.getY() - this.getLocation().getY(),tempLocation.getX() - this.getLocation().getX());
+				if(s<=0) {
+					s*=-1;
+				}
+				double sampleDiv = (this.getDirection().getAngle() - s);
+				if(sampleDiv<=0) {
+					sampleDiv+=Math.PI*2;
+					//sampleDiv = Math.abs(sampleDiv);
+				}
+				double ratio = distance / sampleDiv;
+
+//				if(isAdjacentToTerrain(tempLocation, getRadius(), getWorld())) {
+//					System.out.println(tempLocation + "   distance: "+distance +"    ratio: "+ratio);
+//				}
+
+				if(ratio >= bestRatio) {
+					bFoundAdjacent = true;
 					bestDiv = div;
 					bestRatio = ratio;
 				}
 			}
 		}
-		
-//		if(!foundAdjacent) {
-//			double div = 0;
-//			Direction tempDirection = new Direction(this.getDirection().getAngle() + div);
-//			Location tempLocation = getFurthestLocationInDirection(tempDirection,this.getRadius().getRadius());
-//			double ratio = this.getLocation().getDistanceFrom(tempLocation) / div;
-//			double distance = Math.sqrt(Math.pow(getX() - tempLocation.getX(),2)+Math.pow(getY() - tempLocation.getY(),2));
-//			if(ratio > bestRatio && distance >= 0.1) {
-//				bestDiv = div;
-//				bestRatio = ratio;
-//			}
-//		}
+		if(bestDiv>=-0.02&&bestDiv<=0.02) {
+			bestDiv = 0;
+		}
+		if(!bFoundAdjacent) {
+			return this.getDirection();
+		}
 		
 		return new Direction(this.getDirection().getAngle() + bestDiv);
 	}
@@ -815,6 +833,9 @@ public class Worm extends GameObject{
 		if(isAdjacentToTerrain(tempLocation, this.getRadius(), this.getWorld()) && distance >= 0.1) {
 			return true;
 		}
+//		if(getWorld().isPassable(tempLocation, this.getRadius()) && distance >= 0.1) {
+//			return true;
+//		}
 		return false;
 	}
 
@@ -860,20 +881,26 @@ public class Worm extends GameObject{
 	 */
 	public Location getFurthestLocationInDirection(Direction direction, double distance) {
 		Location finish = this.getLocation();
-		for(double step = 0; step <= distance; step+=0.1) {
+		for(double step = this.getRadius().getRadius() * 0.2d; step <= distance; step+=0.1d) {
 			Location temp = getStepDirection(direction,step);
-			if(this.getWorld().isPassable(temp,this.getRadius()) && GameObject.isValidWorldLocation(temp, this.getWorld())) {
-				finish = temp;
-			}else {
-				return finish;
+			if(this.getWorld()!=null) { //TODO DOC
+				if(this.getWorld().isPassable(temp,this.getRadius()) && GameObject.isValidWorldLocation(temp, this.getWorld())) {
+					//if(isAdjacentToTerrain(temp, getRadius(), getWorld())) {
+						finish = temp;
+					//}
+				}else {
+					return finish;
+				}
 			}
 		}
 		
 		//This ensures the final step is checked as well, as in radius is 3.4f step 1,2,3 will be checked in
 		//the for loop, this if checks whether 3.4f explicitly is possible.
 		Location furthestLocation = getStepDirection(direction,distance); 
-		if(this.getWorld().isPassable(furthestLocation,this.getRadius())) {
-			return furthestLocation;
+		if(this.getWorld() == null ||this.getWorld().isPassable(furthestLocation,this.getRadius())) {
+			//if(isAdjacentToTerrain(furthestLocation, getRadius(), getWorld())) {
+				return furthestLocation;
+			//}
 		}
 		
 		return finish;
@@ -899,15 +926,29 @@ public class Worm extends GameObject{
 	 */
 	public Location getFurthestAdjacentLocationInDirection(Direction direction, double distance) {
 		Location finish = this.getLocation();
-		for(double step = 0.1; step <= distance; step+=0.1) {
+		for(double step = 0.0; step <= distance; step+=0.1) { //start at 0.0
 			Location temp = getStepDirection(direction,step);
-			if(this.getWorld().isPassable(temp,this.getRadius())&& isAdjacentToTerrain(temp, this.getRadius(), this.getWorld()) && GameObject.isValidWorldLocation(temp, this.getWorld())) {
-				finish = temp;
+			if(temp.getDistanceFrom(this.getLocation()) <= this.getRadius().getRadius()*.2) {
+				continue;
+			}
+			if(this.getWorld().isPassable(temp,this.getRadius())&& GameObject.isValidWorldLocation(temp, this.getWorld())) {
+				if( isAdjacentToTerrain(temp, this.getRadius(), this.getWorld()) ) {
+					finish = temp;
+				}
 			}else {
 				return finish;
 			}
-		}		
+		}	
+		
+		Location temp = getStepDirection(direction,distance); //Try the furthest possible distance
+		if(this.getWorld().isPassable(temp,this.getRadius())&& GameObject.isValidWorldLocation(temp, this.getWorld())) {
+			if( isAdjacentToTerrain(temp, this.getRadius(), this.getWorld()) ) {
+				return temp;
+			}
+		}
+		
 		return finish;
+		
 	}
 	
 	/**
@@ -923,7 +964,7 @@ public class Worm extends GameObject{
 	 */
 	public int getMovementCost(Location movement) {
 		int cost = 0;
-		cost = (int) Math.ceil(Math.abs(Math.cos(this.getDirection().getAngle()))*movement.getX() + Math.abs(4*Math.sin(this.getDirection().getAngle())*movement.getY()));
+		cost = (int) (Math.ceil(Math.abs(Math.cos(this.getDirection().getAngle()))*movement.getX()) + Math.ceil(Math.abs(4*Math.sin(this.getDirection().getAngle())*movement.getY())));
 		
 		return cost;
 	}
@@ -1174,12 +1215,15 @@ public class Worm extends GameObject{
 	 * 		| !isValidLocation(tmpLocation)
 	 */
 	public double[] jumpStep(double deltaTime) throws InvalidLocationException,IllegalArgumentException,RuntimeException{
-
+		if(this.getCurrentActionPoints() == 0) {
+			throw new NotEnoughAPException("");
+		}
+		
 		if(!isValidJumpTime(deltaTime)) {
 			throw new IllegalArgumentException(((Double)deltaTime).toString());
 		}
 		
-		if(!(this.getDirection().getAngle() > 0 && this.getDirection().getAngle() < Math.PI)) {
+		if(!(this.getDirection().getAngle() >= 0 && this.getDirection().getAngle() <= Math.PI)) {
 			throw new RuntimeException("The direction of the worm trying to jump is invalid. Not equal or larger than 0 and less than 2*PI." + this.getDirection().toString());
 		}
 		
@@ -1276,24 +1320,34 @@ public class Worm extends GameObject{
 	 * 			
 	 */
 	private double getLastPassableJumpStepTime(double jumpTime, double deltaT) {
+		Location lastAdjacentLocation = null;
+		double lastAdjacentTime = 0.0;
 		for (double i = deltaT; i < jumpTime; i+=deltaT) {
 			Location wormLoc = new Location(this.jumpStep(i));
+			if(this.getWorld().isAdjacantToImpassableTerrain(wormLoc, this.getRadius())) {
+				lastAdjacentLocation = wormLoc;
+				lastAdjacentTime = i;
+			}
 			if(!this.getWorld().isPassable(wormLoc, this.getRadius())) { //TODO Doc
-				if(this.getLocation().getDistanceFrom(wormLoc) < this.getRadius().getRadius()) {
+//				if(this.getLocation().getDistanceFrom(wormLoc) < this.getRadius().getRadius()) {
+//					return 0; //THIS WILL CAUSE A CONTROLLED EXCEPTION
+//				}
+				//return i - deltaT;
+				if(lastAdjacentLocation!=null && this.getLocation().getDistanceFrom(lastAdjacentLocation) < this.getRadius().getRadius()) {
 					return 0; //THIS WILL CAUSE A CONTROLLED EXCEPTION
 				}
 				//This means the latest jumpstep is invalid, therefore the one step before that was.
-				return i-deltaT;
+				return lastAdjacentTime;
 			}
 		}
 		
 		//This checks the very last moment of the jump, assuming all other steps were valid.
-		Location wormLoc = new Location(this.jumpStep(jumpTime));
-		if(!this.getWorld().isPassable(wormLoc, this.getRadius())) {
-			return jumpTime-deltaT;
-		}
-		
-		return jumpTime;
+//		Location wormLoc = new Location(this.jumpStep(jumpTime));
+//		if(!this.getWorld().isPassable(wormLoc, this.getRadius())) {
+//			return jumpTime-deltaT;
+//		}
+		//return jumpTime;
+		return lastAdjacentTime;
 	}
 
 	/**
@@ -1384,7 +1438,12 @@ public class Worm extends GameObject{
 
 	private Program loadedScript = null;
 	
-	public void assignProgram(Program program, IActionHandler handler) {
+	public void assignProgram(Program program, IActionHandler handler) throws IllegalStateException{
+		if(this.getWorld()!= null) {
+			if(this.getWorld().getIsGameActive()) {
+				throw new IllegalStateException("Tried to add program during game.");
+			}
+		}
 		this.setProgram(program);
 		if(program != null && program.getProgramHolder() != this) {
 			program.setProgramHolder(this);
@@ -1398,5 +1457,23 @@ public class Worm extends GameObject{
 	
 	public Program getProgram() {
 		return this.loadedScript;
+	}
+
+	public Projectile fire() throws IllegalStateException{
+		if(this.getWorld() == null) {
+			throw new IllegalStateException();
+		}
+		
+		int amountOfGuns = Projectile.Projectile_Type.values().length;
+		int randomGun = (int)(Math.random() * amountOfGuns);
+		CreateProjectile gun = Projectile.getRifle(Projectile_Type.values()[randomGun]); //Chooses a random enum value
+		Projectile firedProjectile = gun.create(this);
+		if(firedProjectile.getCostAP() <= this.getCurrentActionPoints()) {
+			this.getWorld().addGameObject(firedProjectile);
+			this.setActionPoints(this.getCurrentActionPoints() - firedProjectile.getCostAP());
+		}else {
+			firedProjectile = null;
+		}
+		return firedProjectile;
 	}
 }

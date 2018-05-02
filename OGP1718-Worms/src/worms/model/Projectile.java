@@ -23,9 +23,12 @@ public class Projectile extends GameObject {
 		//Nothing to do.
 	}
 	
-	public Location getProjectileSpawnLocation(Worm worm) {
-		// TODO Auto-generated method stub
-		return null;
+	private static Location getProjectileSpawnLocation(Worm worm, Radius projectileRadius) {
+		double distance = worm.getRadius().getRadius() + projectileRadius.getRadius();
+		double x = worm.getX() + Math.cos(worm.getDirection().getAngle())*distance;
+		double y = worm.getY() + Math.sin(worm.getDirection().getAngle())*distance;
+		Location loc = new Location(x, y);
+		return loc;
 	}
 
 	public Direction getDirection() {
@@ -38,7 +41,7 @@ public class Projectile extends GameObject {
 	
 	private Direction direction;
 
-	private Radius getRadius(int projectileMass) {
+	private static Radius getRadius(int projectileMass) {
 		double radius = Math.pow(((double)projectileMass)/(((double)PROJECTILE_DENSITY)*((double)(4/3)*Math.PI)), (double)(1/3));
 		return new Radius(radius);
 	}
@@ -63,42 +66,82 @@ public class Projectile extends GameObject {
 	
 	private int hitPoints;
 	
+	public int getCostAP() {
+		return costAP;
+	}
+
+	public void setCostAP(int costAP) {
+		this.costAP = costAP;
+	}
 	
+	private int costAP;
+	
+	
+//	public boolean isTerminated() {
+//		return isTerminated;
+//	}
+//
+//	public void setTerminated(boolean isTerminated) {
+//		this.isTerminated = isTerminated;
+//	}
+//	
+//	public void terminate() {
+//		this.setTerminated(true);
+//	}
+//	
+//	boolean isTerminated = false;
+	
+	
+
+
 	@FunctionalInterface
 	public interface CreateProjectile{
 		Projectile create(Worm w);
 	}
 	
-	private final int RIFLE_PROJECTILE_MASS = 10;
-	private final int BAZOOKA_PROJECTILE_MASS = 300;
-	private final double RIFLE_FORCE = 1.5;
-	private final int RIFLE_COST = 10;
-	private final int BAZOOKA_COST = 25;
-	private final int PROJECTILE_DENSITY = 7800;
+	private final static int RIFLE_PROJECTILE_MASS = 10;
+	private final static int BAZOOKA_PROJECTILE_MASS = 300;
+	private final static double RIFLE_FORCE = 1.5;
+	private final static int RIFLE_COST = 10;
+	private final static int BAZOOKA_COST = 25;
+	private final static int PROJECTILE_DENSITY = 7800;
 	
-	CreateProjectile RIFLE = (worm) -> {
+	public static CreateProjectile getRifle(Projectile_Type type) throws IllegalArgumentException{
+		if(type == Projectile_Type.RIFLE) {
+			return RIFLE;
+		}else if(type == Projectile_Type.BAZOOKA) {
+			return BAZOOKA;
+		}
+		
+		throw new IllegalArgumentException();
+	}
+
+	private static CreateProjectile RIFLE = (worm) -> {
 		if(worm.getWorld() == null) {
 			throw new IllegalArgumentException("Worm not in a world.");
 		}
-		Location projectileLocation = getProjectileSpawnLocation(worm);
-		Direction projectileDirection = worm.getDirection(); //TODO to reference or not to reference, that's the question
 		Radius projectileRadius = getRadius(RIFLE_PROJECTILE_MASS);
+		Location projectileLocation = getProjectileSpawnLocation(worm,projectileRadius);
+		Direction projectileDirection = worm.getDirection(); //TODO to reference or not to reference, that's the question
+
 		Projectile bullet = new Projectile(projectileLocation,projectileDirection , projectileRadius, worm.getWorld());
 		bullet.setProjectileForce(RIFLE_FORCE);
 		int randomNumber = (int)(Math.random()*4) + 1; //Random number from 1 - 5
 		randomNumber*=2; // random even number between  2 - 10
 		bullet.setHitPoints(randomNumber);
 		bullet.setMass(RIFLE_PROJECTILE_MASS);
+		bullet.setCostAP(RIFLE_COST);
 		return bullet;
 	};
 
-	CreateProjectile BAZOOKA = (worm) -> {
+	private static CreateProjectile BAZOOKA = (worm) -> {
 		if(worm.getWorld() == null) {
 			throw new IllegalArgumentException("Worm not in a world.");
 		}
-		Location projectileLocation = getProjectileSpawnLocation(worm);
-		Direction projectileDirection = worm.getDirection(); //TODO to reference or not to reference, that's the question
 		Radius projectileRadius = getRadius(BAZOOKA_PROJECTILE_MASS);
+		Location projectileLocation = getProjectileSpawnLocation(worm,projectileRadius);
+		Direction projectileDirection = worm.getDirection(); //TODO to reference or not to reference, that's the question
+
 		Projectile bullet = new Projectile(projectileLocation,projectileDirection , projectileRadius, worm.getWorld());
 		double bazookaForce = 2.5d + worm.getCurrentActionPoints() % 8;
 		bullet.setProjectileForce(bazookaForce);
@@ -108,6 +151,7 @@ public class Projectile extends GameObject {
 		}
 		bullet.setHitPoints((int)(randomNumber*bazookaForce));
 		bullet.setMass(BAZOOKA_PROJECTILE_MASS);
+		bullet.setCostAP(BAZOOKA_COST);
 		return bullet;
 	};
 	

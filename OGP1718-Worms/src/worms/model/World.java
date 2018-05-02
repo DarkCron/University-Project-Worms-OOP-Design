@@ -302,9 +302,13 @@ public class World {
 		if(!isPassable(gameObject)) { //TODO
 			throw new IllegalStateException("object placed out of world on initialization.");
 		}
-		if(!isAdjacantToImpassableTerrain(gameObject.getLocation(), gameObject.getRadius())) { //TODO
-			throw new IllegalStateException("object not placed near impassable terrain.");
+		
+		if(!(gameObject instanceof Projectile)) {
+			if(!isAdjacantToImpassableTerrain(gameObject.getLocation(), gameObject.getRadius())) { //TODO
+				throw new IllegalStateException("object not placed near impassable terrain.");
+			}
 		}
+
 		
 	}
 	
@@ -588,13 +592,13 @@ public class World {
 			return true;
 		}
 		if(passableMap[heightIndex][widthIndex].isOnUpperEdge(realWorldLoc)) {
-			return heightIndex != passableMap.length &&  passableMap[heightIndex+1][widthIndex].isPassable();
+			return heightIndex != passableMap.length -1 &&  passableMap[heightIndex+1][widthIndex].isPassable();
 		}else if(passableMap[heightIndex][widthIndex].isOnLowerEdge(realWorldLoc)) {
 			return heightIndex != 0 &&  passableMap[heightIndex-1][widthIndex].isPassable();
 		}else if(passableMap[heightIndex][widthIndex].isOnLeftEdge(realWorldLoc)) {
 			return widthIndex != 0 &&  passableMap[heightIndex][widthIndex-1].isPassable();
 		}else if(passableMap[heightIndex][widthIndex].isOnRightEdge(realWorldLoc)) {
-			return widthIndex != passableMap[0].length &&  passableMap[heightIndex][widthIndex+1].isPassable();
+			return widthIndex != passableMap[0].length -1 &&  passableMap[heightIndex][widthIndex+1].isPassable();
 		}
 		return false;
 	}
@@ -789,12 +793,14 @@ public class World {
 	 * 			|	new.wormTurnCycle.getFirst().resetTurn()
 	 */
 	public void endFirstPlayerWormTurn() throws IllegalStateException{
-		if(this.wormTurnCycle.size() == 0) {
-			throw new IllegalStateException("No worms to switch with, in endFirstPlayerWormTurn");
+		if(!this.wormTurnCycle.isEmpty()) {
+			this.wormTurnCycle.add(wormTurnCycle.getFirst());
+			this.wormTurnCycle.remove(0);
+			this.wormTurnCycle.getFirst().resetTurn();
+		}else {
+			//throw new IllegalStateException("No worms to switch with, in endFirstPlayerWormTurn");
 		}
-		this.wormTurnCycle.add(wormTurnCycle.getFirst());
-		this.wormTurnCycle.remove(0);
-		this.wormTurnCycle.getFirst().resetTurn();
+
 	}
 	
 	/**
@@ -1047,6 +1053,10 @@ public class World {
 	
 	public static double getJumpTimeDelta() {
 		return JUMP_TIME_DELTA;
+	}
+	
+	public static final double roundingHelper(double d,int precision) {
+		return Math.round(d*Math.pow(10, precision))/Math.pow(10, precision);
 	}
 
 	
