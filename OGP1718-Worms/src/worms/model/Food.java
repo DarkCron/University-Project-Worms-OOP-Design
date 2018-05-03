@@ -39,9 +39,21 @@ public class Food extends GameObject{
 		}
 	}
 
-	@Override
+	@Override //TODO DOCUMENTATION
 	public void generateMass() {
 		this.setMass(calculateMass(World.getFoodDensity()));
 	}
+	
+	private boolean isPoisoned = true;
+
+	public boolean isPoisoned() {
+		return isPoisoned;
+	}
+
+	public void setPoisoned(boolean isPoisoned) {
+		this.isPoisoned = isPoisoned;
+	}
+	
+	
 	
 }

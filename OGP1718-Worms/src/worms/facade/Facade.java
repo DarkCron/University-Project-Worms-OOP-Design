@@ -643,7 +643,12 @@ public class Facade implements IFacade {
 
 	@Override
 	public void castSpell(World world) throws ModelException {
-		// TODO Auto-generated method stub
+		try {
+			world.castSpell();
+		} catch (Exception e) {
+			throw new ModelException(e);
+			
+		}
 		
 	}
 }

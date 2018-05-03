@@ -136,6 +136,7 @@ public class Worm extends GameObject{
 			if(o instanceof Food) {
 				if(this.overlapsWith(o)) {
 					this.consumesFood((Food)o);
+					o.terminate();
 					this.setActionPoints(getCurrentActionPoints()-8);
 					bMustRecheckFoodDeletion = true;
 					break;
@@ -159,9 +160,9 @@ public class Worm extends GameObject{
 	 * 
 	 * @post | new.getRadius().getRadius() == this.getRadius().getRadius() * GROWTH_MODIFIER
 	 */
-	private void consumesFood(Food o) {//TODO REWORK
+	public void consumesFood(Food o) {//TODO REWORK
 		this.getWorld().removeGameObject(o);
-		o.terminate();
+		
 		//Location beforeGrowth = this.getLocation();
 		//double maxAllowed = this.getRadius().getRadius()*0.2;
 		Location afterGrowth = this.nearestLocationAfterGrowing();

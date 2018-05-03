@@ -15,6 +15,7 @@ import worms.model.ShapeHelp.BoundaryRectangle;
 import worms.model.ShapeHelp.Circle;
 import worms.model.ShapeHelp.Rectangle;
 import worms.model.values.GameObjectTypeID;
+import worms.model.values.HP;
 import worms.model.values.Location;
 import worms.model.values.Name;
 import worms.model.values.Radius;
@@ -1006,6 +1007,98 @@ public class World {
 	public boolean onlyOneWorm() {
 		return (this.getAllObjectsOfType(Worm.class).size() == 1);
 	}
+	
+	public void castSpell() {
+		int randomObjectIdx1 = (int) Math.round(Math.random()*((this.getAllGameObjects().size())-1));
+		int randomObjectIdx2 = (int) Math.round(Math.random()*((this.getAllGameObjects().size())-1));
+		ArrayList<Object> gameObjects = new ArrayList<Object>(this.getAllGameObjects());
+		
+		while(randomObjectIdx1 == randomObjectIdx2) {
+			randomObjectIdx2 = (int) Math.round(Math.random()*((this.getAllGameObjects().size())-1));
+		}
+		
+		if(gameObjects.get(randomObjectIdx1) instanceof GameObject && gameObjects.get(randomObjectIdx2) instanceof GameObject){
+			GameObject object1 = (GameObject) gameObjects.get(randomObjectIdx1);
+			GameObject object2 = (GameObject) gameObjects.get(randomObjectIdx2);
+			//spell(object1.getClass().getSuperclass().cast(object1), object2.getClass().getSuperclass().cast(object2));
+			
+		}
+		else {
+			throw new IllegalStateException();
+		}
+	}
+	public void spell(GameObject go1, GameObject go2) {};
+	//food
+	public void spell(Food obj1, Food obj2) {
+		//If both objects are portions of food, they will both individually change
+		//state, i.e., from healthy to poisoned or vice versa.
+		obj1.setPoisoned(true);
+		obj2.setPoisoned(true);
+	}
+	
+	public void spell(Worm obj1, Food obj2) {
+		obj1.consumesFood(obj2);
+	}
+	
+	public void spell(Food obj1, Worm obj2) {
+		spell(obj2, obj1);
+	}
+	
+	public void spell(Worm obj1, Worm obj2) {
+		if(obj1.getTeam() == obj2.getTeam()) {
+			BigInteger two = BigInteger.valueOf(2);
+			BigInteger stuff = (obj1.getHitPoints().add(obj2.getHitPoints()).divide(BigInteger.valueOf(2)));
+			HP hitPointTmp = new HP((obj1.getHitPoints().add(obj2.getHitPoints()).divide(two)));
+			obj1.setHitPoints(new HP(stuff));
+			obj2.setHitPoints(new HP(stuff));
+		}
+		else {
+			if(obj1.getRadius().getRadius() < obj2.getRadius().getRadius()) {
+				obj1.setActionPoints(obj1.getCurrentActionPoints()+5);
+				obj2.setActionPoints(obj2.getCurrentActionPoints()-5);
+			}
+			else {
+				if(obj2.getCurrentActionPoints() < 5) {
+					obj1.setActionPoints(obj2.getCurrentActionPoints());
+					obj2.setActionPoints(0);
+				}
+				else {
+				obj2.setActionPoints(obj2.getCurrentActionPoints()+5);
+				obj1.setActionPoints(obj1.getCurrentActionPoints()-5);
+			
+				}
+			}
+		}
+	}
+	
+	public void spell(Projectile obj1, Worm obj2) {
+		BigInteger tmp = BigInteger.valueOf(obj1.getHitPoints());
+		HP diminshment = new HP((obj2.getHitPoints().subtract(tmp)));
+		obj2.setHitPoints(diminshment);
+		
+		//newhp projectile
+		//obj1.setHitPoints(HELPMEOUTBERND);
+	}
+	
+	public void spell(Worm obj1, Projectile obj2) {
+		spell(obj2, obj1);
+	}
+	public void spell(Projectile obj1, Projectile obj2) {
+		obj1.setHitPoints(obj1.getHitPoints()+2);
+		obj2.setHitPoints(obj2.getHitPoints()+2);
+	}
+	
+	public void spell(Projectile obj1, Food obj2) {
+		obj1.terminate();
+		obj2.terminate();
+	}
+	
+	public void spell(Food obj1, Projectile obj2) {
+		spell(obj2, obj1);
+	}
+	
+	
+
 	/**
 	 * A constant, representing a fictitious in game simulation of real life gravity. To
 	 * ensure worms fall back to the ground.
