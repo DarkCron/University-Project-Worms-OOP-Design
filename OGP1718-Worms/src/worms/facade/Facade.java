@@ -560,31 +560,26 @@ public class Facade implements IFacade {
 
 	@Override
 	public boolean isTerminated(Projectile projectile) throws ModelException {
-		// TODO Auto-generated method stub
 		return projectile.isTerminated();
 	}
 
 	@Override
 	public double getOrientation(Projectile projectile) throws ModelException {
-		// TODO Auto-generated method stub
 		return projectile.getDirection().getAngle();
 	}
 
 	@Override
 	public double[] getLocation(Projectile projectile) throws ModelException {
-		// TODO Auto-generated method stub
 		return projectile.getLocation().getLocation();
 	}
 
 	@Override
 	public double getRadius(Projectile projectile) {
-		// TODO Auto-generated method stub
 		return projectile.getRadius().getRadius();
 	}
 
 	@Override
 	public int getNbHitPoints(Projectile projectile) throws ModelException {
-		// TODO Auto-generated method stub
 		return projectile.getHitPoints();
 	}
 
@@ -608,7 +603,6 @@ public class Facade implements IFacade {
 
 	@Override
 	public Program getWormProgram(Worm worm) throws ModelException {
-		// TODO Auto-generated method stub
 		return worm.getProgram();
 	}
 
@@ -635,7 +629,6 @@ public class Facade implements IFacade {
 
 	@Override
 	public IProgramFactory<?, ?, ?, ? extends Program> createProgramFactory() throws ModelException {
-		// TODO Auto-generated method stub
 		return new ProgramFactory();
 	}
 
