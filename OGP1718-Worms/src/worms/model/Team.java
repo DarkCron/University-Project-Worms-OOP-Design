@@ -116,7 +116,7 @@ public class Team {
 			throw new IllegalArgumentException("This worm already has a team.");
 		}
 
-		if(!canHaveWormInTeam(worm)) {
+		if(canHaveWormInTeam(worm)) {
 			throw new IllegalArgumentException("Worm cannot be added to the team.");
 		}
 		
@@ -126,6 +126,10 @@ public class Team {
 			worm.setTeam(this);//TODO DOC
 			teamRoster.add(worm);
 		}else {
+//			for (Worm o: this.teamRoster) {
+//				if(o.getName() == worm.getName())
+//					throw new IllegalArgumentException("This worm has the same name. This can't be added.");
+//			}
 			int index = sortInTeamRoster(worm);
 			worm.setTeam(this);//TODO DOC
 			teamRoster.add(index, worm);
