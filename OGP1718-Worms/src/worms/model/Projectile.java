@@ -60,7 +60,12 @@ public class Projectile extends GameObject {
 		return hitPoints;
 	}
 
-	public void setHitPoints(int hitPoints) {
+	public void setHitPoints(int hitPoints) throws IllegalArgumentException{
+//		if(this.getProjectileHPRequirement().isValidBullet(hitPoints)) {
+//			this.hitPoints = hitPoints;
+//		}else {
+//			throw new IllegalArgumentException();
+//		}
 		this.hitPoints = hitPoints;
 	}
 	
@@ -75,6 +80,27 @@ public class Projectile extends GameObject {
 	}
 	
 	private int costAP;
+	
+	private int projectileMaxHp;
+	
+
+	public int getProjectileMaxHp() {
+		return projectileMaxHp;
+	}
+
+	public void setProjectileMaxHp(int projectileMaxHp) {
+		this.projectileMaxHp = projectileMaxHp;
+	}
+	
+	private BulletHitPointsRequirement projectileHPRequirement;
+	
+	public BulletHitPointsRequirement getProjectileHPRequirement() {
+		return projectileHPRequirement;
+	}
+
+	public void setProjectileHPRequirement(BulletHitPointsRequirement projectileHPRequirement) {
+		this.projectileHPRequirement = projectileHPRequirement;
+	}
 	
 	
 //	public boolean isTerminated() {
@@ -91,13 +117,7 @@ public class Projectile extends GameObject {
 //	
 //	boolean isTerminated = false;
 	
-	
 
-
-	@FunctionalInterface
-	public interface CreateProjectile{
-		Projectile create(Worm w);
-	}
 	
 	private final static int RIFLE_PROJECTILE_MASS = 10;
 	private final static int BAZOOKA_PROJECTILE_MASS = 300;
@@ -105,6 +125,42 @@ public class Projectile extends GameObject {
 	private final static int RIFLE_COST = 10;
 	private final static int BAZOOKA_COST = 25;
 	private final static int PROJECTILE_DENSITY = 7800;
+	private final static int RIFLE_BULLET_MAX_HP = 10;
+	private final static int BAZOOKA_BULLET_MAX_HP = 7;
+	
+	@FunctionalInterface
+	public interface BulletHitPointsRequirement{
+		boolean isValidBullet(int hitpoints);
+	}
+	private final static BulletHitPointsRequirement RIFLE_BULLET_REQ = (hitpoints) ->{
+		if(hitpoints < 0) {
+			return false;
+		}
+		if(hitpoints > RIFLE_BULLET_MAX_HP) {
+			return false;
+		}
+		if(hitpoints % 2 != 0) {
+			return false;
+		}
+		return true;
+	};	
+	private final static BulletHitPointsRequirement BAZOOKA_BULLET_REQ = (hitpoints) ->{
+		if(hitpoints < 0) {
+			return false;
+		}
+		if(hitpoints > BAZOOKA_BULLET_MAX_HP) {
+			return false;
+		}
+		if(hitpoints % 2 == 0) {
+			return false;
+		}
+		return true;
+	};
+
+	@FunctionalInterface
+	public interface CreateProjectile{
+		Projectile create(Worm w);
+	}
 	
 	public static CreateProjectile getRifle(Projectile_Type type) throws IllegalArgumentException{
 		if(type == Projectile_Type.RIFLE) {
@@ -116,6 +172,7 @@ public class Projectile extends GameObject {
 		throw new IllegalArgumentException();
 	}
 
+
 	private static CreateProjectile RIFLE = (worm) -> {
 		if(worm.getWorld() == null) {
 			throw new IllegalArgumentException("Worm not in a world.");
@@ -126,8 +183,10 @@ public class Projectile extends GameObject {
 
 		Projectile bullet = new Projectile(projectileLocation,projectileDirection , projectileRadius, worm.getWorld());
 		bullet.setProjectileForce(RIFLE_FORCE);
+		bullet.setProjectileHPRequirement(RIFLE_BULLET_REQ);
 		int randomNumber = (int)(Math.random()*4) + 1; //Random number from 1 - 5
 		randomNumber*=2; // random even number between  2 - 10
+		bullet.setProjectileMaxHp(RIFLE_BULLET_MAX_HP);
 		bullet.setHitPoints(randomNumber);
 		bullet.setMass(RIFLE_PROJECTILE_MASS);
 		bullet.setCostAP(RIFLE_COST);
@@ -145,10 +204,12 @@ public class Projectile extends GameObject {
 		Projectile bullet = new Projectile(projectileLocation,projectileDirection , projectileRadius, worm.getWorld());
 		double bazookaForce = 2.5d + worm.getCurrentActionPoints() % 8;
 		bullet.setProjectileForce(bazookaForce);
+		bullet.setProjectileHPRequirement(BAZOOKA_BULLET_REQ);
 		int randomNumber = (int)(Math.random()*6) + 1; //Random number from 1 - 7
 		if(randomNumber % 2 == 0) {
 			randomNumber -= 1;
 		}
+		bullet.setProjectileMaxHp(BAZOOKA_BULLET_MAX_HP);
 		bullet.setHitPoints((int)(randomNumber*bazookaForce));
 		bullet.setMass(BAZOOKA_PROJECTILE_MASS);
 		bullet.setCostAP(BAZOOKA_COST);

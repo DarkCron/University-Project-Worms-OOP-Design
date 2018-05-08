@@ -1,4 +1,5 @@
 package worms.model.ShapeHelp;
+
 import worms.model.values.Location;
 
 /**
@@ -102,6 +103,11 @@ public class Rectangle extends Shape {
 				&& (this.getCenter().getY()+this.getSize().getY()) >= (boundingRectangle.getCenter().getY() + boundingRectangle.getSize().getY());
 	}
 
+	public boolean intersects(Rectangle r) {
+		return this.getCenter().getX() < r.getCenter().getX() + r.getSize().getX() && this.getCenter().getX() + this.getSize().getX() > r.getCenter().getX() &&
+				this.getCenter().getY() < r.getCenter().getY() + r.getSize().getY() && this.getCenter().getY() + this.getSize().getY() > r.getCenter().getY();
+	}
+	
 	//TODO
 	public boolean isOnUpperEdge(Location p) {
 		return p.getY() == this.getCenter().getY();

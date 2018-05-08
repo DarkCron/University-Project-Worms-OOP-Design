@@ -136,7 +136,7 @@ public class Worm extends GameObject{
 			if(o instanceof Food) {
 				if(this.overlapsWith(o)) {
 					this.consumesFood((Food)o);
-					o.terminate();
+					o.getWorld().removeGameObject(o);
 					this.setActionPoints(getCurrentActionPoints()-8);
 					bMustRecheckFoodDeletion = true;
 					break;
@@ -161,7 +161,7 @@ public class Worm extends GameObject{
 	 * @post | new.getRadius().getRadius() == this.getRadius().getRadius() * GROWTH_MODIFIER
 	 */
 	public void consumesFood(Food o) {//TODO REWORK
-		this.getWorld().removeGameObject(o);
+		
 		
 		//Location beforeGrowth = this.getLocation();
 		//double maxAllowed = this.getRadius().getRadius()*0.2;
@@ -169,6 +169,7 @@ public class Worm extends GameObject{
 		//double distanceMod = beforeGrowth.getDistanceFrom(afterGrowth);
 		
 		if(afterGrowth==null) {
+			//this.grow(this.getLocation());
 			this.terminate();
 		}else {
 			this.grow(afterGrowth);
@@ -882,7 +883,7 @@ public class Worm extends GameObject{
 	 */
 	public Location getFurthestLocationInDirection(Direction direction, double distance) {
 		Location finish = this.getLocation();
-		for(double step = this.getRadius().getRadius() * 0.2d; step <= distance; step+=0.1d) {
+		for(double step = this.getRadius().getRadius() * 0.1d; step <= distance; step+=0.1d) {
 			Location temp = getStepDirection(direction,step);
 			if(this.getWorld()!=null) { //TODO DOC
 				if(this.getWorld().isPassable(temp,this.getRadius()) && GameObject.isValidWorldLocation(temp, this.getWorld())) {
@@ -929,7 +930,10 @@ public class Worm extends GameObject{
 		Location finish = this.getLocation();
 		for(double step = 0.0; step <= distance; step+=0.1) { //start at 0.0
 			Location temp = getStepDirection(direction,step);
-			if(temp.getDistanceFrom(this.getLocation()) <= this.getRadius().getRadius()*.2) {
+//			if(temp.getDistanceFrom(this.getLocation()) <= this.getRadius().getRadius()*.2) {
+//				continue;
+//			}
+			if(step <= this.getRadius().getRadius()*.2) {
 				continue;
 			}
 			if(this.getWorld().isPassable(temp,this.getRadius())&& GameObject.isValidWorldLocation(temp, this.getWorld())) {

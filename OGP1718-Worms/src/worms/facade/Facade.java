@@ -550,14 +550,12 @@ public class Facade implements IFacade {
 
 	@Override
 	public boolean isPoisonous(Food food) throws ModelException {
-		// TODO Auto-generated method stub
-		return false;
+		return food.isPoisoned();
 	}
 
 	@Override
 	public void poison(Food food) throws ModelException {
-		// TODO Auto-generated method stub
-		
+		food.setPoisoned(true);
 	}
 
 	@Override

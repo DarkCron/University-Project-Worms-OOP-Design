@@ -267,7 +267,7 @@ public class Part3_FullFacadeTest {
 		assertFalse(facade.isPassable(theWorld, new double[] { 9.3, 9.7 }));
 		assertFalse(facade.isPassable(theWorld, new double[] { 9.01, 0.0 }));
 		assertFalse(facade.isPassable(theWorld, new double[] { 9.01, 0.0 }));
-		assertFalse(facade.isPassable(theWorld, new double[] { 9.01, 9.01 }));
+		assertFalse(facade.isPassable(theWorld, new double[] { 9.01, 9.01 }));			
 		score += 2;
 	}
 
@@ -1656,6 +1656,7 @@ public class Part3_FullFacadeTest {
 	public void move_DestinationOutsideWorld() {
 		max_score += 10;
 		Worm theWorm = facade.createWorm(theWorld, new double[] { 8.0, 1.2 }, 3 * PI / 2.0, 1.0, "Worm", null);
+		
 		long oldNbActionPoints = facade.getNbActionPoints(theWorm);
 		facade.move(theWorm);
 		double[] newLocation = facade.getLocation(theWorm);

@@ -2,13 +2,18 @@ package worms.model;
 
 
 import java.math.BigInteger;
+import java.nio.channels.IllegalSelectorException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Optional;
 import java.util.Set;
-
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import be.kuleuven.cs.som.annotate.*;
 import worms.model.ShapeHelp.BoundaryRectangle;
@@ -99,7 +104,8 @@ public class World {
 		Location size = new Location(1, 1);
 		for (int i = 0; i < passableMap.length; i++) {
 			for (int j = 0; j < passableMap[0].length; j++) {
-				this.passableMap[passableMap.length - i - 1][j] = new BoundaryRectangle(new Location(j,i), size, passableMap[passableMap.length - i - 1][j]);
+				//this.passableMap[passableMap.length - i][j] = new BoundaryRectangle(new Location(j,i), size, passableMap[passableMap.length - i - 1][j]);
+				this.passableMap[i][j] = new BoundaryRectangle(new Location(j,i), size, passableMap[passableMap.length - i - 1][j]);
 			}		
 		}
 	}
@@ -461,6 +467,7 @@ public class World {
 		}
 		
 		return objectTypeList;
+		
 	}
 	
 	/**
@@ -557,34 +564,44 @@ public class World {
 	 * 			| result == passableMap[heightIndex][widthIndex].isPassable() || !passableMap[heightIndex][widthIndex].containsPoint(realWorldLoc)
 	 */
 	public boolean isPassable(Location location) {			
-		Location realWorldLoc = getRealWorldLoc(location);
-		if(realWorldLoc.getX() >= 0 && realWorldLoc.getX() < passableMap[0].length && realWorldLoc.getY() >=0 && realWorldLoc.getY() < passableMap.length) {
-			//System.out.println(realWorldLoc);
-			int heightIndex = passableMap.length - (int)Math.floor(realWorldLoc.getY())-1;
-			if(heightIndex < 0) {
-				heightIndex = 0;
-			}else if(heightIndex >= passableMap.length){
-				heightIndex = passableMap.length-1;
-			}
-			int widthIndex = (int)Math.floor(realWorldLoc.getX());
-			if(widthIndex < 0) {
-				widthIndex = 0;
-			}else if(widthIndex >= passableMap[0].length){
-				widthIndex = passableMap[0].length-1;
-			}
-			
-
-			if(!passableMap[heightIndex][widthIndex].isPassable() && passableMap[heightIndex][widthIndex].containsPoint(realWorldLoc)) {
-				if(isOnEdge(passableMap[heightIndex][widthIndex],realWorldLoc)) {
-					return edgeBorderCheck(heightIndex,widthIndex,realWorldLoc);
-				}else {
-					return false;
-				}
-				
-			}	
-		}
 		
-		return true;
+			Stream<BoundaryRectangle> stream = Arrays.stream(passableMap).flatMap(x -> Arrays.stream(x));
+			Optional<BoundaryRectangle> stuff = stream.filter(tile->!tile.isPassable() && tile.containsPoint(getRealWorldLoc(location))).findAny();
+			if(stuff.isPresent()) {
+				return false;
+			}else {
+				return true;
+			}
+		
+//		
+//		Location realWorldLoc = getRealWorldLoc(location);
+//		if(realWorldLoc.getX() >= 0 && realWorldLoc.getX() < passableMap[0].length && realWorldLoc.getY() >=0 && realWorldLoc.getY() < passableMap.length) {
+//			//System.out.println(realWorldLoc);
+//			int heightIndex = passableMap.length - (int)Math.floor(realWorldLoc.getY())-1;
+//			if(heightIndex < 0) {
+//				heightIndex = 0;
+//			}else if(heightIndex >= passableMap.length){
+//				heightIndex = passableMap.length-1;
+//			}
+//			int widthIndex = (int)Math.floor(realWorldLoc.getX());
+//			if(widthIndex < 0) {
+//				widthIndex = 0;
+//			}else if(widthIndex >= passableMap[0].length){
+//				widthIndex = passableMap[0].length-1;
+//			}
+//			
+//
+//			if(!passableMap[heightIndex][widthIndex].isPassable() && passableMap[heightIndex][widthIndex].containsPoint(realWorldLoc)) {
+//				if(isOnEdge(passableMap[heightIndex][widthIndex],realWorldLoc)) {
+//					return edgeBorderCheck(heightIndex,widthIndex,realWorldLoc);
+//				}else {
+//					return false;
+//				}
+//				
+//			}	
+//		}
+//		
+//		return true;
 	}
 	
 	//TODO
@@ -652,22 +669,50 @@ public class World {
 //		if(!Worm.isValidWorldLocation(location, this)) {
 //			return false;
 //		}
-		if(!furthestPointsPassable(location,radius)) {
-			return false;
-		}
+
+		
+//		if(!furthestPointsPassable(location,radius)) {
+//			return false;
+//		}
 		Circle passableSurface = new Circle(location, radius);
 		Rectangle bound = passableSurface.getBoundingRectangle();
-		for (double i = 0; i <= bound.getSize().getX(); i+=0.02) {
-			for (double j = 0; j <= bound.getSize().getY(); j+=0.02) {
-				if(passableSurface.contains(new Location(i+bound.getCenter().getX(),j+bound.getCenter().getY()))) {
-					if(!this.isPassable(new Location((i+bound.getCenter().getX()), (j+bound.getCenter().getY())))) {
-						return false;
+		
+		Rectangle realStuff = new Rectangle(this.getRealWorldLoc(bound.getCenter()), this.getRealWorldLoc(bound.getSize()));
+		ArrayList<BoundaryRectangle> collectionOfStuff = new ArrayList<BoundaryRectangle>();
+		for (int x = -1; x < realStuff.getSize().getX()+1;x++) {
+			for (int y = -2; y < realStuff.getSize().getY()+1;y++) {
+				int xCoord = x + (int)realStuff.getCenter().getX();
+				int yCoord = y + (int)realStuff.getCenter().getY();
+				if(xCoord >= 0 && xCoord < this.getWorldWidth()) {
+					if(yCoord >= 0 && yCoord < this.getWorldHeight()) {
+						if(realStuff.intersects(passableMap[yCoord][xCoord])) {
+							collectionOfStuff.add(passableMap[yCoord][xCoord]);
+						}
+	
 					}
 				}
 			}
-		}	
+		}
+		//Stream<BoundaryRectangle> stream = Arrays.stream(passableMap).flatMap(x -> Arrays.stream(x));
+		Stream<BoundaryRectangle> stream = collectionOfStuff.stream();
+		Optional<BoundaryRectangle> stuff = stream.filter(tile->!tile.isPassable() && tile.intersects(realStuff)).findAny();
+		if(stuff.isPresent()) {
+			return false;
+		}else {
+			return true;
+		}
 		
-		return true;
+//		for (double i = 0; i <= bound.getSize().getX(); i+=0.02) {
+//			for (double j = 0; j <= bound.getSize().getY(); j+=0.02) {
+//				if(passableSurface.contains(new Location(i+bound.getCenter().getX(),j+bound.getCenter().getY()))) {
+//					if(!this.isPassable(new Location((i+bound.getCenter().getX()), (j+bound.getCenter().getY())))) {
+//						return false;
+//					}
+//				}
+//			}
+//		}	
+//		
+//		return true;
 	}
 	
 	private boolean furthestPointsPassable(Location location, Radius radius) {
@@ -1008,7 +1053,11 @@ public class World {
 		return (this.getAllObjectsOfType(Worm.class).size() == 1);
 	}
 	
-	public void castSpell() {
+	public void castSpell() throws IllegalStateException{
+		if(this.getAllGameObjects().size() < 2) {
+			throw new IllegalStateException();
+		}
+		
 		int randomObjectIdx1 = (int) Math.round(Math.random()*((this.getAllGameObjects().size())-1));
 		int randomObjectIdx2 = (int) Math.round(Math.random()*((this.getAllGameObjects().size())-1));
 		ArrayList<Object> gameObjects = new ArrayList<Object>(this.getAllGameObjects());
@@ -1020,20 +1069,49 @@ public class World {
 		if(gameObjects.get(randomObjectIdx1) instanceof GameObject && gameObjects.get(randomObjectIdx2) instanceof GameObject){
 			GameObject object1 = (GameObject) gameObjects.get(randomObjectIdx1);
 			GameObject object2 = (GameObject) gameObjects.get(randomObjectIdx2);
-			//spell(object1.getClass().getSuperclass().cast(object1), object2.getClass().getSuperclass().cast(object2));
+			spell(object1,object2);
 			
 		}
 		else {
 			throw new IllegalStateException();
 		}
 	}
-	public void spell(GameObject go1, GameObject go2) {};
+	public void spell(GameObject go1, GameObject go2)
+	{
+		if(go1 instanceof Worm) {
+			if(go2 instanceof Worm) {
+				spell((Worm)go1,(Worm)go2);
+			}else if(go2 instanceof Food) {
+				spell((Worm)go1,(Food)go2);
+			}else if(go2 instanceof Projectile) {
+				spell((Worm)go1,(Projectile)go2);
+			}
+		}
+		if(go1 instanceof Food) {
+			if(go2 instanceof Worm) {
+				spell((Food)go1,(Worm)go2);
+			}else if(go2 instanceof Food) {
+				spell((Food)go1,(Food)go2);
+			}else if(go2 instanceof Projectile) {
+				spell((Food)go1,(Projectile)go2);
+			}
+		}
+		if(go1 instanceof Projectile) {
+			if(go2 instanceof Worm) {
+				spell((Projectile)go1,(Worm)go2);
+			}else if(go2 instanceof Food) {
+				spell((Projectile)go1,(Food)go2);
+			}else if(go2 instanceof Projectile) {
+				spell((Projectile)go1,(Projectile)go2);
+			}
+		}
+	};
 	//food
 	public void spell(Food obj1, Food obj2) {
 		//If both objects are portions of food, they will both individually change
 		//state, i.e., from healthy to poisoned or vice versa.
-		obj1.setPoisoned(true);
-		obj2.setPoisoned(true);
+		obj1.setPoisoned(!obj1.isPoisoned());
+		obj2.setPoisoned(!obj2.isPoisoned());
 	}
 	
 	public void spell(Worm obj1, Food obj2) {

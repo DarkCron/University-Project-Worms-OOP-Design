@@ -44,7 +44,7 @@ public class Food extends GameObject{
 		this.setMass(calculateMass(World.getFoodDensity()));
 	}
 	
-	private boolean isPoisoned = true;
+	private boolean isPoisoned = false;
 
 	public boolean isPoisoned() {
 		return isPoisoned;

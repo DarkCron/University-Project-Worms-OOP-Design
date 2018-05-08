@@ -205,7 +205,7 @@ public abstract class GameObject{
 	
 	public Location nearestLocationAfterGrowing() { //TODO
 		Radius growthRadius = new Radius(this.getRadius().getRadius()*GROWTH_MODIFIER);
-		Circle passableSurface = new Circle(this.getLocation(),new Radius(0.2*this.getRadius().getRadius()));//TODO
+		Circle passableSurface = new Circle(this.getLocation(),new Radius(0.2*this.getRadius().getRadius()));//TODO 1.1 * 0.1 or 0.2
 		Rectangle bound = passableSurface.getBoundingRectangle();
 		for (double i = 0; i < bound.getSize().getX(); i+=0.005) {
 			for (double j = 0; j < bound.getSize().getY(); j+=0.005) {
