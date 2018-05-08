@@ -17,6 +17,7 @@ import worms.programs.IProgramFactory;
 import worms.programs.internal.parser.ParserVisitor;
 import worms.programs.internal.parser.generated.WormsProgramLexer;
 import worms.programs.internal.parser.generated.WormsProgramParser;
+import worms.util.MustNotImplementException;
 import worms.internal.gui.GUIUtils;
 import worms.model.Program;
 
@@ -157,6 +158,8 @@ public class ProgramParser<E, S, P, Prg> {
 				}
 				errors.add("Factory did not return a Program object");
 			}
+		} catch (MustNotImplementException e) {
+			errors.add(e.toString());
 		} catch (Exception e) {
 			e.printStackTrace();
 			errors.add(e.toString());
