@@ -194,8 +194,8 @@ public abstract class GameObject{
 	 * 		| isValidRadius(new.getRadius())
 	 */
 	@Raw
-	public void grow(Location location) throws InvalidRadiusException{ //TODO REWORK
-		this.radius = new Radius(this.getRadius().getRadius()*GROWTH_MODIFIER);
+	public void grow(Location location, double modifier) throws InvalidRadiusException{ //TODO REWORK
+		this.radius = new Radius(this.getRadius().getRadius()*modifier >= this.getRadius().getMinRadius() ? this.getRadius().getRadius()*modifier : this.getRadius().getMinRadius(),this.getRadius().getMinRadius());
 		this.location = location;
 //		if(!isValidRadius(new Radius(this.getRadius().getRadius()*GROWTH_MODIFIER))) {
 //			throw new InvalidRadiusException(new Radius(this.getRadius().getRadius()*GROWTH_MODIFIER));
@@ -203,8 +203,8 @@ public abstract class GameObject{
 //		setRadius(new Radius(this.getRadius().getRadius()*GROWTH_MODIFIER));
 	}
 	
-	public Location nearestLocationAfterGrowing() { //TODO
-		Radius growthRadius = new Radius(this.getRadius().getRadius()*GROWTH_MODIFIER);
+	public Location nearestLocationAfterGrowing(double modifier) { //TODO
+		Radius growthRadius = new Radius(this.getRadius().getRadius()*modifier >= this.getRadius().getMinRadius() ? this.getRadius().getRadius()*modifier : this.getRadius().getMinRadius(),this.getRadius().getMinRadius());
 		Circle passableSurface = new Circle(this.getLocation(),new Radius(0.2*this.getRadius().getRadius()));//TODO 1.1 * 0.1 or 0.2
 		Rectangle bound = passableSurface.getBoundingRectangle();
 		for (double i = 0; i < bound.getSize().getX(); i+=0.005) {
@@ -223,6 +223,7 @@ public abstract class GameObject{
 	}
 	
 	protected final static double GROWTH_MODIFIER = 1.1d;
+	protected final static double SHRINK_MODIFIER = 0.9d;
 	
 	/**
 	 * The radius of a gameObject contained in a value object Radius.

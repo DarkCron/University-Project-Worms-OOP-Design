@@ -195,6 +195,7 @@ public class Team {
 			{
 				int index = sortInTeamRoster(worm);
 				teamRoster.remove(index);
+				worm.setTeam(null);
 				//teamRoster.remove(sortInTeamRoster(worm));
 			}
 			catch (Exception e)

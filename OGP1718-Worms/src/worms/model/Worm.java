@@ -165,14 +165,15 @@ public class Worm extends GameObject implements IJumpable{
 		
 		//Location beforeGrowth = this.getLocation();
 		//double maxAllowed = this.getRadius().getRadius()*0.2;
-		Location afterGrowth = this.nearestLocationAfterGrowing();
+		double modifier = o.isPoisoned() ? GameObject.SHRINK_MODIFIER : GameObject.GROWTH_MODIFIER;
+		Location afterGrowth = this.nearestLocationAfterGrowing(modifier);
 		//double distanceMod = beforeGrowth.getDistanceFrom(afterGrowth);
 		
 		if(afterGrowth==null) {
 			//this.grow(this.getLocation());
 			this.terminate();
 		}else {
-			this.grow(afterGrowth);
+			this.grow(afterGrowth, modifier);
 			//this.setLocation(afterGrowth);
 		}
 
@@ -909,15 +910,18 @@ public class Worm extends GameObject implements IJumpable{
 	}
 	
 	public Location getFurthestLocationInDirectionNoMove(Direction direction, double distance) {
-		if(!(this.getDirection().getAngle() >= 0 && this.getDirection().getAngle() <= Math.PI)) {
-			throw new RuntimeException();
+		if(!(direction.getAngle() >= 0 && direction.getAngle() <= Math.PI)) {
+			throw new IllegalArgumentException();
+		}
+		if(distance<=0 || Double.isInfinite(distance)) {
+			throw new IllegalArgumentException();
 		}
 		Location finish = this.getLocation();
 		for(double step = this.getRadius().getRadius() * 0.1d; step <= distance; step+=0.01d) {
 			step = World.roundingHelper(step, 3);
 			Location temp = getStepDirection(direction,step);
 			if(this.getWorld()!=null) { //TODO DOC
-				if(this.getWorld().isPassable(temp,this.getRadius()) && GameObject.isValidWorldLocation(temp, this.getWorld())) {
+				if(this.getWorld().isPassable(temp,this.getRadius()) ) {
 					//if(isAdjacentToTerrain(temp, getRadius(), getWorld())) {
 						finish = temp;
 					//}
@@ -1296,9 +1300,9 @@ public class Worm extends GameObject implements IJumpable{
 	 * 			| result == (distance/(this.getJumpSpeedMagnitude()*Math.cos(this.getDirection().getAngle())))
 	 */
 	public double calculateJumpTime() {
-		double speedY = this.getJumpSpeedMagnitude() * Math.sin(this.getDirection().getAngle());
-		double time = speedY/World.getGravity();
-		
+//		double speedY = this.getJumpSpeedMagnitude() * Math.sin(this.getDirection().getAngle());
+//		double time = speedY/World.getGravity();
+//		
 		double distance = Math.pow(this.getJumpSpeedMagnitude(), 2)*Math.sin(this.getDirection().getAngle()*2D)/World.getGravity();
 		double timeInterval = (distance/(this.getJumpSpeedMagnitude()*Math.cos(this.getDirection().getAngle())));
 		return timeInterval;
@@ -1504,14 +1508,19 @@ public class Worm extends GameObject implements IJumpable{
 		int amountOfGuns = Projectile.Projectile_Type.values().length;
 		int randomGun = (int)(Math.random() * amountOfGuns);
 		CreateProjectile gun = Projectile.getRifle(Projectile_Type.values()[randomGun]); //Chooses a random enum value
-		Projectile firedProjectile = gun.create(this);
-		if(firedProjectile.getCostAP() <= this.getCurrentActionPoints()) {
-			this.getWorld().addGameObject(firedProjectile);
-			this.setActionPoints(this.getCurrentActionPoints() - firedProjectile.getCostAP());
-		}else {
-			firedProjectile = null;
+		try {
+			Projectile firedProjectile = gun.create(this);
+			if(firedProjectile.getCostAP() <= this.getCurrentActionPoints()) {
+				this.getWorld().addGameObject(firedProjectile);
+				this.setActionPoints(this.getCurrentActionPoints() - firedProjectile.getCostAP());
+			}else {
+				firedProjectile = null;
+			}
+			return firedProjectile;
+		} catch (Exception e) {
+			return null;
 		}
-		return firedProjectile;
+
 	}
 }
 
