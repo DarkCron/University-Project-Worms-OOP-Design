@@ -2,6 +2,7 @@ package worms.model;
 
 import worms.exceptions.InvalidLocationException;
 import worms.exceptions.InvalidRadiusException;
+import worms.exceptions.NotEnoughAPException;
 import worms.model.values.Direction;
 import worms.model.values.Location;
 import worms.model.values.Radius;
@@ -42,7 +43,7 @@ public class Projectile extends GameObject {
 	private Direction direction;
 
 	private static Radius getRadius(int projectileMass) {
-		double radius = Math.pow(((double)projectileMass)/(((double)PROJECTILE_DENSITY)*((double)(4/3)*Math.PI)), (double)(1/3));
+		double radius = Math.pow(((double)projectileMass/1000d)/(((double)PROJECTILE_DENSITY)*((double)(4d/3d)*Math.PI)), (double)(1d/3d));
 		return new Radius(radius);
 	}
 	
@@ -202,7 +203,7 @@ public class Projectile extends GameObject {
 		Direction projectileDirection = worm.getDirection(); //TODO to reference or not to reference, that's the question
 
 		Projectile bullet = new Projectile(projectileLocation,projectileDirection , projectileRadius, worm.getWorld());
-		double bazookaForce = 2.5d + worm.getCurrentActionPoints() % 8;
+		double bazookaForce = 2.5d + (worm.getCurrentActionPoints()-BAZOOKA_COST) % 8d;
 		bullet.setProjectileForce(bazookaForce);
 		bullet.setProjectileHPRequirement(BAZOOKA_BULLET_REQ);
 		int randomNumber = (int)(Math.random()*6) + 1; //Random number from 1 - 7
@@ -216,4 +217,77 @@ public class Projectile extends GameObject {
 		return bullet;
 	};
 	
+	public void jump(double timeStep) throws InvalidLocationException,RuntimeException{
+		if(!(this.getDirection().getAngle() >= 0 && this.getDirection().getAngle() <= Math.PI)) {
+			throw new RuntimeException();
+		}
+		double jumpTime = this.getJumpTime(timeStep);
+		Location tmp = new Location(this.jumpStep(jumpTime));
+		
+		if(!isValidLocation(tmp,this.getWorld())) {
+			throw new InvalidLocationException(tmp);
+		}
+		
+		this.setLocation(tmp);				
+	}
+	
+	public double getJumpTime(double deltaT) throws RuntimeException{
+		double jumpTime = this.calculateJumpTime();
+		
+		double jumptime = this.getLastPassableJumpStepTime(jumpTime,deltaT);
+		if(jumptime == 0) { //TODO DOC
+			throw new IllegalArgumentException("Deltatime and jumpTime too short.");
+		}
+		
+		return jumptime;
+	}
+	
+	public double calculateJumpTime() {
+		double speedY = this.getProjectileForce() * Math.sin(this.getDirection().getAngle());
+		double time = speedY/World.getGravity();
+		
+		double distance = Math.pow(this.getProjectileForce(), 2)*Math.sin(this.getDirection().getAngle()*2D)/World.getGravity();
+		double timeInterval = (distance/(this.getProjectileForce()*Math.cos(this.getDirection().getAngle())));
+		return timeInterval;
+	}
+	
+	private double getLastPassableJumpStepTime(double jumpTime, double deltaT) {
+		double lastAdjacentTime = 0.0;
+		for (double i = deltaT; i < jumpTime; i+=deltaT) {
+			Location wormLoc = new Location(this.jumpStep(i));
+			if(!this.getWorld().isPassable(wormLoc, this.getRadius())) { //TODO Doc;
+				return i;
+			}
+		}
+		
+
+		return lastAdjacentTime;
+	}
+	
+	public double[] jumpStep(double deltaTime) throws InvalidLocationException,IllegalArgumentException,RuntimeException{
+		if(!(this.getDirection().getAngle() >= 0 && this.getDirection().getAngle() <= Math.PI)) {
+			throw new RuntimeException("The direction of the worm trying to jump is invalid. Not equal or larger than 0 and less than 2*PI." + this.getDirection().toString());
+		}
+//		if(this.getProjectileForce() == 8.5d) {
+//			this.setProjectileForce(7.5d);
+//		}
+		double jumpSpeedMagnitude = this.getProjectileForce() / (this.getMass()/1000d);
+		jumpSpeedMagnitude*=0.5;
+		
+		if(jumpSpeedMagnitude < 0) {
+			throw new RuntimeException("The jumpSpeedMagnitude of the worm tring to jump is invalid. Less than 0 "+jumpSpeedMagnitude);
+		}
+		
+		//speed in air
+		double speedX = jumpSpeedMagnitude * Math.cos(this.getDirection().getAngle());
+		double speedY = jumpSpeedMagnitude * Math.sin(this.getDirection().getAngle());
+		//Position in air
+		double xPosTime = this.getX()+(speedX*deltaTime);
+		double yPosTime = this.getY()+((speedY*deltaTime) - ((1D/2D)*World.getGravity()*Math.pow(deltaTime,2)));
+		
+		Location tmpLocation = new Location(xPosTime,yPosTime);
+		
+		return tmpLocation.getLocation();
+	}
+
 }

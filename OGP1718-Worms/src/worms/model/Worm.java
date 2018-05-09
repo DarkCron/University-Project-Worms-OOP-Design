@@ -34,7 +34,7 @@ import worms.exceptions.InvalidRadiusException;
  * 
  * @see super
  */
-public class Worm extends GameObject{
+public class Worm extends GameObject implements IJumpable{
 
 	/**
 	 * The constructor for creating a new worm. The worm have it's properties initialized based on:
@@ -444,7 +444,7 @@ public class Worm extends GameObject{
 	 * 		| 	(amount >= 0 && amount <= this.maxActionPoints	)
 	 */
 	public boolean isValidAmountOfActionPoints(int amount) {
-		return amount >= 0 && amount <= this.maxActionPoints;
+		return amount >= 0 && amount <= this.maxActionPoints && Integer.compare(amount, Integer.MAX_VALUE) != 0 && Integer.compare(amount, Integer.MIN_VALUE) != 0;
 	}
 
 	/**
@@ -884,6 +884,37 @@ public class Worm extends GameObject{
 	public Location getFurthestLocationInDirection(Direction direction, double distance) {
 		Location finish = this.getLocation();
 		for(double step = this.getRadius().getRadius() * 0.1d; step <= distance; step+=0.1d) {
+			Location temp = getStepDirection(direction,step);
+			if(this.getWorld()!=null) { //TODO DOC
+				if(this.getWorld().isPassable(temp,this.getRadius()) && GameObject.isValidWorldLocation(temp, this.getWorld())) {
+					//if(isAdjacentToTerrain(temp, getRadius(), getWorld())) {
+						finish = temp;
+					//}
+				}else {
+					return finish;
+				}
+			}
+		}
+		
+		//This ensures the final step is checked as well, as in radius is 3.4f step 1,2,3 will be checked in
+		//the for loop, this if checks whether 3.4f explicitly is possible.
+		Location furthestLocation = getStepDirection(direction,distance); 
+		if(this.getWorld() == null ||this.getWorld().isPassable(furthestLocation,this.getRadius())) {
+			//if(isAdjacentToTerrain(furthestLocation, getRadius(), getWorld())) {
+				return furthestLocation;
+			//}
+		}
+		
+		return finish;
+	}
+	
+	public Location getFurthestLocationInDirectionNoMove(Direction direction, double distance) {
+		if(!(this.getDirection().getAngle() >= 0 && this.getDirection().getAngle() <= Math.PI)) {
+			throw new RuntimeException();
+		}
+		Location finish = this.getLocation();
+		for(double step = this.getRadius().getRadius() * 0.1d; step <= distance; step+=0.01d) {
+			step = World.roundingHelper(step, 3);
 			Location temp = getStepDirection(direction,step);
 			if(this.getWorld()!=null) { //TODO DOC
 				if(this.getWorld().isPassable(temp,this.getRadius()) && GameObject.isValidWorldLocation(temp, this.getWorld())) {
@@ -1432,6 +1463,7 @@ public class Worm extends GameObject{
 	public void terminate() {
 		if(this.getTeam() != null) {
 			this.getTeam().removeWorm(this);
+			this.setTeam(null);
 		}
 		
 		if(this.getWorld() != null) {
@@ -1482,3 +1514,16 @@ public class Worm extends GameObject{
 		return firedProjectile;
 	}
 }
+
+interface IAction{
+	
+}
+
+interface IJumpable extends IAction{
+	public void jump(double timeStep);
+	public double getJumpTime(double deltaT);
+	public double[] jumpStep(double deltaTime) throws InvalidLocationException,IllegalArgumentException,RuntimeException;
+}
+
+
+

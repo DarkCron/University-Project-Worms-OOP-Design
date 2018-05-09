@@ -1,7 +1,11 @@
 package worms.model;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+
 import be.kuleuven.cs.som.annotate.*;
 import worms.model.values.Name;
 /**
@@ -106,36 +110,47 @@ public class Team {
 	 * @param worm
 	 * @throws IllegalArgumentException
 	 */
-	public void addWorm(Worm worm) throws IllegalArgumentException {
-		
-		if(worm==null) {
-			throw new IllegalArgumentException("Given worm was null");
-		}
-		
-		if(worm.getTeam() != null) {//TODO DOC
-			throw new IllegalArgumentException("This worm already has a team.");
+	public void addWorm(Worm ... worms) throws IllegalArgumentException {
+		for (Worm worm : worms) {
+			if(Arrays.stream(worms).filter(w->w == worm).collect(Collectors.toList()).size() > 1) {
+				throw new IllegalArgumentException();
+			}
+			for (Worm otherWorm : worms) {
+				if(otherWorm != worm) {
+					if(!worm.hasCorrectTeamMass(otherWorm)) {
+						throw new IllegalArgumentException();
+					}
+					if(otherWorm.hasTheSameNameAs(worm)) {
+						throw new IllegalArgumentException();
+					}
+				}
+			}
+			
+			if(worm==null) {
+				throw new IllegalArgumentException("Given worm was null");
+			}
+			
+			if(worm.getTeam() != null) {//TODO DOC
+				throw new IllegalArgumentException("This worm already has a team.");
+			}
+
+			if(!canHaveWormInTeam(worm)) {
+				throw new IllegalArgumentException("Worm cannot be added to the team.");
+			}
 		}
 
-		if(canHaveWormInTeam(worm)) {
-			throw new IllegalArgumentException("Worm cannot be added to the team.");
+		
+		
+		for (Worm worm : worms) {
+			if(teamRoster.isEmpty()) {
+				worm.setTeam(this);//TODO DOC
+				teamRoster.add(worm);
+			}else {
+				int index = sortInTeamRoster(worm);
+				worm.setTeam(this);//TODO DOC
+				teamRoster.add(index, worm);
+			}
 		}
-		
-		
-		
-		if(teamRoster.isEmpty()) {
-			worm.setTeam(this);//TODO DOC
-			teamRoster.add(worm);
-		}else {
-//			for (Worm o: this.teamRoster) {
-//				if(o.getName() == worm.getName())
-//					throw new IllegalArgumentException("This worm has the same name. This can't be added.");
-//			}
-			int index = sortInTeamRoster(worm);
-			worm.setTeam(this);//TODO DOC
-			teamRoster.add(index, worm);
-		}
-		
-		
 	}
 	
 	public int sortInTeamRoster(Worm worm) {
@@ -165,19 +180,29 @@ public class Team {
 	 * 
 	 * @post | !teamRoster.contains(worm)
 	 */
-	public void removeWorm(Worm worm) {
-		if(worm==null) {
-			throw new IllegalArgumentException("Given worm was null");
-		}
-		try
-		{
-			teamRoster.remove(sortInTeamRoster(worm));
-		}
-		catch (Exception e)
-		{
-			throw new IllegalArgumentException("Given worm was not part of this team");
+	public void removeWorm(Worm ... worms) {
+		for (Worm worm : worms) {
+			if(worm==null) {
+				throw new IllegalArgumentException("Given worm was null");
+			}
+			if(worm.getTeam()!=this) {
+				throw new IllegalArgumentException("Wrong team");
+			}
 		}
 		
+		for (Worm worm : worms) {
+			try
+			{
+				int index = sortInTeamRoster(worm);
+				teamRoster.remove(index);
+				//teamRoster.remove(sortInTeamRoster(worm));
+			}
+			catch (Exception e)
+			{
+				throw new IllegalArgumentException("Given worm was not part of this team");
+			}
+		}
+
 	}
 	
 	/**

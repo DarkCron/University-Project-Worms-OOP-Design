@@ -351,7 +351,7 @@ public class Facade implements IFacade {
 	public double[] getFurthestLocationInDirection(Worm worm, double direction, double maxDistance)
 			throws ModelException {
 		try {
-			return worm.getFurthestLocationInDirection(new Direction(direction), maxDistance).getLocation();
+			return worm.getFurthestLocationInDirectionNoMove(new Direction(direction), maxDistance).getLocation();
 		} catch (Exception e) {
 			throw new ModelException(e);
 		}
@@ -489,9 +489,7 @@ public class Facade implements IFacade {
 			return;
 		}
 		try {
-			for (Worm worm : worms) {
-				team.addWorm(worm);
-			}
+			team.addWorm(worms);
 		} catch (Exception e) {
 			throw new ModelException(e);
 		}
@@ -500,9 +498,7 @@ public class Facade implements IFacade {
 	@Override
 	public void removeWormsFromTeam(Team team, Worm... worms) throws ModelException, MustNotImplementException {
 		try {
-			for (Worm worm : worms) {
-				team.removeWorm(worm);
-			}
+			team.removeWorm(worms);
 		} catch (Exception e) {
 			throw new ModelException(e);
 		}
@@ -585,20 +581,29 @@ public class Facade implements IFacade {
 
 	@Override
 	public double[] getJumpStep(Projectile projectile, double elapsedTime) {
-		// TODO Auto-generated method stub
-		return null;
+		try {
+			return projectile.jumpStep(elapsedTime);
+		} catch (Exception e) {
+			throw new ModelException(e);
+		}
 	}
 
 	@Override
 	public double getJumpTime(Projectile projectile, double jumpTimeStep) throws ModelException {
-		// TODO Auto-generated method stub
-		return 0;
+		try {
+			return projectile.getJumpTime(jumpTimeStep);
+		} catch (Exception e) {
+			throw new ModelException(e);
+		}
 	}
 
 	@Override
 	public void jump(Projectile projectile, double jumpTimeStep) throws ModelException {
-		// TODO Auto-generated method stub
-		
+		try {
+			projectile.jump(jumpTimeStep);
+		} catch (Exception e) {
+			throw new ModelException(e);
+		}
 	}
 
 	@Override
@@ -618,7 +623,6 @@ public class Facade implements IFacade {
 
 	@Override
 	public List<Object> executeProgram(Worm worm) throws ModelException {
-		// TODO Auto-generated method stub
 		try {
 			return worm.getProgram().doStartExecution();
 		} catch (Exception e) {

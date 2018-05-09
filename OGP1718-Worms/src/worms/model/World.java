@@ -104,7 +104,7 @@ public class World {
 		Location size = new Location(1, 1);
 		for (int i = 0; i < passableMap.length; i++) {
 			for (int j = 0; j < passableMap[0].length; j++) {
-				//this.passableMap[passableMap.length - i][j] = new BoundaryRectangle(new Location(j,i), size, passableMap[passableMap.length - i - 1][j]);
+				//this.passableMap[passableMap.length - i-1][j] = new BoundaryRectangle(new Location(j,i), size, passableMap[passableMap.length - i - 1][j]);
 				this.passableMap[i][j] = new BoundaryRectangle(new Location(j,i), size, passableMap[passableMap.length - i - 1][j]);
 			}		
 		}
@@ -678,17 +678,17 @@ public class World {
 		Rectangle bound = passableSurface.getBoundingRectangle();
 		
 		Rectangle realStuff = new Rectangle(this.getRealWorldLoc(bound.getCenter()), this.getRealWorldLoc(bound.getSize()));
+		if(realStuff.getCenter().getX() >= 300) {
+			System.out.println("");
+		}
 		ArrayList<BoundaryRectangle> collectionOfStuff = new ArrayList<BoundaryRectangle>();
 		for (int x = -1; x < realStuff.getSize().getX()+1;x++) {
 			for (int y = -2; y < realStuff.getSize().getY()+1;y++) {
 				int xCoord = x + (int)realStuff.getCenter().getX();
 				int yCoord = y + (int)realStuff.getCenter().getY();
-				if(xCoord >= 0 && xCoord < this.getWorldWidth()) {
-					if(yCoord >= 0 && yCoord < this.getWorldHeight()) {
-						if(realStuff.intersects(passableMap[yCoord][xCoord])) {
-							collectionOfStuff.add(passableMap[yCoord][xCoord]);
-						}
-	
+				if(xCoord >= 0 && xCoord < this.passableMap[0].length) {
+					if(yCoord >= 0 && yCoord < this.passableMap.length) {
+						collectionOfStuff.add(passableMap[yCoord][xCoord]);
 					}
 				}
 			}
@@ -796,6 +796,7 @@ public class World {
 	 * TODO
 	 */
 	public void endGame() {
+		this.setGameActive(false);
 		this.wormTurnCycle.clear();
 	}
 	

@@ -85,6 +85,11 @@ public class Radius {
 		}else if(Double.compare(Double.NaN, minRadius) == 0) {
 			return false;
 		}
+		if(Double.compare(Double.POSITIVE_INFINITY, radius) == 0 || Double.compare(Double.NEGATIVE_INFINITY, minRadius) == 0) {
+			return false;
+		}else if(Double.compare(Double.POSITIVE_INFINITY, minRadius) == 0 || Double.compare(Double.NEGATIVE_INFINITY, minRadius) == 0) {
+			return false;
+		}
 		
 		if (minRadius > radius) {
 			return false;
