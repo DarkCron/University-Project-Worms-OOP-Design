@@ -228,7 +228,9 @@ public class Projectile extends GameObject {
 			throw new InvalidLocationException(tmp);
 		}
 		
-		this.setLocation(tmp);				
+		this.setLocation(tmp);	
+		
+		
 	}
 	
 	public double getJumpTime(double deltaT) throws RuntimeException{

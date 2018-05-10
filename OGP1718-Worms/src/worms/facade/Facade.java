@@ -507,7 +507,12 @@ public class Facade implements IFacade {
 	@Override
 	public void mergeTeams(Team recevingTeam, Team supplyingTeam) throws ModelException, MustNotImplementException {
 		// TODO Auto-generated method stub
-		IFacade.super.mergeTeams(recevingTeam, supplyingTeam);
+		try {
+			recevingTeam.mergeTeams(supplyingTeam);
+		} catch (Exception e) {
+			throw new ModelException(e);
+		}
+
 	}
 
 	@Override
