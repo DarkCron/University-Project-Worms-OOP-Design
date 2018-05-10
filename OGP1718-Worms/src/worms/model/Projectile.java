@@ -1,9 +1,14 @@
 package worms.model;
 
+import java.math.BigInteger;
+import java.util.ArrayList;
+
 import worms.exceptions.InvalidLocationException;
 import worms.exceptions.InvalidRadiusException;
 import worms.exceptions.NotEnoughAPException;
+import worms.model.ShapeHelp.Circle;
 import worms.model.values.Direction;
+import worms.model.values.HP;
 import worms.model.values.Location;
 import worms.model.values.Radius;
 
@@ -228,9 +233,26 @@ public class Projectile extends GameObject {
 			throw new InvalidLocationException(tmp);
 		}
 		
+		double distance = this.getLocation().getDistanceFrom(tmp);
+		
 		this.setLocation(tmp);	
 		
-		
+		ArrayList<Worm> hitWorms = new ArrayList<Worm>();
+		for (double i = 0; i < distance; i+=0.01) {
+			for (Object worm : this.getWorld().getAllObjectsOfType(Worm.class)) {
+				if(worm instanceof Worm) {
+					if(!hitWorms.contains(worm)&&((Worm) worm).overlapsWith(this)) {
+						((Worm) worm).hitByProjectile(this);
+						//((Worm) worm).setHitPoints(new HP(BigInteger.valueOf(this.getHitPoints() - this.getHitPoints())));
+						hitWorms.add(((Worm) worm));
+					}
+				}
+			}
+		}
+
+		if(!hitWorms.isEmpty()) {
+			this.terminate();
+		}
 	}
 	
 	public double getJumpTime(double deltaT) throws RuntimeException{

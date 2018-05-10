@@ -1504,6 +1504,15 @@ public class Worm extends GameObject implements IJumpable{
 		if(this.getWorld() == null) {
 			throw new IllegalStateException();
 		}
+		for (GameObject bullet : this.getWorld().getAllObjectsOfType(Projectile.class)) {
+			if(bullet instanceof Projectile) {
+				if(bullet.overlapsWith(this)) {
+					this.hitByProjectile((Projectile)bullet);
+					bullet.terminate();
+					return null;
+				}
+			}
+		}
 		
 		int amountOfGuns = Projectile.Projectile_Type.values().length;
 		int randomGun = (int)(Math.random() * amountOfGuns);
@@ -1521,6 +1530,10 @@ public class Worm extends GameObject implements IJumpable{
 			return null;
 		}
 
+	}
+
+	public void hitByProjectile(Projectile projectile) {
+		this.setHitPoints(new HP(this.getHitPoints().subtract(BigInteger.valueOf(projectile.getHitPoints()))));
 	}
 }
 
