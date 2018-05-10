@@ -1,6 +1,7 @@
 package worms.model;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 
 import be.kuleuven.cs.som.annotate.*;
 import worms.exceptions.InvalidLocationException;
@@ -1182,9 +1183,10 @@ public class Worm extends GameObject implements IJumpable{
 	 * 		|			|| 0
 	 */
 	private void checkForWormOverlapsAfterJump() {
+		ArrayList<Worm> handledWorms = new ArrayList<Worm>();
 		for (GameObject worm : this.getWorld().getAllObjectsOfType(Worm.class)) {
-			if(worm instanceof Worm && worm != this) {
-				if(worm.overlapsWith(this)) {
+			if(worm instanceof Worm ) {
+				if(worm.overlapsWith(this) && worm != this && !handledWorms.contains(worm)) {
 					int coinValue = (int)Math.round(Math.random());
 					Worm attacker = this;
 					Worm defender = (Worm)worm;
@@ -1192,7 +1194,8 @@ public class Worm extends GameObject implements IJumpable{
 						attacker = (Worm)worm;
 						defender = this;
 					}
-					int damage = 10* ((int)Math.ceil(attacker.getRadius().getRadius() / defender.getRadius().getRadius()));
+					double mod = ((attacker.getRadius().getRadius() / defender.getRadius().getRadius()));
+					int damage = 10* (int)Math.ceil(((attacker.getRadius().getRadius() / defender.getRadius().getRadius()))); 
 					damage = (int)Math.round(Math.random()*(damage-1) + 1);
 					defender.increaseHitPoints(damage * -1);
 				}
