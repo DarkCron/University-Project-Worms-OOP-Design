@@ -116,10 +116,6 @@ public class Team {
 			if(worm.isTerminated())
 				throw new IllegalArgumentException("Given worm was terminated");
 			
-//			if(worm==null) {
-//				throw new IllegalArgumentException("Given worm was null");
-//			}
-			
 			if(Arrays.stream(worms).filter(w->w == worm).collect(Collectors.toList()).size() > 1) {
 				throw new IllegalArgumentException();
 			}
@@ -268,14 +264,36 @@ public class Team {
 	 * @param team The team of which all its worms have to merge with this team.
 	 */
 	public void mergeTeams(Team team) throws IllegalArgumentException {
+		ArrayList<Worm> teamRosterCopy = new ArrayList<Worm>();		
 		if(team == null) {
 			throw new IllegalArgumentException("Team to be merged is null");
 		}
 		if(team.equals(this) == false) {
 			for (Worm worm : team.teamRoster) {
-				this.addWorm(worm);
-				team.removeWorm(worm);
+				teamRosterCopy.add(worm);
+				
 				}
+			for (Worm w : teamRosterCopy) {
+				if(w == null) {
+					return;
+				}
+				if(w.isTerminated()) {
+					return;
+				}
+			}
+			
+			for (Worm worm : teamRosterCopy) {
+				team.removeWorm(worm);
+				try {
+					this.addWorm(worm);	
+				} catch (Exception e) {
+					for(Worm w : teamRosterCopy) {
+						this.removeWorm(w);
+						team.addWorm(w);
+					}
+					return;
+				}	
+			}
 		}
 		if (team.equals(this) != false) {
 			throw new IllegalArgumentException("Both teams are the same team. Merging won't be able to.");

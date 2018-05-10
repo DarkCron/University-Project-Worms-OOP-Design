@@ -2969,7 +2969,7 @@ public class Part3_FullFacadeTest {
 			assertEquals(0, facade.getNbWormsOfTeam(otherTeam));
 			assertTrue(facade.getAllWormsOfTeam(theTeam).contains(wormC));
 			assertEquals(theTeam, facade.getTeam(wormC));
-			assertTrue(facade.getAllWormsOfTeam(theTeam).contains(wormD));
+		assertTrue(facade.getAllWormsOfTeam(theTeam).contains(wormD));
 			assertEquals(theTeam, facade.getTeam(wormD));
 			score += 10;
 		} catch (MustNotImplementException exc) {
