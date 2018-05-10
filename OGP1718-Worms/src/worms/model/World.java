@@ -415,9 +415,6 @@ public class World {
 			worldObjects.get(gameObject.getTypeID()).remove(gameObject);
 		}
 		
-		//TODO setWorld null here or terminate
-	
-		
 		if(!gameObject.isTerminated()) {
 			gameObject.terminate();
 		}
@@ -994,7 +991,19 @@ public class World {
 		}
 		//beide opties wormen met en zonder team
 		if((this.getTeams().size() >=1) && wormsWithoutTeam()){
-			return null;
+			for(Team o : this.getTeams()) {
+				if(o.getAlphabeticalListTeamRoster().size() > 0) {
+					teamsActive += 1;
+				}
+				
+				if(o.getAlphabeticalListTeamRoster().size() == 0) {
+					o.terminate();
+				}
+			}
+			
+			if(teamsActive >= 1) {
+				return null;
+			}
 		}
 		//ALLEEN TEAMS
 		if(this.getTeams().size() >= 1) {
