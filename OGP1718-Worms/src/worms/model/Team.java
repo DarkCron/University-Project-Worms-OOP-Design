@@ -112,6 +112,14 @@ public class Team {
 	 */
 	public void addWorm(Worm ... worms) throws IllegalArgumentException {
 		for (Worm worm : worms) {
+			
+			if(worm.isTerminated())
+				throw new IllegalArgumentException("Given worm was terminated");
+			
+//			if(worm==null) {
+//				throw new IllegalArgumentException("Given worm was null");
+//			}
+			
 			if(Arrays.stream(worms).filter(w->w == worm).collect(Collectors.toList()).size() > 1) {
 				throw new IllegalArgumentException();
 			}
@@ -127,10 +135,6 @@ public class Team {
 						throw new IllegalArgumentException();
 					}
 				}
-			}
-			
-			if(worm==null) {
-				throw new IllegalArgumentException("Given worm was null");
 			}
 			
 			if(worm.getTeam() != null) {//TODO DOC
