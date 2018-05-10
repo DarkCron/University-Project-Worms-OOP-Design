@@ -205,10 +205,10 @@ public abstract class GameObject{
 	
 	public Location nearestLocationAfterGrowing(double modifier) { //TODO
 		Radius growthRadius = new Radius(this.getRadius().getRadius()*modifier >= this.getRadius().getMinRadius() ? this.getRadius().getRadius()*modifier : this.getRadius().getMinRadius(),this.getRadius().getMinRadius());
-		Circle passableSurface = new Circle(this.getLocation(),new Radius(0.2*this.getRadius().getRadius()));//TODO 1.1 * 0.1 or 0.2
+		Circle passableSurface = new Circle(this.getLocation(),new Radius(0.2*modifier*this.getRadius().getRadius()));//TODO 1.1 * 0.1 or 0.2
 		Rectangle bound = passableSurface.getBoundingRectangle();
-		for (double i = 0; i < bound.getSize().getX(); i+=0.005) {
-			for (double j = 0; j < bound.getSize().getY(); j+=0.005) {
+		for (double i = 0; i < bound.getSize().getX(); i+=0.001) {
+			for (double j = 0; j < bound.getSize().getY(); j+=0.001) {
 				if(passableSurface.contains(new Location(i+bound.getCenter().getX(),j+bound.getCenter().getY()))) {
 					if(this.getWorld().isPassable(new Location((i+bound.getCenter().getX()), (j+bound.getCenter().getY())),growthRadius)) {
 						if(this.getWorld().isAdjacantToImpassableTerrain(new Location((i+bound.getCenter().getX()), (j+bound.getCenter().getY())),growthRadius)) {

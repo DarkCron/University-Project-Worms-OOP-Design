@@ -180,6 +180,13 @@ public class Worm extends GameObject implements IJumpable{
 
 	}
 	
+	@Override
+	public void grow(Location location, double modifier) throws InvalidRadiusException {
+		super.grow(location, modifier);
+		this.generateMass();
+		this.setMaxActionPoints(calculateMaxActionPoints());
+	}
+	
 	private final static double FALL_DAMAGE_MOD  = -3;
 	
 	/**
@@ -369,9 +376,19 @@ public class Worm extends GameObject implements IJumpable{
 	 * 
 	 * @return returns the maximum amount of AP assigned to the worm.
 	 */
-	@Basic
+	@Basic @Raw
 	public int getMaxActionPoints() {
 		return this.maxActionPoints;
+	}
+	
+	/**
+	 * Returns the maximum amount of Action Points assigned to the worm
+	 * 
+	 * @return returns the maximum amount of AP assigned to the worm.
+	 */
+	@Basic @Raw
+	public void setMaxActionPoints(int maxAP) {
+		this.maxActionPoints = maxAP;
 	}
 	
 	/**
@@ -706,7 +723,7 @@ public class Worm extends GameObject implements IJumpable{
 	private void handleWormMoveCollision() {
 		for(GameObject worm: this.getWorld().getAllObjectsOfType(Worm.class)) {
 			if(worm instanceof Worm) {
-				if(this.overlapsWith(worm)) {
+				if(worm!=this && this.overlapsWith(worm)) {
 					this.handleMoveCollisionHPCost(this,(Worm)worm);
 				}
 			}
@@ -734,16 +751,16 @@ public class Worm extends GameObject implements IJumpable{
 	 * 		|   me.getHitPoints() == me.getHitPoints().subtract(BigInteger.valueOf((int)Math.round(N1)))
 	 */
 	private void handleMoveCollisionHPCost(Worm me, Worm other) {
-		double N = (Math.random()*9) +1;
+		double N = Math.round(Math.random()*9) +1;
 		double N1 = N;
 		
 		if(me.getRadius().getRadius() > other.getRadius().getRadius()) {
 			N1 = N/(me.getRadius().getRadius()/(me.getRadius().getRadius() + other.getRadius().getRadius()));
-			me.setHitPoints(new HP(me.getHitPoints().subtract(BigInteger.valueOf((int)Math.round(N-N1)))));
+			me.setHitPoints(new HP(me.getHitPoints().subtract(BigInteger.valueOf((int)Math.round(N)-(int)Math.round(N1)))));
 			other.setHitPoints(new HP(other.getHitPoints().subtract(BigInteger.valueOf((int)Math.round(N1)))));
 		}else {
 			N1 = N/(other.getRadius().getRadius()/(me.getRadius().getRadius() + other.getRadius().getRadius()));
-			other.setHitPoints(new HP(other.getHitPoints().subtract(BigInteger.valueOf((int)Math.round(N-N1)))));
+			other.setHitPoints(new HP(other.getHitPoints().subtract(BigInteger.valueOf((int)Math.round(N)-(int)Math.round(N1)))));
 			me.setHitPoints(new HP(me.getHitPoints().subtract(BigInteger.valueOf((int)Math.round(N1)))));
 		}
 	}
@@ -1175,9 +1192,9 @@ public class Worm extends GameObject implements IJumpable{
 						attacker = (Worm)worm;
 						defender = this;
 					}
-					int damage = 10* ((int)Math.floor(attacker.getRadius().getRadius() / defender.getRadius().getRadius()));
+					int damage = 10* ((int)Math.ceil(attacker.getRadius().getRadius() / defender.getRadius().getRadius()));
+					damage = (int)Math.round(Math.random()*(damage-1) + 1);
 					defender.increaseHitPoints(damage * -1);
-					
 				}
 			}
 		}
@@ -1526,6 +1543,8 @@ public class Worm extends GameObject implements IJumpable{
 				firedProjectile = null;
 			}
 			return firedProjectile;
+		} catch (InvalidLocationException e) {
+			throw e;
 		} catch (Exception e) {
 			return null;
 		}

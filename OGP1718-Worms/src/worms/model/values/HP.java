@@ -41,7 +41,10 @@ public class HP {
 	}
 	
 	public HP(BigInteger amount){
-		this(amount, amount);		
+		if(amount.compareTo(BigInteger.valueOf(0))<1) {
+			amount = BigInteger.ZERO;
+		}
+		hitpoints = amount;
 	}
 	
 	/**
