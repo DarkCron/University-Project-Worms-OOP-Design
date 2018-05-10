@@ -115,11 +115,14 @@ public class Team {
 			if(Arrays.stream(worms).filter(w->w == worm).collect(Collectors.toList()).size() > 1) {
 				throw new IllegalArgumentException();
 			}
+			
+			for (Worm teamWorm : teamRoster) {
+				if(!worm.hasCorrectTeamMass(teamWorm)) {
+					throw new IllegalArgumentException();
+				}
+			}
 			for (Worm otherWorm : worms) {
 				if(otherWorm != worm) {
-					if(!worm.hasCorrectTeamMass(otherWorm)) {
-						throw new IllegalArgumentException();
-					}
 					if(otherWorm.hasTheSameNameAs(worm)) {
 						throw new IllegalArgumentException();
 					}
