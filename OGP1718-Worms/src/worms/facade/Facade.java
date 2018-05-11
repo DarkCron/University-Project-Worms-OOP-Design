@@ -13,6 +13,7 @@ import worms.model.Food;
 import worms.model.Program;
 import worms.model.ProgramFactory;
 import worms.model.Projectile;
+import worms.model.Projectile;
 import worms.model.Team;
 import worms.model.World;
 import worms.model.Worm;

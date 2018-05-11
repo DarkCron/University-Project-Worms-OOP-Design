@@ -39,7 +39,7 @@ public abstract class GameObject{
 	 */
 	@Raw
 	protected GameObject(Location location, Radius radius, World world) throws InvalidLocationException,InvalidRadiusException {
-		this.setGameObjectTypeID(new GameObjectTypeID(this.getClass()));
+		this.setGameObjectTypeID(new GameObjectTypeID(this.getClass().isAnonymousClass() ? (Class<? extends GameObject>)this.getClass().getSuperclass():this.getClass()));
 		
 		if(!isValidRadius(radius)) {
 			throw new InvalidRadiusException(radius);

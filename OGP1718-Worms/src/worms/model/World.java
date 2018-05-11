@@ -82,7 +82,7 @@ public class World {
 		this.worldHeight = height;	
 
 		this.passableMap = new BoundaryRectangle[passableMap.length][passableMap[0].length];
-		processMap(passableMap);
+		this.processMap(passableMap);
 		
 		this.worldTeams = new HashSet<Team>();
 	}

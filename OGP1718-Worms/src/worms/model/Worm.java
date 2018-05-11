@@ -8,9 +8,9 @@ import worms.exceptions.InvalidLocationException;
 import worms.exceptions.InvalidWormNameException;
 import worms.exceptions.NotEnoughAPException;
 import worms.internal.gui.game.IActionHandler;
-import worms.model.Projectile.CreateProjectile;
 import worms.model.Projectile.Projectile_Type;
 import worms.model.ShapeHelp.Circle;
+import worms.model.interfaces.IJumpable;
 import worms.model.values.*;
 import worms.exceptions.InvalidRadiusException;
 
@@ -1342,6 +1342,10 @@ public class Worm extends GameObject implements IJumpable{
 	 * 		| !isValidJumpTime(this.calculateJumpTime())
 	 */
 	public double getJumpTime(double deltaT) throws RuntimeException{
+		if(!(this.getDirection().getAngle() >= 0 && this.getDirection().getAngle() <= Math.PI)) {
+			throw new RuntimeException();
+		}
+		
 		if(this.currentActionPoints == 0) {
 			return 0;
 		}
@@ -1536,15 +1540,16 @@ public class Worm extends GameObject implements IJumpable{
 		
 		int amountOfGuns = Projectile.Projectile_Type.values().length;
 		int randomGun = (int)(Math.random() * amountOfGuns);
-		CreateProjectile gun = Projectile.getRifle(Projectile_Type.values()[randomGun]); //Chooses a random enum value
+		//CreateProjectile gun = Projectile.getRifle(Projectile_Type.values()[randomGun]); //Chooses a random enum value
 		try {
-			Projectile firedProjectile = gun.create(this);
-			if(firedProjectile.getCostAP() <= this.getCurrentActionPoints()) {
+			Projectile firedProjectile = Projectile.createProjectile(Projectile_Type.values()[randomGun], this);
+			if(firedProjectile.getActionPointsCost() <= this.getCurrentActionPoints()) {
 				if(!this.getWorld().isPassable(firedProjectile)) {
 					this.hitByProjectile(firedProjectile);
 				}
 				this.getWorld().addGameObject(firedProjectile);
-				this.setActionPoints(this.getCurrentActionPoints() - firedProjectile.getCostAP());
+				
+				this.setActionPoints(this.getCurrentActionPoints() - firedProjectile.getActionPointsCost());
 
 			}else {
 				firedProjectile = null;
@@ -1565,16 +1570,3 @@ public class Worm extends GameObject implements IJumpable{
 		//System.out.println("");
 	}
 }
-
-interface IAction{
-	
-}
-
-interface IJumpable extends IAction{
-	public void jump(double timeStep);
-	public double getJumpTime(double deltaT);
-	public double[] jumpStep(double deltaTime) throws InvalidLocationException,IllegalArgumentException,RuntimeException;
-}
-
-
-

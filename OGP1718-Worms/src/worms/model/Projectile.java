@@ -1,18 +1,16 @@
 package worms.model;
 
-import java.math.BigInteger;
 import java.util.ArrayList;
 
 import worms.exceptions.InvalidLocationException;
 import worms.exceptions.InvalidRadiusException;
-import worms.exceptions.NotEnoughAPException;
 import worms.model.ShapeHelp.Circle;
+import worms.model.interfaces.IJumpable;
 import worms.model.values.Direction;
-import worms.model.values.HP;
 import worms.model.values.Location;
 import worms.model.values.Radius;
 
-public class Projectile extends GameObject {
+public class Projectile extends GameObject implements IJumpable {
 	
 	public enum Projectile_Type{
 		RIFLE, BAZOOKA;
@@ -47,10 +45,35 @@ public class Projectile extends GameObject {
 	
 	private Direction direction;
 
-	private static Radius getRadius(int projectileMass) {
-		double radius = Math.pow(((double)projectileMass/1000d)/(((double)PROJECTILE_DENSITY)*((double)(4d/3d)*Math.PI)), (double)(1d/3d));
-		return new Radius(radius);
+	public int getHitPoints() {
+		return hitPoints;
 	}
+
+	public void setHitPoints(int hitPoints) {
+		this.hitPoints = hitPoints;
+	}
+	
+	private int hitPoints;
+	
+	public int getMaxHitPoints() {
+		return maxHitPoints;
+	}
+
+	public void setMaxHitPoints(int maxHitPoints) {
+		this.maxHitPoints = maxHitPoints;
+	}
+	
+	private int maxHitPoints;
+	
+	public int getActionPointsCost() {
+		return actionPointsCost;
+	}
+
+	public void setActionPointsCost(int actionPointsCost) {
+		this.actionPointsCost = actionPointsCost;
+	}
+
+	private int actionPointsCost;
 	
 	public double getProjectileForce() {
 		return projectileForce;
@@ -62,165 +85,136 @@ public class Projectile extends GameObject {
 
 	private double projectileForce;
 	
-	public int getHitPoints() {
-		return hitPoints;
-	}
-
-	public void setHitPoints(int hitPoints) throws IllegalArgumentException{
-//		if(this.getProjectileHPRequirement().isValidBullet(hitPoints)) {
-//			this.hitPoints = hitPoints;
-//		}else {
-//			throw new IllegalArgumentException();
-//		}
-		this.hitPoints = hitPoints;
+	private static Radius generateRadiusProjectile(int projectileMass) {
+		double radius = Math.pow(((double)projectileMass/1000d)/(((double)PROJECTILE_DENSITY)*((double)(4d/3d)*Math.PI)), (double)(1d/3d));
+		return new Radius(radius);
 	}
 	
-	private int hitPoints;
-	
-	public int getCostAP() {
-		return costAP;
-	}
-
-	public void setCostAP(int costAP) {
-		this.costAP = costAP;
-	}
-	
-	private int costAP;
-	
-	private int projectileMaxHp;
-	
-
-	public int getProjectileMaxHp() {
-		return projectileMaxHp;
-	}
-
-	public void setProjectileMaxHp(int projectileMaxHp) {
-		this.projectileMaxHp = projectileMaxHp;
-	}
-	
-	private BulletHitPointsRequirement projectileHPRequirement;
-	
-	public BulletHitPointsRequirement getProjectileHPRequirement() {
-		return projectileHPRequirement;
-	}
-
-	public void setProjectileHPRequirement(BulletHitPointsRequirement projectileHPRequirement) {
-		this.projectileHPRequirement = projectileHPRequirement;
-	}
-	
-	
-//	public boolean isTerminated() {
-//		return isTerminated;
-//	}
-//
-//	public void setTerminated(boolean isTerminated) {
-//		this.isTerminated = isTerminated;
-//	}
-//	
-//	public void terminate() {
-//		this.setTerminated(true);
-//	}
-//	
-//	boolean isTerminated = false;
-	
-
-	
-	private final static int RIFLE_PROJECTILE_MASS = 10;
-	private final static int BAZOOKA_PROJECTILE_MASS = 300;
-	private final static double RIFLE_FORCE = 1.5;
-	private final static int RIFLE_COST = 10;
-	private final static int BAZOOKA_COST = 25;
-	private final static int PROJECTILE_DENSITY = 7800;
-	private final static int RIFLE_BULLET_MAX_HP = 10;
-	private final static int BAZOOKA_BULLET_MAX_HP = 7;
-	
-	@FunctionalInterface
-	public interface BulletHitPointsRequirement{
-		boolean isValidBullet(int hitpoints);
-	}
-	private final static BulletHitPointsRequirement RIFLE_BULLET_REQ = (hitpoints) ->{
-		if(hitpoints < 0) {
-			return false;
-		}
-		if(hitpoints > RIFLE_BULLET_MAX_HP) {
-			return false;
-		}
-		if(hitpoints % 2 != 0) {
-			return false;
-		}
-		return true;
-	};	
-	private final static BulletHitPointsRequirement BAZOOKA_BULLET_REQ = (hitpoints) ->{
-		if(hitpoints < 0) {
-			return false;
-		}
-		if(hitpoints > BAZOOKA_BULLET_MAX_HP) {
-			return false;
-		}
-		if(hitpoints % 2 == 0) {
-			return false;
-		}
-		return true;
-	};
-
-	@FunctionalInterface
-	public interface CreateProjectile{
-		Projectile create(Worm w);
-	}
-	
-	public static CreateProjectile getRifle(Projectile_Type type) throws IllegalArgumentException{
-		if(type == Projectile_Type.RIFLE) {
-			return RIFLE;
-		}else if(type == Projectile_Type.BAZOOKA) {
-			return BAZOOKA;
+	public static Projectile createProjectile(Projectile_Type type, Worm worm) {
+		if(worm.getWorld() == null) {
+			throw new IllegalArgumentException("Worm not in a world.");
 		}
 		
-		throw new IllegalArgumentException();
+		Projectile projectile = null;
+		Radius projectileRadius;
+		Location projectileLocation;
+		Direction projectileDirection;
+		
+		if(type == Projectile_Type.RIFLE) {
+			projectileRadius = generateRadiusProjectile(RIFLE_PROJECTILE_MASS);
+			projectileLocation = getProjectileSpawnLocation(worm,projectileRadius);
+			projectileDirection = worm.getDirection(); //TODO to reference or not to reference, that's the question
+			projectile = new Projectile(projectileLocation, projectileDirection, projectileRadius, worm.getWorld()) {
+				@Override
+				public int generateHP() {
+					int randomNumber = (int)(Math.random()*4) + 1; //Random number from 1 - 5
+					randomNumber*=2; // random even number between  2 - 10
+					return randomNumber;
+				}			
+				@Override
+				public void hit(Worm worm) {
+					// TODO Auto-generated method stub
+					super.hit(worm);
+				}
+				@Override
+				public boolean isValidHitPoints(int hp) {
+					if(hp > this.getMaxHitPoints()) {
+						return false;
+					}
+					if(hp <= 0) {
+						return false;
+					}
+					if(hp % 2 != 0 ) {
+						return false;
+					}
+					return true;
+				}
+				
+				@Override
+				public double generateForce(Worm worm) {
+					return RIFLE_FORCE;
+				}
+				
+				{
+					this.setProjectileForce(this.generateForce(worm));
+					this.setMaxHitPoints(RIFLE_BULLET_MAX_HP);
+					this.setActionPointsCost(RIFLE_COST);
+					this.setMass(RIFLE_PROJECTILE_MASS);
+					int randomHP = this.generateHP();
+					if(this.isValidHitPoints(randomHP)) {
+						this.setHitPoints(randomHP);
+					}
+					
+				}				
+			};
+		}else if(type == Projectile_Type.BAZOOKA) {
+			projectileRadius = generateRadiusProjectile(BAZOOKA_PROJECTILE_MASS);
+			projectileLocation = getProjectileSpawnLocation(worm,projectileRadius);
+			projectileDirection = worm.getDirection(); //TODO to reference or not to reference, that's the question
+			projectile = new Projectile(projectileLocation, projectileDirection, projectileRadius, worm.getWorld()) {
+				@Override
+				public int generateHP() {
+					int randomNumber = (int)(Math.random()*6) + 1; //Random number from 1 - 7
+					if(randomNumber % 2 == 0) {
+						randomNumber -= 1;
+					}
+					return randomNumber;
+				}			
+				@Override
+				public void hit(Worm worm) {
+					// TODO Auto-generated method stub
+					super.hit(worm);
+				}
+				@Override
+				public boolean isValidHitPoints(int hp) {
+					if(hp > this.getMaxHitPoints()) {
+						return false;
+					}
+					if(hp <= 0) {
+						return false;
+					}
+					if(hp % 2 == 0 ) {
+						return false;
+					}
+					return true;
+				}
+				
+				@Override
+				public double generateForce(Worm worm) {
+					return 2.5d + (worm.getCurrentActionPoints()-BAZOOKA_COST) % 8;
+				}
+				
+				{
+					this.setProjectileForce(this.generateForce(worm));
+					this.setMaxHitPoints(BAZOOKA_BULLET_MAX_HP);
+					this.setActionPointsCost(BAZOOKA_COST);
+					this.setMass(BAZOOKA_PROJECTILE_MASS);
+					int randomHP = this.generateHP();
+					if(this.isValidHitPoints(randomHP)) {
+						this.setHitPoints(randomHP);
+					}
+				}				
+			};
+		}
+		
+		return projectile;
+	}
+	
+	public double generateForce(Worm worm) {
+		throw new UnsupportedOperationException();
 	}
 
+	public int generateHP() {
+		throw new UnsupportedOperationException();
+	}
 
-	private static CreateProjectile RIFLE = (worm) -> {
-		if(worm.getWorld() == null) {
-			throw new IllegalArgumentException("Worm not in a world.");
-		}
-		Radius projectileRadius = getRadius(RIFLE_PROJECTILE_MASS);
-		Location projectileLocation = getProjectileSpawnLocation(worm,projectileRadius);
-		Direction projectileDirection = worm.getDirection(); //TODO to reference or not to reference, that's the question
+	public void hit(Worm worm){
+		throw new UnsupportedOperationException();
+	}
 
-		Projectile bullet = new Projectile(projectileLocation,projectileDirection , projectileRadius, worm.getWorld());
-		bullet.setProjectileForce(RIFLE_FORCE);
-		bullet.setProjectileHPRequirement(RIFLE_BULLET_REQ);
-		int randomNumber = (int)(Math.random()*4) + 1; //Random number from 1 - 5
-		randomNumber*=2; // random even number between  2 - 10
-		bullet.setProjectileMaxHp(RIFLE_BULLET_MAX_HP);
-		bullet.setHitPoints(randomNumber);
-		bullet.setMass(RIFLE_PROJECTILE_MASS);
-		bullet.setCostAP(RIFLE_COST);
-		return bullet;
-	};
-
-	private static CreateProjectile BAZOOKA = (worm) -> {
-		if(worm.getWorld() == null) {
-			throw new IllegalArgumentException("Worm not in a world.");
-		}
-		Radius projectileRadius = getRadius(BAZOOKA_PROJECTILE_MASS);
-		Location projectileLocation = getProjectileSpawnLocation(worm,projectileRadius);
-		Direction projectileDirection = worm.getDirection(); //TODO to reference or not to reference, that's the question
-
-		Projectile bullet = new Projectile(projectileLocation,projectileDirection , projectileRadius, worm.getWorld());
-		double bazookaForce = 2.5d + (worm.getCurrentActionPoints()-BAZOOKA_COST) % 8d;
-		bullet.setProjectileForce(bazookaForce);
-		bullet.setProjectileHPRequirement(BAZOOKA_BULLET_REQ);
-		int randomNumber = (int)(Math.random()*6) + 1; //Random number from 1 - 7
-		if(randomNumber % 2 == 0) {
-			randomNumber -= 1;
-		}
-		bullet.setProjectileMaxHp(BAZOOKA_BULLET_MAX_HP);
-		bullet.setHitPoints((int)(randomNumber*bazookaForce));
-		bullet.setMass(BAZOOKA_PROJECTILE_MASS);
-		bullet.setCostAP(BAZOOKA_COST);
-		return bullet;
-	};
+	public boolean isValidHitPoints(int hp){
+		throw new UnsupportedOperationException();
+	}	
 	
 	public void jump(double timeStep) throws InvalidLocationException,RuntimeException{
 //		if(!(this.getDirection().getAngle() >= 0 && this.getDirection().getAngle() <= Math.PI)) {
@@ -261,9 +255,9 @@ public class Projectile extends GameObject {
 		double jumpTime = this.calculateJumpTime();
 		
 		double jumptime = this.getLastPassableJumpStepTime(jumpTime,deltaT);
-		if(jumptime == 0) { //TODO DOC
-			throw new IllegalArgumentException("Deltatime and jumpTime too short.");
-		}
+//		if(jumptime == 0) { //TODO DOC
+//			throw new IllegalArgumentException("Deltatime and jumpTime too short.");
+//		}
 		
 		return jumptime;
 	}
@@ -285,17 +279,18 @@ public class Projectile extends GameObject {
 			if(this.getWorld().isAdjacantToImpassableTerrain(wormLoc, this.getRadius())) {
 				break;
 			}
-			for (Object worm : this.getWorld().getAllObjectsOfType(Worm.class)) {
-				if(worm instanceof Worm) {
-					if(((Worm) worm).overlapsWith(new Circle(wormLoc,this.getRadius()))) {
-						bHitSomething = true;
-						break;
-					}
-				}
-			}
-			if(bHitSomething) {
-				break;
-			}
+//			for (Object worm : this.getWorld().getAllObjectsOfType(Worm.class)) {
+//				if(worm instanceof Worm) {
+//					if(((Worm) worm).overlapsWith(new Circle(wormLoc,this.getRadius()))) {
+//						//bHitSomething = true;
+//						//break;
+//					}
+//				}
+//			}
+//			if(bHitSomething) {
+//				lastAdjacentTime+=deltaT;
+//				break;
+//			}
 			wormLoc = new Location(this.jumpStep(lastAdjacentTime));
 			lastAdjacentTime+=deltaT;
 		}
@@ -315,10 +310,6 @@ public class Projectile extends GameObject {
 		double jumpSpeedMagnitude = this.getProjectileForce() / (this.getMass()/1000d);
 		jumpSpeedMagnitude*=0.5;
 		
-		if(jumpSpeedMagnitude < 0) {
-			throw new RuntimeException("The jumpSpeedMagnitude of the worm tring to jump is invalid. Less than 0 "+jumpSpeedMagnitude);
-		}
-		
 		//speed in air
 		double speedX = jumpSpeedMagnitude * Math.cos(this.getDirection().getAngle());
 		double speedY = jumpSpeedMagnitude * Math.sin(this.getDirection().getAngle());
@@ -330,5 +321,14 @@ public class Projectile extends GameObject {
 		
 		return tmpLocation.getLocation();
 	}
-
+	
+	
+	private final static int RIFLE_PROJECTILE_MASS = 10;
+	private final static int BAZOOKA_PROJECTILE_MASS = 300;
+	private final static double RIFLE_FORCE = 1.5;
+	private final static int RIFLE_COST = 10;
+	private final static int BAZOOKA_COST = 25;
+	private final static int PROJECTILE_DENSITY = 7800;
+	private final static int RIFLE_BULLET_MAX_HP = 10;
+	private final static int BAZOOKA_BULLET_MAX_HP = 7;
 }

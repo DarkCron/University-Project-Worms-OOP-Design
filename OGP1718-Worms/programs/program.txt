@@ -30,6 +30,7 @@ while true: {
   }
   else {
     turn 0.2;
-    jump;
+    if (((getdir self) > 0) && ((getdir self) < 3.14)):
+    	jump;
   }
 }
