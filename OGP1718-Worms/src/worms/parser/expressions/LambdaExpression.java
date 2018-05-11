@@ -103,8 +103,8 @@ public class LambdaExpression {
 	public final static Binary<Boolean, LambdaExpression, LambdaExpression> LOGIC_OR = (p, a, b) -> {
 		Object resultLeft = a.getExpression().getExpressionResult(p);
 		if(resultLeft instanceof Boolean) {
-			if((Boolean)resultLeft == false) {
-				return false;
+			if((Boolean)resultLeft == true) {
+				return true;
 			}
 		}
 		
@@ -197,7 +197,7 @@ public class LambdaExpression {
 
 	public final static Unary<Void, LambdaExpression> PRINTER = (p, a) -> {
 		//String print = a.getExpression().getExpressionResult(p) != null ? a.getExpression().getExpressionResult(p).toString() : "null";
-		System.out.println(a.getExpression().getExpressionResult(p));
+		//System.out.println(a.getExpression().getExpressionResult(p));
 		p.addToPrintLog(a.getExpression().getExpressionResult(p));
 		return null;
 	};

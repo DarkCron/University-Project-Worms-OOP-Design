@@ -223,25 +223,24 @@ public class Projectile extends GameObject {
 	};
 	
 	public void jump(double timeStep) throws InvalidLocationException,RuntimeException{
-		if(!(this.getDirection().getAngle() >= 0 && this.getDirection().getAngle() <= Math.PI)) {
-			throw new RuntimeException();
-		}
+//		if(!(this.getDirection().getAngle() >= 0 && this.getDirection().getAngle() <= Math.PI)) {
+//			throw new RuntimeException();
+//		}
+
+		
 		double jumpTime = this.getJumpTime(timeStep);
 		Location tmp = new Location(this.jumpStep(jumpTime));
 		
-		if(!isValidLocation(tmp,this.getWorld())) {
+		if(!this.getWorld().fullyContains(new Circle(tmp,this.getRadius()).getBoundingRectangle())) {
 			throw new InvalidLocationException(tmp);
 		}
 		
-		double distance = this.getLocation().getDistanceFrom(tmp);
-		
-		this.setLocation(tmp);	
-		
 		ArrayList<Worm> hitWorms = new ArrayList<Worm>();
-		for (double i = 0; i < distance; i+=0.01) {
+		for (double i = 0.0; i < jumpTime; i+=timeStep) {
 			for (Object worm : this.getWorld().getAllObjectsOfType(Worm.class)) {
 				if(worm instanceof Worm) {
-					if(!hitWorms.contains(worm)&&((Worm) worm).overlapsWith(this)) {
+					if(!hitWorms.contains(worm)&&((Worm) worm).overlapsWith(new Circle(new Location(jumpStep(i)),this.getRadius()))) {
+					//	((Worm) worm).overlapsWith(new Circle(new Location(jumpStep(i)),this.getRadius()));
 						((Worm) worm).hitByProjectile(this);
 						//((Worm) worm).setHitPoints(new HP(BigInteger.valueOf(this.getHitPoints() - this.getHitPoints())));
 						hitWorms.add(((Worm) worm));
@@ -249,6 +248,9 @@ public class Projectile extends GameObject {
 				}
 			}
 		}
+		
+		this.setLocation(tmp);	
+		
 
 		if(!hitWorms.isEmpty()) {
 			this.terminate();
@@ -276,22 +278,37 @@ public class Projectile extends GameObject {
 	}
 	
 	private double getLastPassableJumpStepTime(double jumpTime, double deltaT) {
-		double lastAdjacentTime = 0.0;
-		for (double i = deltaT; i < jumpTime; i+=deltaT) {
-			Location wormLoc = new Location(this.jumpStep(i));
-			if(!this.getWorld().isPassable(wormLoc, this.getRadius())) { //TODO Doc;
-				return i;
+		double lastAdjacentTime = 0.0; //TODO set 0.0
+		Location wormLoc = new Location(this.jumpStep(lastAdjacentTime));
+		boolean bHitSomething = false;
+		while (this.getWorld().isPassable(wormLoc, this.getRadius()) && this.getWorld().fullyContains(new Circle(wormLoc,this.getRadius()).getBoundingRectangle())) {
+			if(this.getWorld().isAdjacantToImpassableTerrain(wormLoc, this.getRadius())) {
+				break;
 			}
+			for (Object worm : this.getWorld().getAllObjectsOfType(Worm.class)) {
+				if(worm instanceof Worm) {
+					if(((Worm) worm).overlapsWith(new Circle(wormLoc,this.getRadius()))) {
+						bHitSomething = true;
+						break;
+					}
+				}
+			}
+			if(bHitSomething) {
+				break;
+			}
+			wormLoc = new Location(this.jumpStep(lastAdjacentTime));
+			lastAdjacentTime+=deltaT;
 		}
+
 		
 
 		return lastAdjacentTime;
 	}
 	
 	public double[] jumpStep(double deltaTime) throws InvalidLocationException,IllegalArgumentException,RuntimeException{
-		if(!(this.getDirection().getAngle() >= 0 && this.getDirection().getAngle() <= Math.PI)) {
-			throw new RuntimeException("The direction of the worm trying to jump is invalid. Not equal or larger than 0 and less than 2*PI." + this.getDirection().toString());
-		}
+//		if(!(this.getDirection().getAngle() >= 0 && this.getDirection().getAngle() <= Math.PI)) {
+//			throw new RuntimeException("The direction of the worm trying to jump is invalid. Not equal or larger than 0 and less than 2*PI." + this.getDirection().toString());
+//		}
 //		if(this.getProjectileForce() == 8.5d) {
 //			this.setProjectileForce(7.5d);
 //		}

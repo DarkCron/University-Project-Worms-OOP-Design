@@ -84,6 +84,7 @@ public class ProgramFactory implements IProgramFactory<LambdaExpression, BaseSta
 				} catch (NotEnoughAPException e) {
 					p.interruptProgram();
 				}catch (Exception e) {
+					p.interruptProgram();
 					throw e;
 				}
 				
@@ -106,7 +107,9 @@ public class ProgramFactory implements IProgramFactory<LambdaExpression, BaseSta
 				throw new IllegalStateException();
 			}
 			try {
-				p.getActionHandler().move(p.getProgramHolder());	
+				if(!p.getActionHandler().move(p.getProgramHolder())) {
+					throw new RuntimeException();
+				}
 			} catch (Exception e) {
 				p.interruptProgram();
 			}
@@ -130,6 +133,7 @@ public class ProgramFactory implements IProgramFactory<LambdaExpression, BaseSta
 			} catch (NotEnoughAPException e) {
 				p.interruptProgram();
 			} catch (Exception e) {
+				p.interruptProgram();
 				throw e;
 			}
 //			
@@ -169,7 +173,14 @@ public class ProgramFactory implements IProgramFactory<LambdaExpression, BaseSta
 			if(p.getProgramHolder() == null) {
 				throw new IllegalStateException();
 			}
-			p.getActionHandler().fire(p.getProgramHolder());
+			try {
+				if(!p.getActionHandler().fire(p.getProgramHolder())) {
+					throw new RuntimeException();
+				}
+			} catch (Exception e) {
+				p.interruptProgram();
+			}
+	
 			if(p.getProgramHolder().getCurrentActionPoints() == 0) {
 				p.interruptProgram();
 			}

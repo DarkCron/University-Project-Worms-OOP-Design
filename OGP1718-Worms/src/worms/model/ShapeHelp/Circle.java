@@ -3,6 +3,7 @@ package worms.model.ShapeHelp;
 import be.kuleuven.cs.som.annotate.Basic;
 import worms.exceptions.InvalidRadiusException;
 import worms.model.GameObject;
+import worms.model.World;
 import worms.model.values.*;
 
 /**
@@ -139,7 +140,12 @@ public class Circle extends Shape {
 		double deltaY = c.getCenter().getY() - getCenter().getY();
 		double distance = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY,2));
 		distance = Math.abs(distance);
-		return distance < (this.getRadius().getRadius() + c.getRadius().getRadius());
+		distance = World.roundingHelper(distance, 4);
+		double other = World.roundingHelper((this.getRadius().getRadius() + c.getRadius().getRadius()),4);
+//		if(other == distance) {
+//			return false;
+//		}
+		return distance < World.roundingHelper((this.getRadius().getRadius() + c.getRadius().getRadius()),4);
 	}
 	
 	/**

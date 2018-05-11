@@ -1351,7 +1351,7 @@ public class Worm extends GameObject implements IJumpable{
 			throw new RuntimeException("Invalid jumptime calculated. "+jumpTime);
 		}
 		
-		double jumptime = this.getLastPassableJumpStepTime(jumpTime,deltaT);
+		double jumptime = this.getLastPassableJumpStepTime(Double.POSITIVE_INFINITY,deltaT);
 		if(jumptime == 0) { //TODO DOC
 			throw new IllegalArgumentException("Deltatime and jumpTime too short.");
 		}
@@ -1388,7 +1388,7 @@ public class Worm extends GameObject implements IJumpable{
 				lastAdjacentLocation = wormLoc;
 				lastAdjacentTime = i;
 			}
-			if(!this.getWorld().isPassable(wormLoc, this.getRadius())) { //TODO Doc
+			if(!this.getWorld().isPassable(wormLoc, this.getRadius()) || !this.getWorld().fullyContains(new Circle(wormLoc, getRadius()).getBoundingRectangle())) { //TODO Doc
 //				if(this.getLocation().getDistanceFrom(wormLoc) < this.getRadius().getRadius()) {
 //					return 0; //THIS WILL CAUSE A CONTROLLED EXCEPTION
 //				}
@@ -1540,8 +1540,12 @@ public class Worm extends GameObject implements IJumpable{
 		try {
 			Projectile firedProjectile = gun.create(this);
 			if(firedProjectile.getCostAP() <= this.getCurrentActionPoints()) {
+				if(!this.getWorld().isPassable(firedProjectile)) {
+					this.hitByProjectile(firedProjectile);
+				}
 				this.getWorld().addGameObject(firedProjectile);
 				this.setActionPoints(this.getCurrentActionPoints() - firedProjectile.getCostAP());
+
 			}else {
 				firedProjectile = null;
 			}
@@ -1555,7 +1559,10 @@ public class Worm extends GameObject implements IJumpable{
 	}
 
 	public void hitByProjectile(Projectile projectile) {
+		System.out.println("Worm HP Before: "+this.getHitPoints());
 		this.setHitPoints(new HP(this.getHitPoints().subtract(BigInteger.valueOf(projectile.getHitPoints()))));
+		System.out.println("Worm HP After: "+this.getHitPoints());
+		//System.out.println("");
 	}
 }
 

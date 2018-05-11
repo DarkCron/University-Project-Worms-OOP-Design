@@ -273,7 +273,7 @@ public class World {
 	 * @post | worldObjects.get(gameObject.getTypeID()).contains(gameObject)
 	 */
 	public void addGameObject(GameObject gameObject) throws IllegalArgumentException, IllegalStateException{
-		if(this.getIsGameActive()) {
+		if(this.getIsGameActive() && !(gameObject instanceof Projectile)) {
 			throw new IllegalStateException("Game is active, objects can't be added.");
 		}
 		
@@ -676,11 +676,8 @@ public class World {
 		Rectangle bound = passableSurface.getBoundingRectangle();
 		
 		Rectangle realStuff = new Rectangle(this.getRealWorldLoc(bound.getCenter()), this.getRealWorldLoc(bound.getSize()));
-		if(realStuff.getCenter().getX() >= 300) {
-			System.out.println("");
-		}
 		ArrayList<BoundaryRectangle> collectionOfStuff = new ArrayList<BoundaryRectangle>();
-		for (int x = -1; x < realStuff.getSize().getX()+1;x++) {
+		for (int x = -2; x < realStuff.getSize().getX()+1;x++) {
 			for (int y = -2; y < realStuff.getSize().getY()+1;y++) {
 				int xCoord = x + (int)realStuff.getCenter().getX();
 				int yCoord = y + (int)realStuff.getCenter().getY();
@@ -842,6 +839,9 @@ public class World {
 			this.wormTurnCycle.add(wormTurnCycle.getFirst());
 			this.wormTurnCycle.remove(0);
 			this.wormTurnCycle.getFirst().resetTurn();
+			if(this.wormTurnCycle.get(0).getProgram()!=null) {
+				this.wormTurnCycle.get(0).getProgram().doStartExecution();
+			}
 		}else {
 			//throw new IllegalStateException("No worms to switch with, in endFirstPlayerWormTurn");
 		}
