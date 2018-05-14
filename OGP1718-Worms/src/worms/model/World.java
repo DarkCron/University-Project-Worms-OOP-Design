@@ -1252,11 +1252,5 @@ public class World {
 	public void removeTeam(Team team) {
 		this.worldTeams.remove(team);
 	}
-
-
-
-
-
-
-
 }
+
