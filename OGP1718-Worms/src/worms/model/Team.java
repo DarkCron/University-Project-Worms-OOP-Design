@@ -268,6 +268,9 @@ public class Team {
 		if(team == null) {
 			throw new IllegalArgumentException("Team to be merged is null");
 		}
+		if (team.equals(this) != false) {
+			throw new IllegalArgumentException("Both teams are the same team. Merging won't be able to.");
+		}
 		if(team.equals(this) == false) {
 			for (Worm worm : team.teamRoster) {
 				teamRosterCopy.add(worm);
@@ -284,6 +287,7 @@ public class Team {
 			
 			for (Worm worm : teamRosterCopy) {
 				team.removeWorm(worm);
+				
 				try {
 					this.addWorm(worm);	
 				} catch (Exception e) {
@@ -294,11 +298,7 @@ public class Team {
 					return;
 				}	
 			}
-		}
-		if (team.equals(this) != false) {
-			throw new IllegalArgumentException("Both teams are the same team. Merging won't be able to.");
-		}
-	
+		}	
 	}
 		
 	/**
