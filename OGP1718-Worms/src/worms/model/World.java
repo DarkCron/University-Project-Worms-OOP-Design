@@ -39,7 +39,7 @@ import worms.model.values.Radius;
  * @Invar | for each object in getAllGameObjects()
  * 		  |		isPassable(object)
  * 
- * @author bernd
+ * @author Liam, bernd
  *
  */
 public class World {
