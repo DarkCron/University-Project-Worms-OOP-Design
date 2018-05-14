@@ -125,7 +125,13 @@ public class Facade implements IFacade {
 
 	@Override
 	public void decreaseNbActionPoints(Worm worm, long delta) throws ModelException {
-		worm.setActionPoints(worm.getCurrentActionPoints() - (int)Math.ceil(delta));
+		if(delta > worm.getCurrentActionPoints()) {
+			delta = 0;
+		}
+	
+		else{
+			worm.setActionPoints(worm.getCurrentActionPoints() - (int)Math.ceil(delta));
+		}
 	}
 
 	@Override
