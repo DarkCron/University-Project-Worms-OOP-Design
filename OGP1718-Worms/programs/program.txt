@@ -8,7 +8,7 @@ def updateNearestWorm: {
     obj := searchobj delta;
     if (obj != null && isworm obj):
       if !sameteam obj:
-	      if (nearestWorm == null) || (distance obj < distance nearestWorm): {
+	      if (nearestWorm == null) || ((distance obj) < (distance nearestWorm)): {
 	        nearestWorm := obj;
 	        turnToNearest := delta;
 	      }
@@ -30,6 +30,7 @@ while true: {
   }
   else {
     turn 0.2;
-    jump;
+    if (((getdir self) > 0) && ((getdir self) < 3.14)):
+    	jump;
   }
 }

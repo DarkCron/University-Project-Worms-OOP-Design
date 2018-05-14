@@ -84,6 +84,7 @@ public class ProgramFactory implements IProgramFactory<LambdaExpression, BaseSta
 				} catch (NotEnoughAPException e) {
 					p.interruptProgram();
 				}catch (Exception e) {
+					p.interruptProgram();
 					throw e;
 				}
 				
@@ -106,7 +107,9 @@ public class ProgramFactory implements IProgramFactory<LambdaExpression, BaseSta
 				throw new IllegalStateException();
 			}
 			try {
-				p.getActionHandler().move(p.getProgramHolder());	
+				if(!p.getActionHandler().move(p.getProgramHolder())) {
+					throw new RuntimeException();
+				}
 			} catch (Exception e) {
 				p.interruptProgram();
 			}
@@ -130,6 +133,7 @@ public class ProgramFactory implements IProgramFactory<LambdaExpression, BaseSta
 			} catch (NotEnoughAPException e) {
 				p.interruptProgram();
 			} catch (Exception e) {
+				p.interruptProgram();
 				throw e;
 			}
 //			
@@ -169,7 +173,14 @@ public class ProgramFactory implements IProgramFactory<LambdaExpression, BaseSta
 			if(p.getProgramHolder() == null) {
 				throw new IllegalStateException();
 			}
-			p.getActionHandler().fire(p.getProgramHolder());
+			try {
+				if(!p.getActionHandler().fire(p.getProgramHolder())) {
+					throw new RuntimeException();
+				}
+			} catch (Exception e) {
+				p.interruptProgram();
+			}
+	
 			if(p.getProgramHolder().getCurrentActionPoints() == 0) {
 				p.interruptProgram();
 			}
@@ -229,6 +240,12 @@ public class ProgramFactory implements IProgramFactory<LambdaExpression, BaseSta
 	}
 
 	@Override
+	public LambdaExpression createGetDirectionExpression(LambdaExpression entity, SourceLocation location)
+			throws ModelException, MustNotImplementException {
+		return new LambdaExpression((p) -> LambdaExpression.GET_SELF_DIRECTION.set(p,null));
+	}
+	
+	@Override
 	public LambdaExpression createSelfExpression(SourceLocation location) throws ModelException {
 		return new LambdaExpression((p) -> LambdaExpression.GET_SELF.set(p,null));
 	}
@@ -273,6 +290,12 @@ public class ProgramFactory implements IProgramFactory<LambdaExpression, BaseSta
 	public LambdaExpression createLessThanExpression(LambdaExpression left, LambdaExpression right,
 			SourceLocation location) {
 		return new LambdaExpression((p)-> LambdaExpression.LOGIC_LESS_THAN.set(p, left,right));
+	}
+	
+	@Override
+	public LambdaExpression createGreaterThanExpression(LambdaExpression left, LambdaExpression right,
+			SourceLocation location) {
+		return new LambdaExpression((p)-> LambdaExpression.LOGIC_GREATER_THAN.set(p, left,right));
 	}
 
 	/**

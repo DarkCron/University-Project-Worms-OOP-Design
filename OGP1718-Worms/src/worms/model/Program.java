@@ -108,6 +108,9 @@ public class Program {
 		System.out.println("Program should break");
 		mainSequence.interrupt();
 		this.setInterrupted(true);
+		if(this.getProgramHolder().getWorld()!=null && this.getProgramHolder().getWorld().getIsGameActive()) {
+			this.getProgramHolder().getWorld().endFirstPlayerWormTurn();
+		}
 	}
 
 	private boolean isInterrupted = false;
