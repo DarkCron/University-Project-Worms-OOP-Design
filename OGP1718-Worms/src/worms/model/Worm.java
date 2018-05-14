@@ -1195,9 +1195,11 @@ public class Worm extends GameObject implements IJumpable{
 						defender = this;
 					}
 					double mod = ((attacker.getRadius().getRadius() / defender.getRadius().getRadius()));
-					int damage = 10* (int)Math.ceil(((attacker.getRadius().getRadius() / defender.getRadius().getRadius()))); 
+					int damage = (int)(10* mod); 
 					damage = (int)Math.round(Math.random()*(damage-1) + 1);
 					defender.increaseHitPoints(damage * -1);
+					handledWorms.add(defender);
+					handledWorms.add(attacker);
 				}
 			}
 		}

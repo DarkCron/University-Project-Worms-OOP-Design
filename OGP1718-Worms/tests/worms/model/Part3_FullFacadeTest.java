@@ -2020,7 +2020,7 @@ public class Part3_FullFacadeTest {
 		long newNbHitPoints_worm1 = facade.getNbHitPoints(worm1).longValue();
 		assertTrue((newNbHitPoints_TheWorm < oldNbHitPoints_TheWorm) ^ (newNbHitPoints_worm1 < oldNbHitPoints_worm1));
 		assertTrue((newNbHitPoints_TheWorm == 0) || (newNbHitPoints_TheWorm >= oldNbHitPoints_TheWorm - 5));
-		assertTrue((newNbHitPoints_worm1 == 0) || (newNbHitPoints_worm1 >= oldNbHitPoints_TheWorm - 40));
+		assertTrue((newNbHitPoints_worm1 == 0) || (newNbHitPoints_worm1 >= oldNbHitPoints_worm1 - 40));
 		score += 11;
 	}
 
