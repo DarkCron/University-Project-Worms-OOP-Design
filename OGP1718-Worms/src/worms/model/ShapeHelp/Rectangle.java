@@ -102,6 +102,22 @@ public class Rectangle extends Shape {
 				&& (this.getCenter().getX()+this.getSize().getX()) >= (boundingRectangle.getCenter().getX() + boundingRectangle.getSize().getX())
 				&& (this.getCenter().getY()+this.getSize().getY()) >= (boundingRectangle.getCenter().getY() + boundingRectangle.getSize().getY());
 	}
+	
+	//TODO
+	public boolean intersects(Circle c) {
+		if(this.fullyContains(c.getBoundingRectangle())) {
+			return true;
+		}
+		for (double x = 0; x < this.getSize().getX(); x+=this.getSize().getY()/10) {
+			for (double y = 0;  y < this.getSize().getY(); y+=this.getSize().getY()/10) {
+				Location loc = new Location(this.getCenter().getX()+x, this.getCenter().getY()+y);
+				if(loc.getDistanceFrom(c.getCenter())<c.getRadius().getRadius()) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 
 	public boolean intersects(Rectangle r) {
 		return this.getCenter().getX() < r.getCenter().getX() + r.getSize().getX() && this.getCenter().getX() + this.getSize().getX() > r.getCenter().getX() &&

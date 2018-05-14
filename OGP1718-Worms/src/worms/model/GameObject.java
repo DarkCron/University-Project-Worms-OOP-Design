@@ -39,7 +39,7 @@ public abstract class GameObject{
 	 */
 	@Raw
 	protected GameObject(Location location, Radius radius, World world) throws InvalidLocationException,InvalidRadiusException {
-		this.setGameObjectTypeID(new GameObjectTypeID(this.getClass()));
+		this.setGameObjectTypeID(new GameObjectTypeID(this.getClass().isAnonymousClass() ? (Class<? extends GameObject>)this.getClass().getSuperclass():this.getClass()));
 		
 		if(!isValidRadius(radius)) {
 			throw new InvalidRadiusException(radius);
@@ -125,7 +125,7 @@ public abstract class GameObject{
 	 * 			| result == (location != null) && (location.isValid()) && isValidWorldLocation(location,world)
 	 */
 	public static boolean isValidLocation(Location location, World world) {
-		return ((location != null) && location.isValid());
+		return ((location != null) && location.isValid()) ;
 	}
 	
 	/**
@@ -388,6 +388,18 @@ public abstract class GameObject{
 		Circle otherSurface = new Circle(other);
 		
 		return thisSurface.overlaps(otherSurface);
+	}
+	
+	/**
+	 * Checks whether this gameObject overlaps a given other object
+	 * 
+	 * @param other
+	 * @return | result == Circle(this).overlaps(Circle(other))
+	 */
+	public boolean overlapsWith(Circle other) {
+		Circle thisSurface = new Circle(this);
+		
+		return thisSurface.overlaps(other);
 	}
 	
 	/**

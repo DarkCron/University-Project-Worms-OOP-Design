@@ -288,17 +288,56 @@ public class Team {
 			for (Worm worm : teamRosterCopy) {
 				team.removeWorm(worm);
 				
-				try {
-					this.addWorm(worm);	
-				} catch (Exception e) {
-					for(Worm w : teamRosterCopy) {
-						this.removeWorm(w);
-						team.addWorm(w);
+				teamRosterCopy = new ArrayList<Worm>(team.getAlphabeticalListTeamRoster());	
+				if(!teamRosterCopy.isEmpty()) {
+					Team fromTeam = teamRosterCopy.get(0).getTeam();
+					try {
+						fromTeam.removeWorm(teamRosterCopy.toArray(new Worm[teamRosterCopy.size()]));
+						for (Worm worm1 : teamRosterCopy) {
+							worm1.setTeam(null);
+						}
+						this.addWorm(teamRosterCopy.toArray(new Worm[teamRosterCopy.size()]));
+					
+					} catch (Exception e) {
+						for (Worm worm1 : teamRosterCopy) {
+							team.addWorm(teamRosterCopy.toArray(new Worm[teamRosterCopy.size()]));
+							worm1.setTeam(fromTeam); //FIx original team
+							throw e;
+						}
 					}
-					return;
-				}	
+
+				}
+				if (team.equals(this) != false) {
+					throw new IllegalArgumentException("Both teams are the same team. Merging won't be able to.");
+				}
 			}
 		}	
+//			for (Worm worm : team.teamRoster) {
+//				teamRosterCopy.add(worm);
+//			}
+//			for (Worm w : teamRosterCopy) {
+//				if(w == null) {
+//					return;
+//				}
+//				if(w.isTerminated()) {
+//					return;
+//				}
+//			}
+//			
+//			for (Worm worm : teamRosterCopy) {
+//				team.removeWorm(worm);
+//				try {
+//					this.addWorm(worm);	
+//				} catch (Exception e) {
+//					for(Worm w : teamRosterCopy) {
+//						this.removeWorm(w);
+//						team.addWorm(w);
+//					}
+//					return;
+//				}	
+//			}
+//		}
+		
 	}
 		
 	/**

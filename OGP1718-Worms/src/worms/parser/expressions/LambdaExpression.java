@@ -4,7 +4,7 @@ import be.kuleuven.cs.som.annotate.*;
 import worms.model.Food;
 import worms.model.GameObject;
 import worms.model.Program;
-import worms.model.Projectile;
+import worms.model.ProjectileBU;
 import worms.model.Worm;
 import worms.model.values.Location;
 
@@ -103,8 +103,8 @@ public class LambdaExpression {
 	public final static Binary<Boolean, LambdaExpression, LambdaExpression> LOGIC_OR = (p, a, b) -> {
 		Object resultLeft = a.getExpression().getExpressionResult(p);
 		if(resultLeft instanceof Boolean) {
-			if((Boolean)resultLeft == false) {
-				return false;
+			if((Boolean)resultLeft == true) {
+				return true;
 			}
 		}
 		
@@ -161,6 +161,17 @@ public class LambdaExpression {
 			throw new IllegalArgumentException("Tried to compare non Doubles");
 		}
 	};
+	public final static Binary<Boolean, LambdaExpression, LambdaExpression> LOGIC_GREATER_THAN = (p, a, b) -> 
+	{
+		Object resultLeft = a.getExpression().getExpressionResult(p);
+		Object resultRight = b.getExpression().getExpressionResult(p);
+		if (resultLeft instanceof Double && resultRight instanceof Double) {
+			return (Double) a.getExpression().getExpressionResult(p) > (Double) b.getExpression()
+					.getExpressionResult(p);
+		} else {
+			throw new IllegalArgumentException("Tried to compare non Doubles");
+		}
+	};
 	
 	public final static Unary<Boolean, LambdaExpression> IS_FOOD = (p, a) -> 
 	{
@@ -183,7 +194,7 @@ public class LambdaExpression {
 	public final static Unary<Boolean, LambdaExpression> IS_PROJECTILE = (p, a) -> 
 	{
 		Object resultLeft = a.getExpression().getExpressionResult(p);
-		if (resultLeft instanceof Projectile) {
+		if (resultLeft instanceof ProjectileBU) {
 			return true;
 		} else {
 			return false;
@@ -197,7 +208,7 @@ public class LambdaExpression {
 
 	public final static Unary<Void, LambdaExpression> PRINTER = (p, a) -> {
 		//String print = a.getExpression().getExpressionResult(p) != null ? a.getExpression().getExpressionResult(p).toString() : "null";
-		System.out.println(a.getExpression().getExpressionResult(p));
+		//System.out.println(a.getExpression().getExpressionResult(p));
 		p.addToPrintLog(a.getExpression().getExpressionResult(p));
 		return null;
 	};
@@ -216,7 +227,7 @@ public class LambdaExpression {
 		return p.getGlobals().get(name);
 	};
 	public final static Assignment<Worm> GET_SELF = (p, v) -> p.getProgramHolder();
-	
+	public final static Assignment<Double> GET_SELF_DIRECTION = (p, v) -> p.getProgramHolder().getDirection().getAngle();
 	public final static Unary<Double, LambdaExpression> DISTANCE_FROM = (p, other) -> {
 		Object resultLeft = other.getExpression().getExpressionResult(p);
 		if(resultLeft instanceof GameObject) {
