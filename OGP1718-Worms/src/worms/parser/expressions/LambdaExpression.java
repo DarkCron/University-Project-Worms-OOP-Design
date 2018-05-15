@@ -19,8 +19,6 @@ public class LambdaExpression {
 	 * The functional interface representing the Lambda Expression of this anonymous class.
 	 * This interface should point to the actual lambda expression to be executed.
 	 * 
-	 * @author bernd
-	 *
 	 * @param <V>
 	 */
 	@FunctionalInterface
@@ -37,7 +35,6 @@ public class LambdaExpression {
 	 * Can actually be replaced by the Unary expression above as 
 	 * Assignment<Double> == Unary<Double,Double>
 	 * 
-	 * @author bernd
 	 *
 	 * @param <V>
 	 */
@@ -58,7 +55,7 @@ public class LambdaExpression {
 		return this.myExpression;
 	}
 
-	public final static Binary<Double, LambdaExpression, LambdaExpression> ADDER = (p, a, b) -> {
+	public final static Binary<Double, LambdaExpression, LambdaExpression> ADDITION = (p, a, b) -> {
 		Object resultLeft = a.getExpression().getExpressionResult(p);
 		Object resultRight = b.getExpression().getExpressionResult(p);
 		if (resultLeft instanceof Double && resultRight instanceof Double) {

@@ -32,8 +32,8 @@ import worms.util.MustNotImplementException;
  * <p>
  * You should declare your class as follows:<code><pre>
  * public class ProgramFactory implements IProgramFactory&lt;MyExpression, MyStatement, MyProc, Program&gt;
- * </pre></code> where MyExpression, MyStatement, MyProc, and Program are your classes
- * for representing expressions, statements, procedure definitions, and programs,
+ * </pre></code> where MyExpression, MyStatement and MyProc are your classes
+ * for representing expressions, statements and procedure definitions,
  * respectively.
  * 
  * <p>
@@ -90,7 +90,10 @@ public interface IProgramFactory<E, S, P, Program> {
 	 * @param body
 	 *            The body of the procedure.
 	 */
-	public P createProcedureDefinition(String procedureName, S body, SourceLocation sourceLocation);
+	public default P createProcedureDefinition(String procedureName, S body, SourceLocation sourceLocation)
+			throws ModelException, MustNotImplementException {
+		throw new MustNotImplementException();
+	}
 
 	/* STATEMENTS */
 

@@ -253,7 +253,7 @@ public class ProgramFactory implements IProgramFactory<LambdaExpression, BaseSta
 	@Override
 	public LambdaExpression createAdditionExpression(LambdaExpression left, LambdaExpression right,
 			SourceLocation location) throws ModelException {
-		return new LambdaExpression((p) -> LambdaExpression.ADDER.set(p,left,right));
+		return new LambdaExpression((p) -> LambdaExpression.ADDITION.set(p,left,right));
 	}
 
 	@Override

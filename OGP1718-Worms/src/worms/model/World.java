@@ -601,42 +601,42 @@ public class World {
 //		
 //		return true;
 	}
-	
-	//TODO
-	private boolean edgeBorderCheck(int heightIndex, int widthIndex,Location realWorldLoc) {
-		if(passableMap[heightIndex][widthIndex].isOnCornerEdge(realWorldLoc)) {
-			return true;
-		}
-		if(passableMap[heightIndex][widthIndex].isOnUpperEdge(realWorldLoc)) {
-			return heightIndex != passableMap.length -1 &&  passableMap[heightIndex+1][widthIndex].isPassable();
-		}else if(passableMap[heightIndex][widthIndex].isOnLowerEdge(realWorldLoc)) {
-			return heightIndex != 0 &&  passableMap[heightIndex-1][widthIndex].isPassable();
-		}else if(passableMap[heightIndex][widthIndex].isOnLeftEdge(realWorldLoc)) {
-			return widthIndex != 0 &&  passableMap[heightIndex][widthIndex-1].isPassable();
-		}else if(passableMap[heightIndex][widthIndex].isOnRightEdge(realWorldLoc)) {
-			return widthIndex != passableMap[0].length -1 &&  passableMap[heightIndex][widthIndex+1].isPassable();
-		}
-		return false;
-	}
+//	
+//	//TODO
+//	private boolean edgeBorderCheck(int heightIndex, int widthIndex,Location realWorldLoc) {
+//		if(passableMap[heightIndex][widthIndex].isOnCornerEdge(realWorldLoc)) {
+//			return true;
+//		}
+//		if(passableMap[heightIndex][widthIndex].isOnUpperEdge(realWorldLoc)) {
+//			return heightIndex != passableMap.length -1 &&  passableMap[heightIndex+1][widthIndex].isPassable();
+//		}else if(passableMap[heightIndex][widthIndex].isOnLowerEdge(realWorldLoc)) {
+//			return heightIndex != 0 &&  passableMap[heightIndex-1][widthIndex].isPassable();
+//		}else if(passableMap[heightIndex][widthIndex].isOnLeftEdge(realWorldLoc)) {
+//			return widthIndex != 0 &&  passableMap[heightIndex][widthIndex-1].isPassable();
+//		}else if(passableMap[heightIndex][widthIndex].isOnRightEdge(realWorldLoc)) {
+//			return widthIndex != passableMap[0].length -1 &&  passableMap[heightIndex][widthIndex+1].isPassable();
+//		}
+//		return false;
+//	}
 
-	//TODO
-	private boolean isOnEdge(BoundaryRectangle boundaryRectangle, Location realWorldLoc) {
-		if(realWorldLoc.getX() == boundaryRectangle.getCenter().getX()) {
-			return true;
-		}
-		else if(realWorldLoc.getX() > boundaryRectangle.getCenter().getX() && boundaryRectangle.getCenter().getX() + boundaryRectangle.getSize().getX() > realWorldLoc.getX()) {
-			if(realWorldLoc.getY() == boundaryRectangle.getCenter().getY()) {
-				return true;
-			}else if(realWorldLoc.getY() == boundaryRectangle.getCenter().getY()+ boundaryRectangle.getSize().getY()) {
-				return true;
-			}else {
-				return false;
-			}
-		}else if(boundaryRectangle.getCenter().getX() + boundaryRectangle.getSize().getX() == realWorldLoc.getX()) {
-			return true;
-		}
-		return false;
-	}
+//	//TODO
+//	private boolean isOnEdge(BoundaryRectangle boundaryRectangle, Location realWorldLoc) {
+//		if(realWorldLoc.getX() == boundaryRectangle.getCenter().getX()) {
+//			return true;
+//		}
+//		else if(realWorldLoc.getX() > boundaryRectangle.getCenter().getX() && boundaryRectangle.getCenter().getX() + boundaryRectangle.getSize().getX() > realWorldLoc.getX()) {
+//			if(realWorldLoc.getY() == boundaryRectangle.getCenter().getY()) {
+//				return true;
+//			}else if(realWorldLoc.getY() == boundaryRectangle.getCenter().getY()+ boundaryRectangle.getSize().getY()) {
+//				return true;
+//			}else {
+//				return false;
+//			}
+//		}else if(boundaryRectangle.getCenter().getX() + boundaryRectangle.getSize().getX() == realWorldLoc.getX()) {
+//			return true;
+//		}
+//		return false;
+//	}
 
 	/**
 	 * Returns a real world representation of a relative world position.
@@ -710,26 +710,26 @@ public class World {
 //		return true;
 	}
 	
-	private boolean furthestPointsPassable(Location location, Radius radius) {
-		Location upperLimit = new Location(location.getX(),location.getY()+radius.getRadius());
-		Location lowerLimit = new Location(location.getX(),location.getY()-radius.getRadius());
-		Location leftLimit = new Location(location.getX()-radius.getRadius(),location.getY());
-		Location rightLimit = new Location(location.getX()+radius.getRadius(),location.getY());
-		
-		if(!isPassable(upperLimit)) {
-			return false;
-		}
-		if(!isPassable(lowerLimit)) {
-			return false;
-		}
-		if(!isPassable(leftLimit)) {
-			return false;
-		}
-		if(!isPassable(rightLimit)) {
-			return false;
-		}
-		return true;
-	}
+//	private boolean furthestPointsPassable(Location location, Radius radius) {
+//		Location upperLimit = new Location(location.getX(),location.getY()+radius.getRadius());
+//		Location lowerLimit = new Location(location.getX(),location.getY()-radius.getRadius());
+//		Location leftLimit = new Location(location.getX()-radius.getRadius(),location.getY());
+//		Location rightLimit = new Location(location.getX()+radius.getRadius(),location.getY());
+//		
+//		if(!isPassable(upperLimit)) {
+//			return false;
+//		}
+//		if(!isPassable(lowerLimit)) {
+//			return false;
+//		}
+//		if(!isPassable(leftLimit)) {
+//			return false;
+//		}
+//		if(!isPassable(rightLimit)) {
+//			return false;
+//		}
+//		return true;
+//	}
 
 	/**
 	 * Checks whether a gameObject fully lies within passable terrain.

@@ -1022,7 +1022,10 @@ public class Worm extends GameObject implements IJumpable{
 	 */
 	public int getMovementCost(Location movement) {
 		int cost = 0;
-		cost = (int) (Math.ceil(Math.abs(Math.cos(this.getDirection().getAngle()))*movement.getX()) + Math.ceil(Math.abs(4*Math.sin(this.getDirection().getAngle())*movement.getY())));
+		int verticalCost = (int)Math.ceil(movement.getY() * 4);
+		int horizontalCost = (int)Math.ceil(movement.getX());
+		cost = verticalCost + horizontalCost;
+		//cost = (int) (Math.ceil(Math.abs(Math.cos(this.getDirection().getAngle()))*movement.getX()) + Math.ceil(Math.abs(4*Math.sin(this.getDirection().getAngle())*movement.getY())));
 		
 		return cost;
 	}

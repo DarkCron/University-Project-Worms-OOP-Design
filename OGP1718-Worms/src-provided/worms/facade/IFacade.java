@@ -348,7 +348,7 @@ public interface IFacade {
 	 * 	 - Students working alone on the project must not override this method.
 	 */
 	default public boolean canFall(Worm worm) throws MustNotImplementException {
-		throw new MustNotImplementException();
+		return false;
 	}
 
 	/**
@@ -387,7 +387,7 @@ public interface IFacade {
 	/**
 	 * Make the given worm eat a portion of food.
 	 */
-	void eat(Worm worm) throws ModelException;
+	void eat(Worm worm);
 	
 	/**
 	 * Have the give worm fire a projectile.
@@ -552,7 +552,7 @@ public interface IFacade {
 	 * - Students working alone on the project must not override this method.
 	 */
 	default Team getTeam(Worm worm) throws ModelException {
-		throw new MustNotImplementException();
+		return null;
 	}
 	
 	/**
