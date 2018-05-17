@@ -279,18 +279,19 @@ public class Projectile extends GameObject implements IJumpable {
 			if(this.getWorld().isAdjacantToImpassableTerrain(wormLoc, this.getRadius())) {
 				break;
 			}
-//			for (Object worm : this.getWorld().getAllObjectsOfType(Worm.class)) {
-//				if(worm instanceof Worm) {
-//					if(((Worm) worm).overlapsWith(new Circle(wormLoc,this.getRadius()))) {
-//						//bHitSomething = true;
-//						//break;
-//					}
-//				}
-//			}
-//			if(bHitSomething) {
-//				lastAdjacentTime+=deltaT;
-//				break;
-//			}
+			//GHOSTBULLETBUSTERS
+			for (Object worm : this.getWorld().getAllObjectsOfType(Worm.class)) {
+				if(worm instanceof Worm) {
+					if(((Worm) worm).overlapsWith(new Circle(wormLoc,this.getRadius()))) {
+						//bHitSomething = true;
+						//break;
+					}
+				}
+			}
+			if(bHitSomething) {
+				lastAdjacentTime+=deltaT;
+				break;
+			}
 			wormLoc = new Location(this.jumpStep(lastAdjacentTime));
 			lastAdjacentTime+=deltaT;
 		}

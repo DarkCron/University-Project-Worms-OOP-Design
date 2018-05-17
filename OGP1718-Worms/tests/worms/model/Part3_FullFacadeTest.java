@@ -2962,7 +2962,7 @@ public class Part3_FullFacadeTest {
 			assertEquals(0, facade.getNbWormsOfTeam(otherTeam));
 			assertTrue(facade.getAllWormsOfTeam(theTeam).contains(wormC));
 			assertEquals(theTeam, facade.getTeam(wormC));
-		assertTrue(facade.getAllWormsOfTeam(theTeam).contains(wormD));
+			assertTrue(facade.getAllWormsOfTeam(theTeam).contains(wormD));
 			assertEquals(theTeam, facade.getTeam(wormD));
 			score += 10;
 		} catch (MustNotImplementException exc) {
@@ -3910,7 +3910,7 @@ public class Part3_FullFacadeTest {
 	public void testInvokeStatement_Interrupted() throws ModelException {
 		max_score += 25;
 		Worm worm1 = facade.createWorm(theWorld, new double[] { 2.0, 7.5 }, 0.0, 1.5, "WormA", theTeam);
-		String code = "def p: { print a; a := a + 5.0; turn 0.1; print a; } a := 10.0; invoke p; print a + 1.0;";
+		String code = "def p: { print a; a := a + 5.0; jump; print a; } a := 10.0; invoke p; print a + 1.0;";
 		try {
 			Program program = ProgramParser.parseProgramFromString(code, programFactory);
 			if (program == null)
