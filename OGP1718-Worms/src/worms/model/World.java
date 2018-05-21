@@ -265,19 +265,32 @@ public class World {
 	 * @param gameObject
 	 * 
 	 * @throws IllegalArgumentException
-	 * 		| gameObject == null
+	 * 		| (gameObject == null) || 
+	 * 		|	(this.isTerminated()) ||
+	 * 		|	(this.getIsGameActive() && !(gameObject instanceof Projectile)) ||
+	 * 		|	(gameObject.isTerminated()) ||
+	 * 		|	(gameObject.getWorld() != this && gameObject.getWorld() != null) ||
+	 * 		|	(this.hasGameObject(gameObject)) ||
+	 * 		|	
 	 * 
 	 * @throws IllegalStateException
-	 * 		| this.getIsGameActive()
+	 * 		| this.getIsGameActive() ||
+	 * 		| 	(!isPassable(gameObject))
 	 * 
 	 * @post | worldObjects.get(gameObject.getTypeID()).contains(gameObject)
+	 * 		 
+	 *  @post	| gameObject.getWorld() == this
+	 *  
+	 *  @post	| if !(gameObject instanceof Projectile):
+	 *  		|	new.isAdjacantToImpassableTerrain(gameObject.getLocation(), gameObject.getRadius()) == true
+	 *  		| new.isPassable(gameObject) == true
 	 */
 	public void addGameObject(GameObject gameObject) throws IllegalArgumentException, IllegalStateException{
 		if(this.getIsGameActive() && !(gameObject instanceof Projectile)) {
 			throw new IllegalStateException("Game is active, objects can't be added.");
 		}
 		
-		if(this.isTerminated()) { //TODO
+		if(this.isTerminated()) {
 			throw new IllegalArgumentException("This world is terminated.");
 		}
 		
@@ -286,7 +299,7 @@ public class World {
 		}
 		
 		
-		if(gameObject.isTerminated()) { //TODO
+		if(gameObject.isTerminated()) {
 			throw new IllegalArgumentException("The given gameObject was terminated.");
 		}
 		
@@ -294,7 +307,7 @@ public class World {
 			throw new IllegalArgumentException("The given gameObject already existed somewhere else.");
 		}
 		
-		if(this.hasGameObject(gameObject)) { //TODO DOC
+		if(this.hasGameObject(gameObject)) { 
 			throw new IllegalArgumentException("The given gameObject was already in world.");
 		}
 		
@@ -305,14 +318,14 @@ public class World {
 			worldObjects.get(gameObject.getTypeID()).add(gameObject);
 		}
 		
-		gameObject.setWorld(this);//TODO
+		gameObject.setWorld(this);
 		
-		if(!isPassable(gameObject)) { //TODO
+		if(!isPassable(gameObject)) {
 			throw new IllegalStateException("object placed out of world on initialization.");
 		}
 		
 		if(!(gameObject instanceof Projectile)) {
-			if(!isAdjacantToImpassableTerrain(gameObject.getLocation(), gameObject.getRadius())) { //TODO
+			if(!isAdjacantToImpassableTerrain(gameObject.getLocation(), gameObject.getRadius())) {
 				throw new IllegalStateException("object not placed near impassable terrain.");
 			}
 		}
@@ -570,7 +583,7 @@ public class World {
 			}else {
 				return true;
 			}
-		
+	}
 //		
 //		Location realWorldLoc = getRealWorldLoc(location);
 //		if(realWorldLoc.getX() >= 0 && realWorldLoc.getX() < passableMap[0].length && realWorldLoc.getY() >=0 && realWorldLoc.getY() < passableMap.length) {
@@ -600,7 +613,7 @@ public class World {
 //		}
 //		
 //		return true;
-	}
+
 //	
 //	//TODO
 //	private boolean edgeBorderCheck(int heightIndex, int widthIndex,Location realWorldLoc) {
@@ -755,26 +768,30 @@ public class World {
 	private LinkedList<Worm> wormTurnCycle = new LinkedList<Worm>();
 	
 	/**
-	 * Starts the game in this world.
+	 * Removes a worm from an active game. The worm has died.
 	 * 
-	 * @post | new.getIsGameActive() == true
-	 * 
-	 * @post | for each worm in wormTurnCycle
-	 * 		 |	worm != null
+	 * @post | new.wormTurnCycle.contains(worm) == false
 	 */
 	public void removeFromTurnCycle(Worm worm) {
-		try {
+//		try {
 			wormTurnCycle.remove(worm);
-		}
-		catch (Exception e)
-		{
-			throw new IllegalArgumentException("Worm does not exist in the wormTurnCycle");
-		}
+//		} Can actually never happen 	|
+//		catch (Exception e)			   \|/
+//		{
+//			throw new IllegalArgumentException("Worm does not exist in the wormTurnCycle");
+//		}
 		
 	}
 	
-	//TODO
+	/**
+	 * Starts a game in this worm
+	 * 
+	 * @post 	| if 		this.getAllObjectsOfType(Worm.class).size() != 0
+	 * 			| 	new.wormTurnCycle.size() != 0
+	 * 			| new.isGameActive() == true
+	 */
 	public void startGame() {
+
 		this.createTurnCycle();
 		this.setGameActive(true);
 		
@@ -787,8 +804,8 @@ public class World {
 	/**
 	 * Ends the current game in worms, doesn't do anything if no game is currently running.
 	 * 
-	 * @post | new.wormTurnCycle.size() == 0
-	 * TODO
+	 * @post 	| new.wormTurnCycle.size() == 0
+	 * 			| new.isGameActive() == false
 	 */
 	public void endGame() {
 		this.setGameActive(false);
@@ -958,6 +975,7 @@ public class World {
 	 * 			|	object.isTerminated() == true
 	 * 			| new.wormTurnCycle == null
 	 * 			| new.isTerminated() == true
+	 * 			| new.worldTeams.size() == 0
 	 */
 	public void terminate() {
 		this.isTerminated = true;
@@ -1043,6 +1061,16 @@ public class World {
 		return null;
 	}
 		
+	/**
+	 * Returns true if there are teamless worm's alive in the world
+	 * 
+	 * @return
+	 * 
+	 * @return 	| for Worm worm in  this.getAllObjectsOfType(Worm.class):
+	 * 			|	if worm.isAlive() && worm.getTeam() == null
+	 * 			|		result == true
+	 * 			| result == false
+	 */
 	private boolean wormsWithoutTeam() {
 		for (GameObject worm : this.getAllObjectsOfType(Worm.class)) {
 			if (worm instanceof Worm){
@@ -1070,7 +1098,7 @@ public class World {
 	public boolean onlyOneWorm() {
 		return (this.getAllObjectsOfType(Worm.class).size() == 1);
 	}
-	
+	//No DOCU required
 	public void castSpell() throws IllegalStateException{
 		if(this.getAllGameObjects().size() < 2) {
 			throw new IllegalStateException();
@@ -1094,6 +1122,7 @@ public class World {
 			throw new IllegalStateException();
 		}
 	}
+	//No DOCU required
 	public void spell(GameObject go1, GameObject go2)
 	{
 		if(go1 instanceof Worm) {
@@ -1124,22 +1153,22 @@ public class World {
 			}
 		}
 	};
-	//food
+	//No DOCU required
 	public void spell(Food obj1, Food obj2) {
 		//If both objects are portions of food, they will both individually change
 		//state, i.e., from healthy to poisoned or vice versa.
 		obj1.setPoisoned(!obj1.isPoisoned());
 		obj2.setPoisoned(!obj2.isPoisoned());
 	}
-	
+	//No DOCU required
 	public void spell(Worm obj1, Food obj2) {
 		obj1.consumesFood(obj2);
 	}
-	
+	//No DOCU required
 	public void spell(Food obj1, Worm obj2) {
 		spell(obj2, obj1);
 	}
-	
+	//No DOCU required
 	public void spell(Worm obj1, Worm obj2) {
 		if(obj1.getTeam() == obj2.getTeam()) {
 			BigInteger two = BigInteger.valueOf(2);
@@ -1166,7 +1195,7 @@ public class World {
 			}
 		}
 	}
-	
+	//No DOCU required
 	public void spell(Projectile obj1, Worm obj2) {
 		BigInteger tmp = BigInteger.valueOf(obj1.getHitPoints());
 		HP diminshment = new HP((obj2.getHitPoints().subtract(tmp)));
@@ -1175,25 +1204,37 @@ public class World {
 		//newhp projectile
 		//obj1.setHitPoints(HELPMEOUTBERND);
 	}
-	
+	//No DOCU required
 	public void spell(Worm obj1, Projectile obj2) {
 		spell(obj2, obj1);
 	}
+	//No DOCU required
 	public void spell(Projectile obj1, Projectile obj2) {
 		obj1.setHitPoints(obj1.getHitPoints()+2);
 		obj2.setHitPoints(obj2.getHitPoints()+2);
 	}
-	
+	//No DOCU required
 	public void spell(Projectile obj1, Food obj2) {
 		obj1.terminate();
 		obj2.terminate();
 	}
 	
+	//No DOCU required
 	public void spell(Food obj1, Projectile obj2) {
 		spell(obj2, obj1);
 	}
 	
-	
+
+	/**
+	 * Removes this team from the world. 
+	 * 
+	 * @param team
+	 * 
+	 * @post |new.worldTeams.contains(team) == false
+	 */
+	public void removeTeam(Team team) {
+		this.worldTeams.remove(team);
+	}
 
 	/**
 	 * A constant, representing a fictitious in game simulation of real life gravity. To
@@ -1246,11 +1287,6 @@ public class World {
 	
 	public static final double roundingHelper(double d,int precision) {
 		return Math.round(d*Math.pow(10, precision))/Math.pow(10, precision);
-	}
-
-	
-	public void removeTeam(Team team) {
-		this.worldTeams.remove(team);
 	}
 }
 

@@ -118,11 +118,13 @@ public class Worm extends GameObject implements IJumpable{
 	 * 
 	 * @throws NotEnoughAPException
 	 * 			|this.currentActionPoints < minimalAPFoodConsumption
-	 * @post This worm eats the first piece of food in it's world that it overlaps with.
-	 * 		| for each food in this.getWorld().getAllObjectsOfType(Food.class)
-	 * 		| 	if this.overlapsWith(food) then
-	 * 		|		new.getRadius().getRadius() == this.getRadius().getRadius()*GROWTH_MODIFIER
-	 * 		|		food.isTerminated()
+	 * @post This worm eats the first piece of food in it's world that it overlaps with. Unless this worm
+	 * 		doesn't have enough AP or isn't in a world.
+	 * 		| if this.getWorld() != null && (this.currentActionPoints >= minimalAPFoodConsumption)
+	 * 		| 	for each food in this.getWorld().getAllObjectsOfType(Food.class)
+	 * 		| 		if this.overlapsWith(food) then
+	 * 		|			new.getRadius().getRadius() == this.getRadius().getRadius()*GROWTH_MODIFIER
+	 * 		|			food.isTerminated()
 	 */
 	public void checkForFood() throws NotEnoughAPException{
 		if(!(this.currentActionPoints >= minimalAPFoodConsumption)) {
@@ -895,15 +897,12 @@ public class Worm extends GameObject implements IJumpable{
 	 * @return Returns a worm location that represents the furthest valid location possible in a given direction.
 	 * 		A location is possible if it's passable for this worm's radius and within the world.
 	 * 		| let Location finish be this.getLocation() in
-	 * 		|	for each step in [0,this.getRadius().getRadius()[ :
+	 * 		|	for each step in [this.getRadius().getRadius() * 0.1d, distance[ :
 	 * 		|		let Location temp be getStepDirection(direction,step) in
 	 * 		|			if this.getWorld().isPassable(temp,this.getRadius()) && GameObject.isValidWorldLocation(temp, this.getWorld())) 
 	 * 		|				then finish = temp
-	 * 		|			else result == temp
-	 * 		|	if this.getWorld().isPassable(getStepDirection(direction,this.getRadius().getRadius()),this.getRadius()) 
-	 * 		|		then result == getStepDirection(direction,this.getRadius().getRadius())
-	 * 		|	else
-	 * 		|		result == finish
+	 * 		|			else
+	 * 		|				result == temp
 	 */
 	public Location getFurthestLocationInDirection(Direction direction, double distance) {
 		Location finish = this.getLocation();
@@ -924,14 +923,33 @@ public class Worm extends GameObject implements IJumpable{
 		//the for loop, this if checks whether 3.4f explicitly is possible.
 		Location furthestLocation = getStepDirection(direction,distance); 
 		if(this.getWorld() == null ||this.getWorld().isPassable(furthestLocation,this.getRadius())) {
-			//if(isAdjacentToTerrain(furthestLocation, getRadius(), getWorld())) {
-				return furthestLocation;
-			//}
+			return furthestLocation;
 		}
 		
 		return finish;
 	}
 	
+	/**
+	 * Returns the furthest location possible for a worm in a given direction.
+	 * 
+	 * @param direction
+	 * 		A given direction.
+	 * @return Returns a worm location that represents the furthest valid location possible in a given direction.
+	 * 		A location is possible if it's passable for this worm's radius and within the world.
+	 * 		| let Location finish be this.getLocation() in
+	 * 		|	for each step in [this.getRadius().getRadius() * 0.1d, distance[ :
+	 * 		|		let Location temp be getStepDirection(direction,step) in
+	 * 		|			if this.getWorld().isPassable(temp,this.getRadius()) && GameObject.isValidWorldLocation(temp, this.getWorld())) 
+	 * 		|				then finish = temp
+	 * 		|			else
+	 * 		|				result == temp
+	 * 
+	 * @throws IllegalArgumentException
+	 * 		Throws IllegalArgumentException if this worm's current facing direction isn't between or equal
+	 * 		to 0 - 180 degrees or if the given distance isn't valid, meaning smaller than zero or infinite.
+	 * 		|(direction.getAngle() >= 0 && direction.getAngle() <= Math.PI)
+	 * 		|	|| (distance<=0 || Double.isInfinite(distance))
+	 */
 	public Location getFurthestLocationInDirectionNoMove(Direction direction, double distance) {
 		if(!(direction.getAngle() >= 0 && direction.getAngle() <= Math.PI)) {
 			throw new IllegalArgumentException();
@@ -974,15 +992,12 @@ public class Worm extends GameObject implements IJumpable{
 	 * @return Returns a worm location that represents the furthest valid location possible in a given direction.
 	 * 		A location is possible if it's passable for this worm's radius and within the world.
 	 * 		| let Location finish be this.getLocation() in
-	 * 		|	for each step in [0,this.getRadius().getRadius()[ :
+	 * 		|	for each step in [this.getRadius().getRadius()*.2,distance] :
 	 * 		|		let Location temp be getStepDirection(direction,step) in
 	 * 		|			if this.getWorld().isPassable(temp,this.getRadius()) && GameObject.isValidWorldLocation(temp, this.getWorld())) 
 	 * 		|				then finish = temp
-	 * 		|			else result == temp
-	 * 		|	if this.getWorld().isPassable(getStepDirection(direction,this.getRadius().getRadius()),this.getRadius()) 
-	 * 		|		then result == getStepDirection(direction,this.getRadius().getRadius())
-	 * 		|	else
-	 * 		|		result == finish
+	 * 		|			else
+	 * 		|				result == temp
 	 */
 	public Location getFurthestAdjacentLocationInDirection(Direction direction, double distance) {
 		Location finish = this.getLocation();
@@ -1021,9 +1036,10 @@ public class Worm extends GameObject implements IJumpable{
 	 * @parameter movement
 	 * 		Actual movement in meters being done
 	 * 
-	 * @return returns the movement cost for a single step for a worm. As an integer.
+	 * @return returns the movement cost for a single step for a worm. As an integer. Being an AP cost
+	 * 		of 4 per vertical meter and 1 per horizontal meter.
 	 * 		| result ==
-	 * 		|	(int) Math.ceil(Math.abs(Math.cos(this.getDirection()))*movement.getX() + Math.abs(4*Math.sin(this.getDirection())*movement.getY()))
+	 * 		|	(int)Math.ceil(movement.getY() * 4) + (int)Math.ceil(movement.getX())
 	 */
 	public int getMovementCost(Location movement) {
 		int cost = 0;
@@ -1499,6 +1515,21 @@ public class Worm extends GameObject implements IJumpable{
 	 */
 	private Team team;
 	
+	/**
+	 * Terminates this worm, severing it's connection to it's original team and world.
+	 * 
+	 * @super following GameObject's terminate
+	 * 		| super.terminate()
+	 * 
+	 * @post Severs it's connection to it's original team and world, setting both to null
+	 * 		| new.getTeam() == null
+	 * 		| if this.getTeam() != null:
+	 * 		|	this.getTeam().getAlphabeticalListTeamRoster().contains(this) == false
+	 * 		| new.getWorld() == null
+	 * 		| if this.getWorld() != null:
+	 * 		|	this.getWorld().containsGameObject(this) == false
+	 * 		| this.getProgram() == null
+	 */
 	@Override
 	public void terminate() {
 		if(this.getTeam() != null) {
@@ -1509,12 +1540,31 @@ public class Worm extends GameObject implements IJumpable{
 		if(this.getWorld() != null) {
 			this.getWorld().removeFromTurnCycle(this);	
 		}
+		this.setProgram(null);
 		
 		super.terminate();
 	}
 
+	/**
+	 * This worm's program
+	 */
 	private Program loadedScript = null;
 	
+	/**
+	 * Assigns a program and Action Handler to mimic player player movements to a program, to this worm.
+	 * 
+	 * @param program
+	 * 		| The program to assign to the worm
+	 * @param handler
+	 * 		| Mimics player's input, controlling parts of facade
+	 * @throws IllegalStateException
+	 * 		Throws exception if attempted to attach a program to a worm during an active game.
+	 * 		| this.getWorld()!= null && this.getWorld().getIsGameActive()
+	 * @post 
+	 *		| new.getProgram() == program
+	 *		| new.program.getActionHandler() == handler
+	 *		| new.getProgram().getProgramHolder() == this
+	 */
 	public void assignProgram(Program program, IActionHandler handler) throws IllegalStateException{
 		if(this.getWorld()!= null) {
 			if(this.getWorld().getIsGameActive()) {
@@ -1525,17 +1575,34 @@ public class Worm extends GameObject implements IJumpable{
 		if(program != null && program.getProgramHolder() != this) {
 			program.setProgramHolder(this);
 			program.setActionHandler(handler);
+			
 		}
 	}
 	
+	/**
+	 * Sets this worm's script
+	 * @param program
+	 * 		The given program to assign, may be null
+	 * @post This worm's program shall be equal to the given program
+	 * 		| new.getProgram() == program
+	 * 		| if program != null
+	 * 		| 	new.getProgram().getProgramHolder() == this
+	 */
+	@Basic
 	public void setProgram(Program program) {
 		this.loadedScript = program;
 	}
 	
+	/**
+	 * Returns this worm's script
+	 * @return
+	 */
+	@Basic
 	public Program getProgram() {
 		return this.loadedScript;
 	}
 
+	//No DOCU Required
 	public Projectile fire() throws IllegalStateException{
 		if(this.getWorld() == null) {
 			throw new IllegalStateException();
@@ -1575,6 +1642,7 @@ public class Worm extends GameObject implements IJumpable{
 
 	}
 
+	//No DOCU Required
 	public void hitByProjectile(Projectile projectile) {
 		System.out.println("Worm HP Before: "+this.getHitPoints());
 		this.setHitPoints(new HP(this.getHitPoints().subtract(BigInteger.valueOf(projectile.getHitPoints()))));
