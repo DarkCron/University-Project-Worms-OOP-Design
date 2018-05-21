@@ -82,7 +82,7 @@ public class Worm extends GameObject implements IJumpable{
 			throws InvalidWormNameException, InvalidRadiusException, InvalidLocationException, IllegalArgumentException {
 		super(location, radius, world);
 		
-		if(world != null && !world.fullyContains(new Circle(location, radius).getBoundingRectangle())) { //TODO DOC
+		if(world != null && !world.fullyContains(new Circle(location, radius).getBoundingRectangle())) {
 			throw new IllegalArgumentException("Worm placed out of world");
 		}
 		
@@ -99,11 +99,11 @@ public class Worm extends GameObject implements IJumpable{
 		if(!isValidTeam(team, this)) {
 			throw new IllegalArgumentException("Invalid team");
 		}
-		if(team!=null) {//TODO doc
+		if(team!=null) {
 			team.addWorm(this);
 		}
 		
-		if(this.getWorld() != null) { //TODO
+		if(this.getWorld() != null) {
 			if(!this.getWorld().isPassable(this)) {
 				throw new IllegalStateException("Worm placed out of world on initialization.");
 			}
@@ -116,6 +116,8 @@ public class Worm extends GameObject implements IJumpable{
 	/**
 	 * Checks whether any piece of food overlaps with this worm
 	 * 
+	 * @throws NotEnoughAPException
+	 * 			|this.currentActionPoints < minimalAPFoodConsumption
 	 * @post This worm eats the first piece of food in it's world that it overlaps with.
 	 * 		| for each food in this.getWorld().getAllObjectsOfType(Food.class)
 	 * 		| 	if this.overlapsWith(food) then
@@ -123,7 +125,7 @@ public class Worm extends GameObject implements IJumpable{
 	 * 		|		food.isTerminated()
 	 */
 	public void checkForFood() throws NotEnoughAPException{
-		if(!(this.currentActionPoints >= 8)) {//TODO constants
+		if(!(this.currentActionPoints >= minimalAPFoodConsumption)) {
 			return;
 			//throw new NotEnoughAPException("Not enough AP to eat.");
 		}
@@ -149,6 +151,8 @@ public class Worm extends GameObject implements IJumpable{
 		}
 	}
 	
+	private int minimalAPFoodConsumption = 8;
+	
 	/**
 	 * Consumes a piece of food that the worm sits on.
 	 * 
@@ -161,7 +165,7 @@ public class Worm extends GameObject implements IJumpable{
 	 * 
 	 * @post | new.getRadius().getRadius() == this.getRadius().getRadius() * GROWTH_MODIFIER
 	 */
-	public void consumesFood(Food o) {//TODO REWORK
+	public void consumesFood(Food o) {
 		
 		
 		//Location beforeGrowth = this.getLocation();
@@ -295,11 +299,12 @@ public class Worm extends GameObject implements IJumpable{
 	 * 		|		new.direction == direction
 	 * 		|	else
 	 * 		|		new.direction == this.getDirection()
+	 * @throws IllegalArgumentException
+	 * 			|! isValidDirection(direction)
 	 */
 	@Raw
 	public void setDirection(Direction direction) {
-		//assert isValidDirection(direction);
-		if(!isValidDirection(direction)) { //TODO DOC
+		if(!isValidDirection(direction)) {
 			throw new IllegalArgumentException("Illegal direction");
 		}
 		if(isValidDirection(direction)) {
@@ -839,7 +844,7 @@ public class Worm extends GameObject implements IJumpable{
 	 * Checks whether this worm can move exactly in the direction it's facing and if this location is adjacent
 	 * to terrain.
 	 * 
-	 * @return Returns true if and only if the furthest location this worm is facing is adjacent to terrain and 
+	 * @return Returns true if and only if the farthest location this worm is facing is adjacent to terrain and 
 	 * 			the calculated distance to this location greater than 0.1m .
 	 * 			| result ==	
 	 * 			|	let distance == Math.sqrt(
@@ -1345,6 +1350,8 @@ public class Worm extends GameObject implements IJumpable{
 	 * 
 	 * @throws RuntimeException
 	 * 		| !isValidJumpTime(this.calculateJumpTime())
+	 * @throws IllegalArgurmentException
+	 * 		| jumpTime == 0
 	 */
 	public double getJumpTime(double deltaT) throws RuntimeException{
 		if(!(this.getDirection().getAngle() >= 0 && this.getDirection().getAngle() <= Math.PI)) {
@@ -1361,7 +1368,7 @@ public class Worm extends GameObject implements IJumpable{
 		}
 		
 		double jumptime = this.getLastPassableJumpStepTime(Double.POSITIVE_INFINITY,deltaT);
-		if(jumptime == 0) { //TODO DOC
+		if(jumptime == 0) {
 			throw new IllegalArgumentException("Deltatime and jumpTime too short.");
 		}
 		

@@ -47,7 +47,7 @@ public class Team {
 	
 	/**
 	 * Returns whether this team has a world assigned.
-	 * 
+	 * @return | result == this.hasWorlAssigned
 	 */
 	@Basic @Immutable
 	public boolean hasWorldAssigned() {
@@ -73,7 +73,7 @@ public class Team {
 	 * @return | result == !world.isTerminated()
 	 */
 	public static boolean isValidWorld(World world) {
-		if(world != null && world.isTerminated()) { //TODO doc
+		if(world != null && world.isTerminated()) {
 			return false;
 		}
 		return true;
@@ -109,6 +109,9 @@ public class Team {
 	 * Adds the given worm to this team
 	 * @param worm
 	 * @throws IllegalArgumentException
+	 * 		worm.isTerminated || ! worm.hasCorrectTeamMass || for otherWorm : this.getAllWorms
+	 * 														  |	worm.hasSameNameAs(otherWorm)
+	 * @post | worm.getTeam == this
 	 */
 	public void addWorm(Worm ... worms) throws IllegalArgumentException {
 		for (Worm worm : worms) {
@@ -133,7 +136,7 @@ public class Team {
 				}
 			}
 			
-			if(worm.getTeam() != null) {//TODO DOC
+			if(worm.getTeam() != null) {
 				throw new IllegalArgumentException("This worm already has a team.");
 			}
 
@@ -146,16 +149,29 @@ public class Team {
 		
 		for (Worm worm : worms) {
 			if(teamRoster.isEmpty()) {
-				worm.setTeam(this);//TODO DOC
+				worm.setTeam(this);
 				teamRoster.add(worm);
 			}else {
 				int index = sortInTeamRoster(worm);
-				worm.setTeam(this);//TODO DOC
+				worm.setTeam(this);
 				teamRoster.add(index, worm);
 			}
 		}
 	}
-	
+	/**
+	 * Returns the index position for a given worm that will be added to this team.
+	 * 
+	 * @param worm
+	 * @return |while(low <= high) then
+	 * 		   | mid = (low+high)/2
+	 * 		   | if mid.getName().compareTo(worm.getName) == 0 then
+	 * 		   | 	return mid
+	 * 		   | else if mid.getName().compareTo(worm.getName) < 0 then
+	 * 		   | 	low = mid+1
+	 * 		   | else if mid.getName().compareTo(worm.getName) > 0 then
+	 * 		   | 	high  = mid - 1
+	 * 		   |return low
+	 */
 	public int sortInTeamRoster(Worm worm) {
 		int low = 0;
 		int high = teamRoster.size() -1;
@@ -180,7 +196,9 @@ public class Team {
 	 * Remove a given worm from this team
 	 * 
 	 * @param worm
-	 * 
+	 * @throws IllegalArgumentException
+	 * 		   worm == null || worm.getTeam != this || for (worm : worms)
+	 * 											       |worm.getTeam != this
 	 * @post | !teamRoster.contains(worm)
 	 */
 	public void removeWorm(Worm ... worms) {
@@ -262,6 +280,15 @@ public class Team {
 	/**
 	 * Places all worms from one team to this team.
 	 * @param team The team of which all its worms have to merge with this team.
+	 * @throws IllegalArgumentException
+	 * 			team == null || worm.isTerminated || !worm.hasCorrectTeamMass || worm.hasSameNameAs(teamRoster.getAllWorms)
+	 * @post 
+	 * 		|for (worm : team)
+	 * 		|	this.addWorm(worm)
+	 * 		|	team.removeWorm(worm)
+	 * 		|this.mergeTeams(team)
+	 * 		|team.getAllWorms == null
+	 * 
 	 */
 	public void mergeTeams(Team team) throws IllegalArgumentException {
 		ArrayList<Worm> teamRosterCopy = new ArrayList<Worm>();		
@@ -324,7 +351,6 @@ public class Team {
 	 * Terminate this team
 	 * 
 	 * @post | new.isTerminated() == true
-	 * TODO
 	 */
 	public void terminate() {
 		this.isTerminated = true;
@@ -339,6 +365,7 @@ public class Team {
 	
 	/**
 	 * Checks whether this team is terminated.
+	 * @return | result == this.isTerminated
 	 */
 	@Basic
 	public boolean isTerminated() {
