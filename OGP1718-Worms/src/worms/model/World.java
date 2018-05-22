@@ -211,6 +211,18 @@ public class World {
 	}
 	
 	/**
+	 * Checks whether this world fully contains a given rectangle.
+	 * 
+	 * @param gameObjectBounds
+	 * @return  | let worldBounds = Rectangle(new Location(0, 0), new Location(this.getWorldWidth(), this.getWorldHeight())) in
+	 * 			| result == worldBounds.fullyContains(gameObjectBounds)
+	 */
+	public boolean fullyContains(Circle gameObjectBounds) {
+		Rectangle worldBounds = new Rectangle(new Location(0, 0), new Location(this.getWorldWidth(), this.getWorldHeight()));
+		return worldBounds.intersects(gameObjectBounds);
+	}
+	
+	/**
 	 * Checks whether this world fully contains a given gameObject.
 	 * 
 	 * @param gameObject
