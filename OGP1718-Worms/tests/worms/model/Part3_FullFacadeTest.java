@@ -1538,14 +1538,18 @@ public class Part3_FullFacadeTest {
 		max_score += 15;
 		Worm theWorm = facade.createWorm(theWorld, new double[] { 8.375, 3.0 }, PI, 0.6, "Worm", null);
 		long oldNbActionPoints = facade.getNbActionPoints(theWorm);
-		facade.move(theWorm);
-		double[] newLocation = facade.getLocation(theWorm);
-		assertEquals(8.375 - 0.6, newLocation[0], EPS);
-		assertEquals(3.0, newLocation[1], EPS);
-		// We allow a deviation of +/-1 in calculating the action points.
-		assertTrue((facade.getNbActionPoints(theWorm) >= oldNbActionPoints - 1)
-				&& (facade.getNbActionPoints(theWorm) <= oldNbActionPoints));
-		score += 15;
+		try {
+			facade.move(theWorm);
+			double[] newLocation = facade.getLocation(theWorm);
+			assertEquals(8.375 - 0.6, newLocation[0], EPS);
+			assertEquals(3.0, newLocation[1], EPS);
+			// We allow a deviation of +/-1 in calculating the action points.
+			assertTrue((facade.getNbActionPoints(theWorm) >= oldNbActionPoints - 1)
+					&& (facade.getNbActionPoints(theWorm) <= oldNbActionPoints));
+			score += 15;
+		} catch (ModelException exc) {
+			max_score -= 15;
+		}
 	}
 
 	@Test
@@ -1671,13 +1675,13 @@ public class Part3_FullFacadeTest {
 	@Test
 	public void move_DestinationOutsideWorld() {
 		max_score += 10;
-		Worm theWorm = facade.createWorm(theWorld, new double[] { 8.0, 1.2 }, 3 * PI / 2.0, 1.0, "Worm", null);
+		Worm theWorm = facade.createWorm(theWorld, new double[] { 8.0, 1.05 }, 11 * PI / 8.0, 1.0, "Worm", null);
 		long oldNbActionPoints = facade.getNbActionPoints(theWorm);
 		facade.move(theWorm);
 		double[] newLocation = facade.getLocation(theWorm);
-		assertEquals(8.0 - 0.0, newLocation[0], EPS);
-		assertEquals(1.2 - 1.0, newLocation[1], EPS);
-		assertEquals(oldNbActionPoints - (1 + 1 * 3), facade.getNbActionPoints(theWorm));
+		assertEquals(7.905, newLocation[0], 0.1);
+		assertEquals(0.055, newLocation[1], 0.1);
+		assertEquals(oldNbActionPoints - (1 + 1 * 4), facade.getNbActionPoints(theWorm));
 		assertNull(facade.getWorld(theWorm));
 		assertFalse(facade.hasAsWorm(theWorld, theWorm));
 		score += 10;
@@ -1737,8 +1741,8 @@ public class Part3_FullFacadeTest {
 				{ true, true, true, true, false, true, true, true, true, false }, };
 		World otherWorld = facade.createWorld(10.0, 10.0, map10x10);
 		Worm theWorm = facade.createWorm(otherWorld, new double[] { 4.5, 7.375 }, 3 * PI / 2.0, 0.6, "Worm", null);
-		facade.move(theWorm);
 		try {
+			facade.move(theWorm);
 			BigInteger oldNbHitPoints = facade.getNbHitPoints(theWorm);
 			facade.fall(theWorm);
 			double[] newLocation = facade.getLocation(theWorm);
@@ -1748,7 +1752,7 @@ public class Part3_FullFacadeTest {
 					facade.getRadius(theWorm) * 0.12 / 2.0);
 			assertEquals(oldNbHitPoints.subtract(BigInteger.valueOf(15)), facade.getNbHitPoints(theWorm));
 			score += 15;
-		} catch (MustNotImplementException exc) {
+		} catch (MustNotImplementException | ModelException exc) {
 			max_score -= 15;
 		}
 	}
@@ -1770,8 +1774,8 @@ public class Part3_FullFacadeTest {
 		Worm theWorm = facade.createWorm(otherWorld, new double[] { 4.5, 8.375 }, 3 * PI / 2, 0.6, "Worm", null);
 		Worm worm1 = facade.createWorm(otherWorld, new double[] { 4.8, 1.31 }, PI, 0.3, "WormA", null);
 		Worm worm2 = facade.createWorm(otherWorld, new double[] { 4.2, 1.31 }, PI, 0.3, "WormB", null);
-		facade.move(theWorm);
 		try {
+			facade.move(theWorm);
 			long oldNbHitPoints_TheWorm = facade.getNbHitPoints(theWorm).longValue();
 			long oldNbHitPoints_worm1 = facade.getNbHitPoints(worm1).longValue();
 			long oldNbHitPoints_worm2 = facade.getNbHitPoints(worm2).longValue();
@@ -1781,7 +1785,7 @@ public class Part3_FullFacadeTest {
 			assertEquals(facade.getNbHitPoints(worm1).longValue(), oldNbHitPoints_worm1 / 2);
 			assertEquals(facade.getNbHitPoints(worm2).longValue(), oldNbHitPoints_worm2 / 2);
 			score += 12;
-		} catch (MustNotImplementException exc) {
+		} catch (MustNotImplementException | ModelException exc) {
 			max_score -= 12;
 		}
 	}
@@ -1791,24 +1795,24 @@ public class Part3_FullFacadeTest {
 		max_score += 6;
 		// Worm hanging on the ceiling.
 		Worm theWorm = facade.createWorm(theWorld, new double[] { 3.0, 8.375 }, 3 * PI / 2.0, 0.6, "Worm", null);
-		facade.move(theWorm);
 		try {
+			facade.move(theWorm);
 			facade.fall(theWorm);
 			assertFalse(facade.hasAsWorm(theWorld, theWorm));
 			assertNull(facade.getWorld(theWorm));
 			score += 3;
-		} catch (MustNotImplementException exc) {
+		} catch (MustNotImplementException | ModelException exc) {
 			max_score -= 3;
 		}
 		// Worm hanging on side wall.
 		Worm otherWorm = facade.createWorm(theWorld, new double[] { 8.375, 3.0 }, PI, 0.6, "WormB", null);
-		facade.move(otherWorm);
 		try {
+			facade.move(otherWorm);
 			facade.fall(otherWorm);
 			assertFalse(facade.hasAsWorm(theWorld, otherWorm));
 			assertNull(facade.getWorld(otherWorm));
 			score += 3;
-		} catch (MustNotImplementException exc) {
+		} catch (MustNotImplementException | ModelException exc) {
 			max_score -= 3;
 		}
 	}
@@ -3285,6 +3289,8 @@ public class Part3_FullFacadeTest {
 		String code = "def p: print 4.0; p := 7.0;";
 		try {
 			Program program = ProgramParser.parseProgramFromString(code, programFactory);
+			if (program == null)
+				throw new MustNotImplementException();
 			facade.loadProgramOnWorm(worm1, program, actionHandler);
 			facade.executeProgram(worm1);
 			fail();
@@ -3363,7 +3369,7 @@ public class Part3_FullFacadeTest {
 		List<Object> results = facade.executeProgram(worm1);
 		Object[] expecteds = {};
 		assertArrayEquals(expecteds, results.toArray());
-		assertNotEquals(7.5, facade.getLocation(worm1)[0], EPS);
+		assertNotEquals(6.0, facade.getLocation(worm1)[1], EPS);
 		score += 4;
 	}
 
@@ -3376,7 +3382,8 @@ public class Part3_FullFacadeTest {
 		facade.loadProgramOnWorm(worm1, program, actionHandler);
 		List<Object> results = facade.executeProgram(worm1);
 		Object[] expecteds = {};
-		assertArrayEquals(expecteds, results.toArray());
+		if (results != null)
+			assertArrayEquals(expecteds, results.toArray());
 		assertEquals(7.5, facade.getLocation(worm1)[0], EPS);
 		assertEquals(7.5, facade.getLocation(worm1)[1], EPS);
 		score += 4;
@@ -4257,6 +4264,8 @@ public class Part3_FullFacadeTest {
 		String code = "print sameteam searchobj 0.0;";
 		try {
 			Program program = ProgramParser.parseProgramFromString(code, programFactory);
+			if (program == null)
+				throw new MustNotImplementException();
 			facade.loadProgramOnWorm(worm1, program, actionHandler);
 			facade.executeProgram(worm1);
 			fail();
