@@ -969,7 +969,6 @@ public class World {
 	
 	/**
 	 * Terminate this world
-	 * TODO
 	 * 
 	 * @post 	| for each object in new.getAllGameObjects()
 	 * 			|	object.isTerminated() == true
@@ -995,7 +994,7 @@ public class World {
 
 	/**
 	 * Checks whether this world is terminated
-	 * @return
+	 * @return | this.isTerminated
 	 */
 	@Basic
 	public boolean isTerminated() {
