@@ -302,6 +302,10 @@ public class World {
 			throw new IllegalStateException("Game is active, objects can't be added.");
 		}
 		
+		if(!this.fullyContains(gameObject)) {
+			throw new IllegalStateException();
+		}
+		
 		if(this.isTerminated()) {
 			throw new IllegalArgumentException("This world is terminated.");
 		}
@@ -537,12 +541,12 @@ public class World {
 	 */
 	public boolean isAdjacantToImpassableTerrain(Location location, Radius radius) {	
 	
-		if(!Worm.isValidWorldLocation(location, this)) {
-			return false;
-		}
-		if(!this.fullyContains(new Circle(location,radius).getBoundingRectangle())) {
-			return false;
-		}
+//		if(!Worm.isValidWorldLocation(location, this)) {
+//			return false;
+//		}
+//		if(!this.fullyContains(new Circle(location,radius).getBoundingRectangle())) {
+//			return false;
+//		}
 
 		return !this.isPassable(location,  new Radius(radius.getRadius() *1.1d)) && this.isPassable(location, radius);	
 	}

@@ -1675,8 +1675,7 @@ public class Part3_FullFacadeTest {
 	@Test
 	public void move_DestinationOutsideWorld() {
 		max_score += 10;
-		//	Worm theWorm = facade.createWorm(theWorld, new double[] { 8.0, 1.05 }, 11 * PI / 8.0, 1.0, "Worm", null);
-		Worm theWorm = facade.createWorm(theWorld, new double[] { 8.0, 1.05 }, 13 * PI / 9.0, 1.0, "Worm", null);
+		Worm theWorm = facade.createWorm(theWorld, new double[] { 8.0, 1.05 }, 11 * PI / 8.0, 1.0, "Worm", null);
 		long oldNbActionPoints = facade.getNbActionPoints(theWorm);
 		facade.move(theWorm);
 		double[] newLocation = facade.getLocation(theWorm);
