@@ -110,7 +110,7 @@ public class Team {
 	 * @param worm
 	 * @throws IllegalArgumentException
 	 * 		worm.isTerminated || ! worm.hasCorrectTeamMass || for otherWorm : this.getAllWorms
-	 * 														  |	worm.hasSameNameAs(otherWorm)
+	 * 														|	worm.hasSameNameAs(otherWorm)
 	 * @post | worm.getTeam == this
 	 */
 	public void addWorm(Worm ... worms) throws IllegalArgumentException {
@@ -169,7 +169,7 @@ public class Team {
 	 * 		   | else if mid.getName().compareTo(worm.getName) < 0 then
 	 * 		   | 	low = mid+1
 	 * 		   | else if mid.getName().compareTo(worm.getName) > 0 then
-	 * 		   | 	high  = mid - 1
+	 * 		   | 	high = mid - 1
 	 * 		   |return low
 	 */
 	public int sortInTeamRoster(Worm worm) {
@@ -199,7 +199,8 @@ public class Team {
 	 * @throws IllegalArgumentException
 	 * 		   worm == null || worm.getTeam != this || for (worm : worms)
 	 * 											       |worm.getTeam != this
-	 * @post | !teamRoster.contains(worm)
+	 * @post the given worm will be removed from this team.
+	 * 		|!teamRoster.contains(worm)
 	 */
 	public void removeWorm(Worm ... worms) {
 		for (Worm worm : worms) {

@@ -677,7 +677,7 @@ public class World {
 	}
 	
 	/**
-	 * Checks whether a surface with a given center location and given radius is fully passable for all points of the surface.
+	 * Checks whether a surface with a given centre location and given radius is fully passable for all points of the surface.
 	 * 
 	 * @param location
 	 * @param radius
@@ -1017,7 +1017,25 @@ public class World {
 		return this.isTerminated;
 	}
 	
-	//TODO
+	/**
+	 * Returns the winner of the current world.
+	 * @return the winner of this world.
+	 * 		|if this.getTeams.size >= 1 && wormsWithoutTeam
+	 * 		|	if teamsActive > 1 
+	 * 		|		return null;
+	 * 		|if this.getTeams.size >= 1	
+	 * 		|	if teamsActive == 1
+	 * 		|		for team p : this.getTeams
+	 * 		|			if p.getAlphabeticalListTeamRoster.size > 0
+	 * 		|				return p.getName;
+	 * 		|	else
+	 * 		|		return null
+	 * 		|if onlyWormsWithoutTeamInWorld
+	 * 		|	if onlyOneWorm
+	 * 		|		return this.getFirstPlayerWorm.getName
+	 * 		|	else
+	 * 		|		return null
+	 */
 	public String getWinner() {
 		if(!this.getIsGameActive()) {
 			return null;
@@ -1109,10 +1127,14 @@ public class World {
 		return true;
 	}
 	
-	//TODO
+	/**
+	 * Boolean to check whether this world is only containing one worm.
+	 * @return | this.getAllObjectsOfType(Worm.class).size == 1
+	 */
 	public boolean onlyOneWorm() {
 		return (this.getAllObjectsOfType(Worm.class).size() == 1);
 	}
+	
 	//No DOCU required
 	public void castSpell() throws IllegalStateException{
 		if(this.getAllGameObjects().size() < 2) {
@@ -1188,7 +1210,7 @@ public class World {
 		if(obj1.getTeam() == obj2.getTeam()) {
 			BigInteger two = BigInteger.valueOf(2);
 			BigInteger stuff = (obj1.getHitPoints().add(obj2.getHitPoints()).divide(BigInteger.valueOf(2)));
-			HP hitPointTmp = new HP((obj1.getHitPoints().add(obj2.getHitPoints()).divide(two)));
+			//HP hitPointTmp = new HP((obj1.getHitPoints().add(obj2.getHitPoints()).divide(two)));
 			obj1.setHitPoints(new HP(stuff));
 			obj2.setHitPoints(new HP(stuff));
 		}

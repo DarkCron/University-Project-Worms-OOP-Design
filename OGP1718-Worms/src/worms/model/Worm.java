@@ -269,13 +269,15 @@ public class Worm extends GameObject implements IJumpable{
 	 * Checks whether this worm falls on any other worm different than this one.
 	 * 
 	 * @return True if and only if there is another worm in this worm's world that overlaps or contains this worm.
+	 * 		| if this.isTerminated then
+	 * 		| 	result == false
 	 * 		| for each worm in this.getWorld().getAllObjectsOfType(Worm.class)
 	 * 		|	if this.overlapsWith(worm) then
 	 * 		|		result == true
 	 * 		| result == true
 	 */
 	private boolean overlapsAnyOtherWorm() {
-		if(this.isTerminated()) {//TODO
+		if(this.isTerminated()) {
 			return false;
 		}
 		for(GameObject worm: this.getWorld().getAllObjectsOfType(Worm.class)) {

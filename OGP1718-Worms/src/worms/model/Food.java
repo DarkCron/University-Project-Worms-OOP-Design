@@ -39,7 +39,13 @@ public class Food extends GameObject{
 		}
 	}
 
-	@Override //TODO DOCUMENTATION
+	/**
+	 * Common formula to calculate the mass of a food object.
+	 * 
+	 * @post The mass is set to the corresponding values dependent on its density.
+	 * 		|this.getMass == calculateMass(World.getFoodDensity)
+	 */
+	@Override
 	public void generateMass() {
 		this.setMass(calculateMass(World.getFoodDensity()));
 	}
