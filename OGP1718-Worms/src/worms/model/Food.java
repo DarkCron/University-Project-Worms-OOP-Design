@@ -12,7 +12,7 @@ public class Food extends GameObject{
 	 * @param location
 	 * @param radius
 	 * 
-	 * @post The location of the worm is the same as the given location.TODO @effect lookup cursus
+	 * @post The location of the worm is the same as the given location.
 	 * 		|new.getLocation() == location
 	 * 
 	 * @throws InvalidRadiusException
@@ -29,7 +29,7 @@ public class Food extends GameObject{
 	public Food(Location location, Radius radius, World world) throws InvalidLocationException,InvalidRadiusException {
 		super(location, radius, world);
 		
-		if(this.getWorld() != null) { //TODO
+		if(this.getWorld() != null) {
 			if(!this.getWorld().isPassable(this)) {
 				throw new IllegalStateException("Worm placed out of world on initialization.");
 			}

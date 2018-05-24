@@ -631,7 +631,7 @@ public class World {
 //		return true;
 
 //	
-//	//TODO
+//
 //	private boolean edgeBorderCheck(int heightIndex, int widthIndex,Location realWorldLoc) {
 //		if(passableMap[heightIndex][widthIndex].isOnCornerEdge(realWorldLoc)) {
 //			return true;
@@ -648,7 +648,7 @@ public class World {
 //		return false;
 //	}
 
-//	//TODO
+//
 //	private boolean isOnEdge(BoundaryRectangle boundaryRectangle, Location realWorldLoc) {
 //		if(realWorldLoc.getX() == boundaryRectangle.getCenter().getX()) {
 //			return true;
