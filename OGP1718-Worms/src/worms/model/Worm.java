@@ -181,6 +181,9 @@ public class Worm extends GameObject implements IJumpable{
 			this.terminate();
 		}else {
 			this.grow(afterGrowth, modifier);
+			if(!this.getWorld().fullyContains(this)) {
+				this.terminate();
+			}
 			//this.setLocation(afterGrowth);
 		}
 
@@ -806,6 +809,7 @@ public class Worm extends GameObject implements IJumpable{
 			Direction tempDirection = new Direction(this.getDirection().getAngle() + div);
 			Location tempLocation = getFurthestAdjacentLocationInDirection(tempDirection,this.getRadius().getRadius());
 			double distance = Math.sqrt(Math.pow(getX() - tempLocation.getX(),2)+Math.pow(getY() - tempLocation.getY(),2));
+
 			if(tempLocation!=null && !tempLocation.equals(this.getLocation()) && distance >= 0.11) {
 				//double sampleDiv = this.getDirection().getAngle() >= tempDirection.getAngle() ? this.getDirection().getAngle() - tempDirection.getAngle() : tempDirection.getAngle() - this.getDirection().getAngle();
 
@@ -820,9 +824,9 @@ public class Worm extends GameObject implements IJumpable{
 				}
 				double ratio = distance / sampleDiv;
 
-//				if(isAdjacentToTerrain(tempLocation, getRadius(), getWorld())) {
-//					System.out.println(tempLocation + "   distance: "+distance +"    ratio: "+ratio);
-//				}
+				if(isAdjacentToTerrain(tempLocation, getRadius(), getWorld())) {
+				//	System.out.println(tempLocation + "   distance: "+distance +"    ratio: "+ratio);
+				}
 
 				if(ratio >= bestRatio) {
 					bFoundAdjacent = true;
@@ -1006,10 +1010,10 @@ public class Worm extends GameObject implements IJumpable{
 //			if(temp.getDistanceFrom(this.getLocation()) <= this.getRadius().getRadius()*.2) {
 //				continue;
 //			}
-			if(step <= this.getRadius().getRadius()*.2) {
+			if(step <= this.getRadius().getRadius()*.1) {
 				continue;
 			}
-			if(this.getWorld().isPassable(temp,this.getRadius())&& GameObject.isValidWorldLocation(temp, this.getWorld())) {
+			if(this.getWorld().isPassable(temp,this.getRadius())) {
 				if( isAdjacentToTerrain(temp, this.getRadius(), this.getWorld()) ) {
 					finish = temp;
 				}
