@@ -103,7 +103,7 @@ public class Projectile extends GameObject implements IJumpable {
 		if(type == Projectile_Type.RIFLE) {
 			projectileRadius = generateRadiusProjectile(RIFLE_PROJECTILE_MASS);
 			projectileLocation = getProjectileSpawnLocation(worm,projectileRadius);
-			projectileDirection = worm.getDirection(); //TODO to reference or not to reference, that's the question
+			projectileDirection = worm.getDirection(); 
 			projectile = new Projectile(projectileLocation, projectileDirection, projectileRadius, worm.getWorld()) {
 				@Override
 				public int generateHP() {
@@ -113,7 +113,6 @@ public class Projectile extends GameObject implements IJumpable {
 				}			
 				@Override
 				public void hit(Worm worm) {
-					// TODO Auto-generated method stub
 					super.hit(worm);
 				}
 				@Override
@@ -150,7 +149,7 @@ public class Projectile extends GameObject implements IJumpable {
 		}else if(type == Projectile_Type.BAZOOKA) {
 			projectileRadius = generateRadiusProjectile(BAZOOKA_PROJECTILE_MASS);
 			projectileLocation = getProjectileSpawnLocation(worm,projectileRadius);
-			projectileDirection = worm.getDirection(); //TODO to reference or not to reference, that's the question
+			projectileDirection = worm.getDirection();
 			projectile = new Projectile(projectileLocation, projectileDirection, projectileRadius, worm.getWorld()) {
 				@Override
 				public int generateHP() {
@@ -162,7 +161,6 @@ public class Projectile extends GameObject implements IJumpable {
 				}			
 				@Override
 				public void hit(Worm worm) {
-					// TODO Auto-generated method stub
 					super.hit(worm);
 				}
 				@Override
@@ -255,7 +253,7 @@ public class Projectile extends GameObject implements IJumpable {
 		double jumpTime = this.calculateJumpTime();
 		
 		double jumptime = this.getLastPassableJumpStepTime(jumpTime,deltaT);
-//		if(jumptime == 0) { //TODO DOC
+//		if(jumptime == 0) {
 //			throw new IllegalArgumentException("Deltatime and jumpTime too short.");
 //		}
 		
@@ -272,7 +270,7 @@ public class Projectile extends GameObject implements IJumpable {
 	}
 	
 	private double getLastPassableJumpStepTime(double jumpTime, double deltaT) {
-		double lastAdjacentTime = 0.0; //TODO set 0.0
+		double lastAdjacentTime = 0.0;
 		Location wormLoc = new Location(this.jumpStep(lastAdjacentTime));
 		boolean bHitSomething = false;
 		while (this.getWorld().isPassable(wormLoc, this.getRadius()) && this.getWorld().fullyContains(new Circle(wormLoc,this.getRadius()).getBoundingRectangle())) {

@@ -85,7 +85,7 @@ public abstract class GameObject{
 			this.terminate();
 			throw new InvalidLocationException(location);
 		}
-		if(this.getWorld()!= null && !this.getWorld().fullyContains(new Circle(location, this.getRadius()).getBoundingRectangle())) { //TODO UPDATE DOC
+		if(this.getWorld()!= null && !this.getWorld().fullyContains(new Circle(location, this.getRadius()).getBoundingRectangle())) {
 			this.terminate();
 			//throw new InvalidLocationException(location);
 		}
@@ -151,14 +151,12 @@ public abstract class GameObject{
 	 *        radius may be in effect. Minimum radius is always packed in with radius.
 	 * @post Sets the worm its radius to the given radius.
 	 * 		|new.getRadius() == radius
-	 * @post TODO --mass
 	 * @effect This function also changes the mass and thus max Action Points, since
 	 *         a worm's weight depends on it's size.
 	 *     | setMass()
 	 * @throws InvalidRadiusException
 	 *         Whenever the radius is out of bounds or invalid.
 	 *     |!isValidRadius(new.getRadius())
-	 *     TODO DOC
 	 */
 	public void setRadius(Radius radius) throws InvalidRadiusException {
 		if(!isValidRadius(radius)) {
@@ -194,7 +192,7 @@ public abstract class GameObject{
 	 * 		| isValidRadius(new.getRadius())
 	 */
 	@Raw
-	public void grow(Location location, double modifier) throws InvalidRadiusException{ //TODO REWORK
+	public void grow(Location location, double modifier) throws InvalidRadiusException{
 		this.radius = new Radius(this.getRadius().getRadius()*modifier >= this.getRadius().getMinRadius() ? this.getRadius().getRadius()*modifier : this.getRadius().getMinRadius(),this.getRadius().getMinRadius());
 		this.location = location;
 //		if(!isValidRadius(new Radius(this.getRadius().getRadius()*GROWTH_MODIFIER))) {
@@ -203,9 +201,9 @@ public abstract class GameObject{
 //		setRadius(new Radius(this.getRadius().getRadius()*GROWTH_MODIFIER));
 	}
 	
-	public Location nearestLocationAfterGrowing(double modifier) { //TODO
+	public Location nearestLocationAfterGrowing(double modifier) {
 		Radius growthRadius = new Radius(this.getRadius().getRadius()*modifier >= this.getRadius().getMinRadius() ? this.getRadius().getRadius()*modifier : this.getRadius().getMinRadius(),this.getRadius().getMinRadius());
-		Circle passableSurface = new Circle(this.getLocation(),new Radius(0.2*modifier*this.getRadius().getRadius()));//TODO 1.1 * 0.1 or 0.2
+		Circle passableSurface = new Circle(this.getLocation(),new Radius(0.2*modifier*this.getRadius().getRadius()));
 		Rectangle bound = passableSurface.getBoundingRectangle();
 		for (double i = 0; i < bound.getSize().getX(); i+=0.001) {
 			for (double j = 0; j < bound.getSize().getY(); j+=0.001) {
@@ -342,7 +340,7 @@ public abstract class GameObject{
 	 * 		   | 	(location.getY()>= 0 && location.getY() <= this.getWorld().getWorldHeight())
 	 */
 	public static boolean isValidWorldLocation(Location location, World world) {
-		if(world == null) { //TODO update documentation
+		if(world == null) {
 			return isValidLocation(location, world);
 		}
 		if((location.getX()>= 0 && location.getX() <= world.getWorldWidth())
@@ -357,7 +355,9 @@ public abstract class GameObject{
 	/**
 	 * Terminates this gameObject.
 	 * 
-	 * TODO
+	 * @post this object is terminated.
+	 * 		|new.isTerminated == true
+	 * 		|new.getWorld() == null
 	 */
 	public void terminate() {
 		isTerminated = true;

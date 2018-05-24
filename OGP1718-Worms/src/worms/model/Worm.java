@@ -683,7 +683,6 @@ public class Worm extends GameObject implements IJumpable{
 	 * 	The assignment didn't explicitly mention this should be a feature in the current implementation.
 	 * 
 	 */	
-	//TODO WORM CAN ONLY MOVE IN DIR 0-PI
 	public void move() throws InvalidLocationException,IllegalStateException{
 		Direction bestMoveAngle = this.getOptimalMovementAngle();
 		Location newLocation = this.getFurthestLocationInDirection(bestMoveAngle,this.getRadius().getRadius());
@@ -806,7 +805,7 @@ public class Worm extends GameObject implements IJumpable{
 //			return new Direction(this.getDirection().getAngle() + 0.0);	
 //		}
 		
-		for(double div = -0.7875d; div <= 0.7875d; div += 0.0175) { //TODO constants
+		for(double div = -0.7875d; div <= 0.7875d; div += 0.0175) {
 			div = World.roundingHelper(div,5);
 			Direction tempDirection = new Direction(this.getDirection().getAngle() + div);
 			Location tempLocation = getFurthestAdjacentLocationInDirection(tempDirection,this.getRadius().getRadius());
@@ -861,17 +860,17 @@ public class Worm extends GameObject implements IJumpable{
 	 * 			|	in
 	 * 			|		isAdjacentToTerrain(this.getFurthestLocationInDirection(this.getDirection(),this.getRadius().getRadius()), this.getRadius(), this.getWorld()) && distance >= 0.1
 	 */
-	private boolean canMoveStraight() {
-		Location tempLocation = getFurthestLocationInDirection(this.getDirection(),this.getRadius().getRadius());
-		double distance = Math.sqrt(Math.pow(getX() - tempLocation.getX(),2)+Math.pow(getY() - tempLocation.getY(),2));
-		if(isAdjacentToTerrain(tempLocation, this.getRadius(), this.getWorld()) && distance >= 0.1) {
-			return true;
-		}
+//	private boolean canMoveStraight() {
+//		Location tempLocation = getFurthestLocationInDirection(this.getDirection(),this.getRadius().getRadius());
+//		double distance = Math.sqrt(Math.pow(getX() - tempLocation.getX(),2)+Math.pow(getY() - tempLocation.getY(),2));
+//		if(isAdjacentToTerrain(tempLocation, this.getRadius(), this.getWorld()) && distance >= 0.1) {
+//			return true;
+//		}
 //		if(getWorld().isPassable(tempLocation, this.getRadius()) && distance >= 0.1) {
 //			return true;
 //		}
-		return false;
-	}
+//		return false;
+//	}
 
 	/**
 	 * Returns a location based on a given distance traveled and a given direction to travel in.
@@ -914,7 +913,7 @@ public class Worm extends GameObject implements IJumpable{
 		Location finish = this.getLocation();
 		for(double step = this.getRadius().getRadius() * 0.1d; step <= distance; step+=0.1d) {
 			Location temp = getStepDirection(direction,step);
-			if(this.getWorld()!=null) { //TODO DOC
+			if(this.getWorld()!=null) {
 				if(this.getWorld().isPassable(temp,this.getRadius()) && GameObject.isValidWorldLocation(temp, this.getWorld())) {
 					//if(isAdjacentToTerrain(temp, getRadius(), getWorld())) {
 						finish = temp;
@@ -967,7 +966,7 @@ public class Worm extends GameObject implements IJumpable{
 		for(double step = this.getRadius().getRadius() * 0.1d; step <= distance; step+=0.01d) {
 			step = World.roundingHelper(step, 3);
 			Location temp = getStepDirection(direction,step);
-			if(this.getWorld()!=null) { //TODO DOC
+			if(this.getWorld()!=null) {
 				if(this.getWorld().isPassable(temp,this.getRadius()) ) {
 					//if(isAdjacentToTerrain(temp, getRadius(), getWorld())) {
 						finish = temp;
@@ -1426,7 +1425,7 @@ public class Worm extends GameObject implements IJumpable{
 				lastAdjacentLocation = wormLoc;
 				lastAdjacentTime = i;
 			}
-			if(!this.getWorld().isPassable(wormLoc, this.getRadius()) || !this.getWorld().fullyContains(new Circle(wormLoc, getRadius()).getBoundingRectangle())) { //TODO Doc
+			if(!this.getWorld().isPassable(wormLoc, this.getRadius()) || !this.getWorld().fullyContains(new Circle(wormLoc, getRadius()).getBoundingRectangle())) {
 //				if(this.getLocation().getDistanceFrom(wormLoc) < this.getRadius().getRadius()) {
 //					return 0; //THIS WILL CAUSE A CONTROLLED EXCEPTION
 //				}
